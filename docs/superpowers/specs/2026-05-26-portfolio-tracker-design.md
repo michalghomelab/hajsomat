@@ -23,11 +23,14 @@ dziennie zapisuje migawkę (snapshot) wartości portfeli, dzięki czemu można
 - **Waluta bazowa:** PLN (wszystkie sumy i P/L przeliczane do PLN).
 - **Baza:** SQLite na start (migracja do Postgres możliwa później).
 - **Stack:** Rage (Ruby, JSON API) + Svelte/Vite/Tailwind front + Twelve Data API.
+- **Środowisko:** wszystko w Dockerze — nic instalowane natywnie (brak lokalnego
+  Ruby/Node). `docker compose` uruchamia całość lokalnie.
 
 ## Poza zakresem (YAGNI na teraz)
 
 - Logowanie/wielu użytkowników.
 - Sprzedaże i realizacja P/L (FIFO) — schemat gotowy, implementacja później.
+- Prowizje (fee) — kolumna w schemacie, ale logika i UI dopiero później.
 - GPW i krypto.
 - Powiadomienia, alerty cenowe.
 - Dywidendy, splity, podatki.
@@ -41,7 +44,8 @@ dziennie zapisuje migawkę (snapshot) wartości portfeli, dzięki czemu można
   Przy nawet 50 instrumentach → ~156 kredytów/dzień, z dużym zapasem.
 - **Endpointy:** `/quote` (cena bieżąca; batch przez `symbol=A,B,C`),
   `/exchange_rate` lub `/price` dla par walutowych (USD/PLN, EUR/PLN).
-- **Klucz API:** trzymany w zmiennej środowiskowej `TWELVE_DATA_API_KEY`.
+- **Klucz API:** użytkownik ma już konto/klucz; trzymany w `TWELVE_DATA_API_KEY`
+  (plik `.env` poza gitem, w repo `.env.example` z placeholderem).
 - **Mapowanie tickerów:** europejskie ETF-y wymagają sufiksu giełdy
   (np. `VWCE:XETR`). Pole `exchange`/`mic` na instrumencie pozwala zbudować
   poprawny symbol. Pokrycie konkretnych tickerów weryfikujemy przy
@@ -51,8 +55,8 @@ dziennie zapisuje migawkę (snapshot) wartości portfeli, dzięki czemu można
 
 ### Backend (Rage, JSON API)
 
-Warstwy: kontrolery (cienkie) → serwisy (logika) → modele (ActiveRecord lub
-Sequel; wybór przy implementacji, domyślnie ActiveRecord ze SQLite).
+Warstwy: kontrolery (cienkie) → serwisy (logika) → modele (**Sequel** ze SQLite;
+migracje przez `Sequel.migration`).
 
 **Modele / tabele:**
 
@@ -62,7 +66,8 @@ Sequel; wybór przy implementacji, domyślnie ActiveRecord ze SQLite).
   `last_price`, `last_price_at`. Współdzielone między portfelami.
 - `transactions` — `id`, `portfolio_id`, `instrument_id`, `kind`
   (buy/sell — MVP tylko buy), `quantity`, `price`, `currency`, `fee`
-  (opcjonalnie), `executed_at`, `created_at`.
+  (kolumna istnieje, ale **MVP jej nie używa** — UI i wycena ignorują),
+  `executed_at`, `created_at`.
 - `fx_rates` — `id`, `base` (np. USD), `quote` (PLN), `rate`, `fetched_at`.
   Trzymamy najświeższy kurs per para; historia opcjonalnie.
 - `portfolio_snapshots` — `id`, `portfolio_id`, `date`, `total_value_pln`,
@@ -107,6 +112,17 @@ Sequel; wybór przy implementacji, domyślnie ActiveRecord ze SQLite).
 - Każde odpalenie woła `RefreshService`. Błędy pojedynczych instrumentów nie
   przerywają całości; nieudane fetch-e mogą być ponawiane przez
   `Rage::Deferred` (retry z backoffem) — opcjonalne usprawnienie.
+
+### Środowisko (Docker)
+
+- Nic nie instalujemy natywnie — Ruby i Node żyją wyłącznie w obrazach.
+- `docker-compose.yml` z usługami:
+  - `api` — obraz z Ruby + Rage, montuje kod, eksponuje port API.
+  - `web` — obraz z Node + Vite dev server (Svelte/Tailwind), proxy `/api` → `api`.
+  - SQLite jako plik na zamontowanym wolumenie (współdzielony stan między
+    restartami). Brak osobnego kontenera bazy.
+- Scheduler (rufus) działa w procesie `api`, więc nie wymaga osobnej usługi.
+- Klucz `TWELVE_DATA_API_KEY` wstrzykiwany przez env / plik `.env` (poza gitem).
 
 ### Frontend (Svelte + Vite + Tailwind)
 
@@ -160,7 +176,6 @@ Sequel; wybór przy implementacji, domyślnie ActiveRecord ze SQLite).
 
 ## Otwarte kwestie do rozstrzygnięcia w implementacji
 
-- ActiveRecord vs Sequel ze SQLite w Rage (domyślnie ActiveRecord).
 - Dokładne pory cron (strefa czasu, dni handlowe).
 - Biblioteka wykresów na froncie.
 - Czy blokować zapis transakcji dla nierozpoznanego tickera (domyślnie tak).
