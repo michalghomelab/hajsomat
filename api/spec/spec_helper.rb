@@ -7,6 +7,7 @@ DB = Sequel.connect(ENV["DATABASE_URL"])
 Sequel.extension :migration
 Sequel::Migrator.run(DB, File.expand_path("../db/migrations", __dir__))
 $LOAD_PATH.unshift File.expand_path("../app/models", __dir__)
+$LOAD_PATH.unshift File.expand_path("../app/services", __dir__)
 
 RSpec.configure do |config|
   config.around(:each) do |example|
