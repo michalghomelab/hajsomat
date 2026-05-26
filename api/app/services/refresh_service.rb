@@ -1,7 +1,7 @@
-require "market_data/twelve_data_client"
+require 'market_data/twelve_data_client'
 
 class RefreshService
-  BASE_CURRENCY = "PLN"
+  BASE_CURRENCY = 'PLN'.freeze
 
   def initialize(client: MarketData::TwelveDataClient.new)
     @client = client
@@ -23,12 +23,14 @@ class RefreshService
 
   def update_prices(instruments)
     return 0 if instruments.empty?
+
     by_td = instruments.to_h { |i| [i.td_symbol, i] }
     prices = @client.prices(by_td.keys)
     updated = 0
     prices.each do |td_symbol, price|
       inst = by_td[td_symbol]
       next unless inst
+
       inst.update(last_price: price, last_price_at: Time.now)
       updated += 1
     end
