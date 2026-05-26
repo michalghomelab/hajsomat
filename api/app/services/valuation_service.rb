@@ -14,7 +14,7 @@ class ValuationService
       currency = meta[:currency]
       quantity = txns.sum(BigDecimal(0)) { |t| t.quantity }
       cost_native = txns.sum(BigDecimal(0)) { |t| t.quantity * t.price }
-      avg_price = quantity.zero? ? BigDecimal(0) : cost_native / quantity
+      avg_price = quantity.zero? ? BigDecimal(0) : (cost_native / quantity).round(6, half: :up)
       last_price = meta[:last_price]
       fx = fx_to_pln[currency]
 

@@ -63,4 +63,25 @@ RSpec.describe ValuationService do
     totals = described_class.totals(described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx))
     expect(totals[:market_value_pln]).to eq(bd(0))
   end
+
+  it "leaves all PLN fields nil when the FX rate is missing" do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
+    instruments = { 1 => { symbol: "X", currency: "USD", last_price: bd(15) } }
+    fx = {} # no USD rate
+    p = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx).first
+    expect(p.cost_pln).to be_nil
+    expect(p.market_value_pln).to be_nil
+    expect(p.pnl_pln).to be_nil
+    # native fields still computed
+    expect(p.market_value_native).to eq(bd(15))
+    expect(p.pnl_native).to eq(bd(5))
+  end
+
+  it "returns empty positions for empty transactions" do
+    expect(described_class.positions(transactions: [], instruments_by_id: {}, fx_to_pln: {})).to eq([])
+  end
+
+  it "returns zero totals for empty positions" do
+    expect(described_class.totals([])[:market_value_pln]).to eq(bd(0))
+  end
 end
