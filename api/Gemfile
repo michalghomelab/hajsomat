@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 ruby '~> 3.3'
 
+gem 'dry-configurable'
 gem 'dry-validation'
 gem 'rage-rb'
 gem 'rufus-scheduler'
@@ -8,6 +9,7 @@ gem 'sequel'
 gem 'sqlite3'
 
 group :development, :test do
+  gem 'rack-test'
   gem 'rspec'
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false

@@ -1,8 +1,6 @@
 require 'market_data/twelve_data_client'
 
 class RefreshService
-  BASE_CURRENCY = 'PLN'.freeze
-
   def initialize(client: MarketData::TwelveDataClient.new)
     @client = client
   end
@@ -38,11 +36,15 @@ class RefreshService
   end
 
   def update_fx(instruments)
-    currencies = instruments.map(&:currency).uniq.reject { |c| c == BASE_CURRENCY }
+    currencies = instruments.map(&:currency).uniq.reject { |c| c == base_currency }
     currencies.each do |cur|
-      rate = @client.fx_rate(cur, BASE_CURRENCY)
-      FxRate.upsert_rate(cur, BASE_CURRENCY, rate)
+      rate = @client.fx_rate(cur, base_currency)
+      FxRate.upsert_rate(cur, base_currency, rate)
     end
     currencies.size
+  end
+
+  def base_currency
+    AppConfig.config.base_currency
   end
 end

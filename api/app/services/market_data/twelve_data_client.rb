@@ -5,7 +5,7 @@ require 'uri'
 
 module MarketData
   class TwelveDataClient
-    def initialize(api_key: ENV.fetch('TWELVE_DATA_API_KEY'), http_base: 'https://api.twelvedata.com')
+    def initialize(api_key: AppConfig.config.twelve_data.api_key, http_base: AppConfig.config.twelve_data.base_url)
       @api_key = api_key
       @http_base = http_base
     end

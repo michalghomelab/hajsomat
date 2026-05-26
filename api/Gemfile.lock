@@ -172,7 +172,9 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  dry-configurable
   dry-validation
+  rack-test
   rage-rb
   rspec
   rubocop

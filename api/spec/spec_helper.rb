@@ -2,6 +2,7 @@ ENV['DATABASE_URL'] = 'sqlite::memory:'
 require 'webmock/rspec'
 require 'sequel'
 require 'bigdecimal'
+require_relative '../config/app_config'
 
 DB = Sequel.connect(ENV.fetch('DATABASE_URL', nil))
 Sequel.extension :migration

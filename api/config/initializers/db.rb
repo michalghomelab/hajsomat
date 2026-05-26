@@ -1,8 +1,10 @@
-require "sequel"
+require 'sequel'
+require_relative '../app_config'
 
-DB = Sequel.connect(ENV.fetch("DATABASE_URL", "sqlite://db/portfolio.sqlite3"))
-DB.run("PRAGMA foreign_keys = ON") if DB.adapter_scheme == :sqlite
-
-Sequel.extension :migration
-migrations_path = File.expand_path("../../db/migrations", __dir__)
-Sequel::Migrator.run(DB, migrations_path) if Dir.exist?(migrations_path)
+unless defined?(DB)
+  DB = Sequel.connect(AppConfig.config.database_url)
+  DB.run('PRAGMA foreign_keys = ON') if DB.adapter_scheme == :sqlite
+  Sequel.extension :migration
+  migrations_path = File.expand_path('../../db/migrations', __dir__)
+  Sequel::Migrator.run(DB, migrations_path) if Dir.exist?(migrations_path)
+end
