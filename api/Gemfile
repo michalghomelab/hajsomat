@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 ruby '~> 3.3'
 
+gem 'dry-validation'
 gem 'rage-rb'
 gem 'rufus-scheduler'
 gem 'sequel'

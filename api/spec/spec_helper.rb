@@ -6,6 +6,7 @@ require 'bigdecimal'
 DB = Sequel.connect(ENV.fetch('DATABASE_URL', nil))
 Sequel.extension :migration
 Sequel::Migrator.run(DB, File.expand_path('../db/migrations', __dir__))
+$LOAD_PATH.unshift File.expand_path('../app/contracts', __dir__)
 $LOAD_PATH.unshift File.expand_path('../app/models', __dir__)
 $LOAD_PATH.unshift File.expand_path('../app/services', __dir__)
 
