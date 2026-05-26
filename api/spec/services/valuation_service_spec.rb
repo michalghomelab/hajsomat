@@ -26,4 +26,41 @@ RSpec.describe ValuationService do
     expect(p.cost_pln).to eq(bd(8800))
     expect(p.pnl_pln).to eq(bd(3200))
   end
+
+  it "sums totals across USD and EUR positions" do
+    txns = [
+      Txn.new(instrument_id: 1, quantity: bd(10), price: bd(100)), # USD
+      Txn.new(instrument_id: 2, quantity: bd(5),  price: bd(50)),  # EUR
+    ]
+    instruments = {
+      1 => { symbol: "AAPL", currency: "USD", last_price: bd(120) },
+      2 => { symbol: "VWCE", currency: "EUR", last_price: bd(60) },
+    }
+    fx = { "USD" => bd(4), "EUR" => bd(4.3), "PLN" => bd(1) }
+
+    pos = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
+    totals = described_class.totals(pos)
+    # USD: value 1200*4=4800, cost 1000*4=4000 ; EUR: value 300*4.3=1290, cost 250*4.3=1075
+    expect(totals[:market_value_pln]).to eq(bd(6090))
+    expect(totals[:cost_pln]).to eq(bd(5075))
+    expect(totals[:pnl_pln]).to eq(bd(1015))
+  end
+
+  it "leaves PLN fields nil when last_price is missing" do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
+    instruments = { 1 => { symbol: "X", currency: "USD", last_price: nil } }
+    fx = { "USD" => bd(4), "PLN" => bd(1) }
+    p = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx).first
+    expect(p.market_value_native).to be_nil
+    expect(p.pnl_pln).to be_nil
+    expect(p.cost_pln).to eq(bd(40)) # cost still converts with FX
+  end
+
+  it "treats nil PLN values as zero in totals" do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
+    instruments = { 1 => { symbol: "X", currency: "USD", last_price: nil } }
+    fx = { "USD" => bd(4), "PLN" => bd(1) }
+    totals = described_class.totals(described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx))
+    expect(totals[:market_value_pln]).to eq(bd(0))
+  end
 end
