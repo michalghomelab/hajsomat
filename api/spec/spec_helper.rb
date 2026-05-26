@@ -1,0 +1,15 @@
+ENV["DATABASE_URL"] = "sqlite::memory:"
+require "webmock/rspec"
+require "sequel"
+require "bigdecimal"
+
+DB = Sequel.connect(ENV["DATABASE_URL"])
+Sequel.extension :migration
+Sequel::Migrator.run(DB, File.expand_path("../db/migrations", __dir__))
+
+RSpec.configure do |config|
+  config.around(:each) do |example|
+    DB.transaction(rollback: :always) { example.run }
+  end
+  config.expect_with(:rspec) { |c| c.syntax = :expect }
+end
