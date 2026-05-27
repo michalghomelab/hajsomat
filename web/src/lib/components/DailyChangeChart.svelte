@@ -68,11 +68,14 @@
     };
   });
 
-  // Push new data in place — no teardown, so the page doesn't jump or flicker.
+  // Push new data in place. updateOptions (not updateSeries) so the bar geometry
+  // and x-axis range fully recompute when the point count changes — otherwise the
+  // bars render shifted/with stale hit areas until a page reload. No teardown, so
+  // the page still doesn't jump.
   $effect(() => {
     const data = snapshots ?? [];
     if (!chart) return;
-    chart.updateSeries(series(data));
+    chart.updateOptions({ series: series(data) }, false, true);
     detachZoom?.();
     detachZoom = attachWheelZoom(chart, el);
   });
