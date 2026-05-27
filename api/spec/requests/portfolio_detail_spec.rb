@@ -13,7 +13,7 @@ RSpec.describe 'Portfolio detail API', type: :request do
     body = response.parsed_body
     expect(body['name']).to eq('Main')
     expect(body['positions'].first['symbol']).to eq('AAPL')
-    expect(body['totals']['market_value_pln']).to eq('0.6e4')
+    expect(body['totals']['market_value_pln']).to eq('6000.0')
     expect(body['totals']['incomplete']).to be(false)
   end
 
@@ -26,6 +26,6 @@ RSpec.describe 'Portfolio detail API', type: :request do
     expect(response.status).to eq(200)
     row = response.parsed_body.first
     expect(row['date']).to eq('2026-05-26')
-    expect(row['total_value_pln']).to eq('0.1e3')
+    expect(row['total_value_pln']).to eq('100.0')
   end
 end

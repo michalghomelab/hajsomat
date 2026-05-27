@@ -34,8 +34,8 @@ class PortfoliosController < RageController::API
   def snapshots
     rows = PortfolioSnapshot.where(portfolio_id: params[:id].to_i).order(:date).all
     render json: rows.map { |s|
-      { date: s.date.to_s, total_value_pln: s.total_value_pln.to_s,
-        total_cost_pln: s.total_cost_pln.to_s, pnl_pln: s.pnl_pln.to_s }
+      { date: s.date.to_s, total_value_pln: decimal_string(s.total_value_pln),
+        total_cost_pln: decimal_string(s.total_cost_pln), pnl_pln: decimal_string(s.pnl_pln) }
     }
   end
 
@@ -55,15 +55,20 @@ class PortfoliosController < RageController::API
   end
 
   def position_json(pos)
-    pos.to_h.transform_values { |v| v.is_a?(BigDecimal) ? v.to_s : v }
+    pos.to_h.transform_values { |v| decimal_string(v) }
   end
 
   def serialize_totals(totals)
     {
-      market_value_pln: totals[:market_value_pln].to_s,
-      cost_pln: totals[:cost_pln].to_s,
-      pnl_pln: totals[:pnl_pln].to_s,
+      market_value_pln: decimal_string(totals[:market_value_pln]),
+      cost_pln: decimal_string(totals[:cost_pln]),
+      pnl_pln: decimal_string(totals[:pnl_pln]),
       incomplete: totals[:incomplete]
     }
+  end
+
+  # Plain decimal notation ("6000.0"), not BigDecimal's default engineering form ("0.6e4").
+  def decimal_string(value)
+    value.is_a?(BigDecimal) ? value.to_s('F') : value
   end
 end
