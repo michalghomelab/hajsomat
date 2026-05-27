@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [svelte()],
   server: {
     host: true,
+    allowedHosts: ["lvh.me", ".lvh.me", "localhost"],
     proxy: { "/api": "http://api:3000" },
   },
   test: { environment: "jsdom", globals: true },
