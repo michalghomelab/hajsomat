@@ -10,14 +10,16 @@
   async function submit() {
     error = "";
     if (!selected) { error = "Wybierz instrument z listy"; return; }
+    if (!executedAt) { error = "Podaj datę zakupu"; return; }
+    if (!quantity || !price) { error = "Podaj ilość i cenę"; return; }
     try {
       await api.addTransaction(portfolioId, {
         symbol: selected.symbol, mic: selected.mic, currency: selected.currency,
-        quantity, price, executed_at: new Date(executedAt).toISOString(),
+        quantity, price, executed_at: executedAt,
       });
       query = ""; selected = null; quantity = ""; price = ""; executedAt = "";
       onAdded();
-    } catch (e) { error = "Nie udało się zapisać transakcji"; }
+    } catch (e) { error = e.message || "Nie udało się zapisać transakcji"; }
   }
 </script>
 

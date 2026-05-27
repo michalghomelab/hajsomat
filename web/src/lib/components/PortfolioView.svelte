@@ -4,6 +4,7 @@
   import { money, pnlClass } from "../format.js";
   import TransactionForm from "./TransactionForm.svelte";
   import PnlChart from "./PnlChart.svelte";
+  import DailyChangeChart from "./DailyChangeChart.svelte";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]);
   let refreshError = $state(""); let refreshing = $state(false);
@@ -111,6 +112,10 @@
   </table>
 
   <PnlChart {snapshots} />
+  <div>
+    <h2 class="text-sm font-semibold text-gray-600 mb-1">Zmiana dzień do dnia</h2>
+    <DailyChangeChart {snapshots} />
+  </div>
   <TransactionForm portfolioId={id} onAdded={load} />
 </div>
 {/if}
