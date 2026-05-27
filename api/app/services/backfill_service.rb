@@ -6,16 +6,16 @@ require 'bigdecimal'
 class BackfillService
   extend Callable
 
-  def initialize(client: MarketData::YahooClient.new, range: '1y')
+  def initialize(client: MarketData::YahooClient.new)
     @client = client
-    @range = range
   end
 
   def call
     @instruments = Instrument.all
-    return { snapshots_written: 0 } if @instruments.empty?
+    @from = earliest_purchase
+    return { snapshots_written: 0 } if @instruments.empty? || @from.nil?
 
-    @price_hist = @instruments.to_h { |i| [i.id, Series.new(@client.history(i.symbol, range: @range))] }
+    @price_hist = @instruments.to_h { |i| [i.id, Series.new(@client.history(i.symbol, from: @from))] }
     @fx_hist = fx_histories
     dates = snapshot_dates
 
@@ -24,6 +24,11 @@ class BackfillService
   end
 
   private
+
+  def earliest_purchase
+    ts = Transaction.min(:executed_at)
+    ts && to_date(ts)
+  end
 
   def write_all(dates)
     Portfolio.all.sum do |portfolio|
@@ -36,15 +41,11 @@ class BackfillService
   def fx_histories
     base = AppConfig.config.base_currency
     currencies = @instruments.map(&:currency).uniq.reject { |c| c == base }
-    currencies.to_h { |cur| [cur, Series.new(@client.history("#{cur}#{base}=X", range: @range))] }
+    currencies.to_h { |cur| [cur, Series.new(@client.history("#{cur}#{base}=X", from: @from))] }
   end
 
   def snapshot_dates
-    earliest = Transaction.min(:executed_at)
-    return [] unless earliest
-
-    earliest = to_date(earliest)
-    @price_hist.values.flat_map(&:dates).uniq.select { |d| d >= earliest && d < Date.today }.sort
+    @price_hist.values.flat_map(&:dates).uniq.select { |d| d >= @from && d < Date.today }.sort
   end
 
   def write_snapshot(portfolio, date, txns)

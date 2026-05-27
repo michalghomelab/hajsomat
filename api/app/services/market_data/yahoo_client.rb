@@ -39,8 +39,8 @@ module MarketData
     end
 
     # symbol -> { Date => BigDecimal(close) } daily history over the given range
-    def history(symbol, range: '1y')
-      body = get("/v8/finance/chart/#{URI.encode_www_form_component(symbol)}", interval: '1d', range: range)
+    def history(symbol, from: nil, range: '1y')
+      body = get("/v8/finance/chart/#{URI.encode_www_form_component(symbol)}", history_params(from, range))
       result = body&.dig('chart', 'result', 0)
       return {} unless result
 
@@ -61,6 +61,14 @@ module MarketData
     end
 
     private
+
+    # Yahoo chart accepts either an explicit period1/period2 window (unix seconds)
+    # or a relative `range` string. Prefer the window when a start date is given.
+    def history_params(from, range)
+      return { interval: '1d', range: range } unless from
+
+      { interval: '1d', period1: from.to_time.to_i, period2: (Time.now + 86_400).to_i }
+    end
 
     def get(path, params)
       uri = URI("#{@http_base}#{path}")

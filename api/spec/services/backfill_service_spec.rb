@@ -6,7 +6,7 @@ RSpec.describe BackfillService do
   let(:inst) { Instrument.create(symbol: 'SXR8.DE', currency: 'EUR') }
   let(:fake_client) do
     Class.new do
-      def history(symbol, range:) # rubocop:disable Lint/UnusedMethodArgument
+      def history(symbol, **_)
         if symbol == 'EURPLN=X'
           { Date.new(2026, 2, 12) => BigDecimal('4'), Date.new(2026, 2, 13) => BigDecimal('4') }
         else
