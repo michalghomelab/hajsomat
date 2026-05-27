@@ -12,7 +12,7 @@
     rolling = true;
     try {
       const s = await api.schedule();
-      nextAt = new Date(s.next_snapshot_at).getTime();
+      nextAt = new Date(s.next_refresh_at).getTime();
     } catch {
       nextAt = null;
     } finally {
@@ -42,7 +42,7 @@
 </script>
 
 {#if label}
-  <span class="text-xs text-base-content/60 tabular-nums" title="Następny dzienny snapshot">
-    ⏱ następny snapshot za {label}
+  <span class="text-xs text-base-content/60 tabular-nums" title="Następne automatyczne odświeżenie cen">
+    ⏱ odświeżenie cen za {label}
   </span>
 {/if}
