@@ -30,6 +30,26 @@ RSpec.describe MarketData::TwelveDataClient do
     expect(client.prices(['BAD'])).to eq({})
   end
 
+  it 'raises a typed error on a rate-limit (429) envelope' do
+    stub_request(:get, 'https://api.twelvedata.com/price')
+      .with(query: { symbol: 'AAPL', apikey: 'TESTKEY' })
+      .to_return(status: 200, body: '{"code":429,"status":"error","message":"out of API credits"}',
+                 headers: { 'Content-Type' => 'application/json' })
+
+    expect { client.prices(['AAPL']) }
+      .to raise_error(MarketData::TwelveDataClient::Error, /out of API credits/)
+  end
+
+  it 'raises a typed error on a bad-key (401) envelope' do
+    stub_request(:get, 'https://api.twelvedata.com/exchange_rate')
+      .with(query: { symbol: 'USD/PLN', apikey: 'TESTKEY' })
+      .to_return(status: 200, body: '{"code":401,"status":"error","message":"apikey is incorrect"}',
+                 headers: { 'Content-Type' => 'application/json' })
+
+    expect { client.fx_rate('USD', 'PLN') }
+      .to raise_error(MarketData::TwelveDataClient::Error, /apikey is incorrect/)
+  end
+
   it 'parses an exchange rate' do
     stub_request(:get, 'https://api.twelvedata.com/exchange_rate')
       .with(query: { symbol: 'USD/PLN', apikey: 'TESTKEY' })

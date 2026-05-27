@@ -3,6 +3,7 @@ Rage.routes.draw do
     get 'portfolios', to: 'portfolios#index'
     post 'portfolios', to: 'portfolios#create'
     get 'portfolios/:id', to: 'portfolios#show'
+    patch 'portfolios/:id', to: 'portfolios#update'
     get 'portfolios/:id/snapshots', to: 'portfolios#snapshots'
     post 'portfolios/:id/transactions', to: 'transactions#create'
     delete 'transactions/:id', to: 'transactions#destroy'

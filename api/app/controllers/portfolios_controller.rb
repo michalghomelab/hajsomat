@@ -31,6 +31,17 @@ class PortfoliosController < RageController::API
     render json: portfolio_json(portfolio), status: :created
   end
 
+  def update
+    portfolio = Portfolio[params[:id].to_i]
+    return render json: { error: 'not found' }, status: :not_found unless portfolio
+
+    result = PortfolioContract.new.call(name: params[:name])
+    return render json: { errors: result.errors.to_h }, status: 422 if result.failure?
+
+    portfolio.update(name: result[:name])
+    render json: portfolio_json(portfolio)
+  end
+
   def snapshots
     rows = PortfolioSnapshot.where(portfolio_id: params[:id].to_i).order(:date).all
     render json: rows.map { |s|

@@ -5,6 +5,12 @@ require 'uri'
 
 module MarketData
   class TwelveDataClient
+    # Raised for global provider failures worth surfacing (bad API key, rate limit).
+    class Error < StandardError; end
+
+    # Twelve Data error codes that affect the whole request, not a single symbol.
+    GLOBAL_ERROR_CODES = [401, 429].freeze
+
     def initialize(api_key: AppConfig.config.twelve_data.api_key, http_base: AppConfig.config.twelve_data.base_url)
       @api_key = api_key
       @http_base = http_base
@@ -46,9 +52,14 @@ module MarketData
       uri = URI("#{@http_base}#{path}")
       uri.query = URI.encode_www_form(params.merge(apikey: @api_key))
       res = Net::HTTP.get_response(uri)
-      raise "Twelve Data #{path} returned HTTP #{res.code}" unless res.is_a?(Net::HTTPSuccess)
+      raise Error, "Twelve Data #{path} returned HTTP #{res.code}" unless res.is_a?(Net::HTTPSuccess)
 
-      JSON.parse(res.body)
+      body = JSON.parse(res.body)
+      if body.is_a?(Hash) && body['status'] == 'error' && GLOBAL_ERROR_CODES.include?(body['code'])
+        raise Error, "Twelve Data: #{body['message']}"
+      end
+
+      body
     end
   end
 end

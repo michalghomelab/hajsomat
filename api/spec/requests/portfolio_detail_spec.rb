@@ -17,6 +17,21 @@ RSpec.describe 'Portfolio detail API', type: :request do
     expect(body['totals']['incomplete']).to be(false)
   end
 
+  it 'renames a portfolio' do
+    portfolio = Portfolio.create(name: 'Old')
+    patch "/api/portfolios/#{portfolio.id}", params: { name: 'IKE Plus' }, as: :json
+    expect(response.status).to eq(200)
+    expect(response.parsed_body['name']).to eq('IKE Plus')
+    expect(Portfolio[portfolio.id].name).to eq('IKE Plus')
+  end
+
+  it 'rejects renaming to a blank name' do
+    portfolio = Portfolio.create(name: 'Keep')
+    patch "/api/portfolios/#{portfolio.id}", params: { name: '' }, as: :json
+    expect(response.status).to eq(422)
+    expect(Portfolio[portfolio.id].name).to eq('Keep')
+  end
+
   it 'returns snapshots for a portfolio' do
     portfolio = Portfolio.create(name: 'Main')
     PortfolioSnapshot.create(portfolio_id: portfolio.id, date: Date.new(2026, 5, 26),
