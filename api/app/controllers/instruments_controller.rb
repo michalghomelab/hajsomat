@@ -1,5 +1,5 @@
 class InstrumentsController < RageController::API
-  def search
+  def index
     query = params[:q].to_s
     return render json: [] if query.strip.empty?
 

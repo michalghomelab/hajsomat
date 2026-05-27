@@ -53,7 +53,8 @@ class BackfillService
 
   def instruments_on(date)
     @instruments.to_h do |i|
-      [i.id, { symbol: i.symbol, currency: i.currency, last_price: value_on(@price_hist[i.id], date) }]
+      [i.id, InstrumentPrice.new(symbol: i.symbol, currency: i.currency,
+                                 last_price: value_on(@price_hist[i.id], date), last_price_at: nil)]
     end
   end
 

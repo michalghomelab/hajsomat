@@ -5,12 +5,16 @@ Txn = Struct.new(:instrument_id, :quantity, :price, :fx_rate, keyword_init: true
 RSpec.describe ValuationService do
   def bd(val) = BigDecimal(val.to_s)
 
+  def inst(symbol:, currency:, last_price:)
+    InstrumentPrice.new(symbol: symbol, currency: currency, last_price: last_price, last_price_at: nil)
+  end
+
   it 'aggregates two buys of one USD instrument and converts to PLN' do
     txns = [
       Txn.new(instrument_id: 1, quantity: bd(10), price: bd(100)),
       Txn.new(instrument_id: 1, quantity: bd(10), price: bd(120))
     ]
-    instruments = { 1 => { symbol: 'AAPL', currency: 'USD', last_price: bd(150) } }
+    instruments = { 1 => inst(symbol: 'AAPL', currency: 'USD', last_price: bd(150)) }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
 
     pos = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
@@ -32,8 +36,8 @@ RSpec.describe ValuationService do
       Txn.new(instrument_id: 2, quantity: bd(5),  price: bd(50)) # EUR
     ]
     instruments = {
-      1 => { symbol: 'AAPL', currency: 'USD', last_price: bd(120) },
-      2 => { symbol: 'VWCE', currency: 'EUR', last_price: bd(60) }
+      1 => inst(symbol: 'AAPL', currency: 'USD', last_price: bd(120)),
+      2 => inst(symbol: 'VWCE', currency: 'EUR', last_price: bd(60))
     }
     fx = { 'USD' => bd(4), 'EUR' => bd(4.3), 'PLN' => bd(1) }
 
@@ -47,7 +51,7 @@ RSpec.describe ValuationService do
 
   it 'leaves PLN fields nil when last_price is missing' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
-    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: nil } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'USD', last_price: nil) }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
     p = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx).first
     expect(p.market_value_native).to be_nil
@@ -57,7 +61,7 @@ RSpec.describe ValuationService do
 
   it 'treats nil PLN values as zero in totals' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
-    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: nil } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'USD', last_price: nil) }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
     totals = described_class.totals(described_class.positions(transactions: txns, instruments_by_id: instruments,
                                                               fx_to_pln: fx))
@@ -66,7 +70,7 @@ RSpec.describe ValuationService do
 
   it 'leaves all PLN fields nil when the FX rate is missing' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
-    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: bd(15) } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'USD', last_price: bd(15)) }
     fx = {} # no USD rate
     p = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx).first
     expect(p.cost_pln).to be_nil
@@ -87,7 +91,7 @@ RSpec.describe ValuationService do
 
   it 'flags totals as incomplete when a position lacks a market value' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
-    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: nil } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'USD', last_price: nil) }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
     positions = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
     expect(described_class.totals(positions)[:incomplete]).to be(true)
@@ -95,7 +99,7 @@ RSpec.describe ValuationService do
 
   it 'flags totals as complete when all positions are priced' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
-    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: bd(12) } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'USD', last_price: bd(12)) }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
     positions = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
     expect(described_class.totals(positions)[:incomplete]).to be(false)
@@ -103,7 +107,7 @@ RSpec.describe ValuationService do
 
   it 'applies the FX margin round-trip (cost up, value down)' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(100))]
-    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: bd(100) } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'USD', last_price: bd(100)) }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
     p = described_class.positions(transactions: txns, instruments_by_id: instruments,
                                   fx_to_pln: fx, fx_margin: '0.005').first
@@ -114,7 +118,7 @@ RSpec.describe ValuationService do
 
   it 'uses the per-transaction historical FX rate for cost, current rate for value' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(2), price: bd(100), fx_rate: bd(4))]
-    instruments = { 1 => { symbol: 'X', currency: 'EUR', last_price: bd(110) } }
+    instruments = { 1 => inst(symbol: 'X', currency: 'EUR', last_price: bd(110)) }
     fx = { 'EUR' => bd(4.3), 'PLN' => bd(1) } # current rate higher than purchase rate
     p = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx).first
     expect(p.cost_pln).to eq(bd(800))          # 2*100*4 (NBP rate at purchase)
@@ -124,7 +128,7 @@ RSpec.describe ValuationService do
 
   it 'does not apply the FX margin to base-currency positions' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(100))]
-    instruments = { 1 => { symbol: 'P', currency: 'PLN', last_price: bd(110) } }
+    instruments = { 1 => inst(symbol: 'P', currency: 'PLN', last_price: bd(110)) }
     fx = { 'PLN' => bd(1) }
     p = described_class.positions(transactions: txns, instruments_by_id: instruments,
                                   fx_to_pln: fx, fx_margin: '0.005').first

@@ -16,7 +16,7 @@ export const api = {
     fetch("/api/portfolios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }).then(json),
   renamePortfolio: (id, name) =>
     fetch(`/api/portfolios/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }).then(json),
-  searchInstruments: (q) => fetch(`/api/instruments/search?q=${encodeURIComponent(q)}`).then(json),
+  searchInstruments: (q) => fetch(`/api/instruments?q=${encodeURIComponent(q)}`).then(json),
   addTransaction: (portfolioId, payload) =>
     fetch(`/api/portfolios/${portfolioId}/transactions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(json),
   deleteTransaction: (id) =>

@@ -1,21 +1,18 @@
 class PortfoliosController < RageController::API
   def index
+    price_map = InstrumentPriceMap.call
     fx = SnapshotService.fx_to_pln
-    instruments_by_id = instruments_map
-    payload = Portfolio.all.map do |portfolio|
-      positions = positions_for(portfolio, instruments_by_id, fx)
-      portfolio_json(portfolio)
-        .merge(serialize_totals(ValuationService.totals(positions)))
-        .merge(last_updated: last_update_for(positions, instruments_by_id))
-    end
-    render json: payload
+    render json: Portfolio.all.map { |p| PortfolioPresenter.new(p, positions(p, price_map, fx), price_map).summary }
   end
 
   def show
     portfolio = Portfolio[params[:id].to_i]
     return render json: { error: 'not found' }, status: :not_found unless portfolio
 
-    render json: portfolio_json(portfolio).merge(detail(portfolio))
+    price_map = InstrumentPriceMap.call
+    txns = buys(portfolio)
+    positions = value(txns, price_map)
+    render json: PortfolioPresenter.new(portfolio, positions, price_map).detail(txns.group_by(&:instrument_id))
   end
 
   def create
@@ -24,8 +21,7 @@ class PortfoliosController < RageController::API
     result = PortfolioContract.new.call(input)
     return render json: { errors: result.errors.to_h }, status: 422 if result.failure?
 
-    portfolio = Portfolio.create(result.to_h)
-    render json: portfolio_json(portfolio), status: :created
+    render json: PortfolioPresenter.new(Portfolio.create(result.to_h), [], {}).summary, status: :created
   end
 
   def update
@@ -36,84 +32,21 @@ class PortfoliosController < RageController::API
     return render json: { errors: result.errors.to_h }, status: 422 if result.failure?
 
     portfolio.update(name: result[:name])
-    render json: portfolio_json(portfolio)
-  end
-
-  def snapshots
-    rows = PortfolioSnapshot.where(portfolio_id: params[:id].to_i).order(:date).all
-    render json: rows.map { |s|
-      { date: s.date.to_s, total_value_pln: decimal_string(s.total_value_pln),
-        total_cost_pln: decimal_string(s.total_cost_pln), pnl_pln: decimal_string(s.pnl_pln) }
-    }
+    render json: PortfolioPresenter.new(portfolio, [], {}).summary
   end
 
   private
 
-  def instruments_map
-    Instrument.all.to_h do |i|
-      [i.id, { symbol: i.symbol, currency: i.currency, last_price: i.last_price, last_price_at: i.last_price_at }]
-    end
+  def buys(portfolio)
+    Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
   end
 
-  def positions_for(portfolio, instruments_by_id, fx_rates)
-    txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
-    ValuationService.positions(transactions: txns, instruments_by_id: instruments_by_id,
-                               fx_to_pln: fx_rates, **valuation_settings)
+  def positions(portfolio, price_map, rates)
+    value(buys(portfolio), price_map, rates)
   end
 
-  def detail(portfolio)
-    fx = SnapshotService.fx_to_pln
-    instruments_by_id = instruments_map
-    txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
-    positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_by_id,
-                                           fx_to_pln: fx, **valuation_settings)
-    by_instrument = txns.group_by(&:instrument_id)
-    {
-      totals: serialize_totals(ValuationService.totals(positions)),
-      last_updated: last_update_for(positions, instruments_by_id),
-      positions: positions.map { |pos| position_with_txns(pos, by_instrument) }
-    }
-  end
-
-  def last_update_for(positions, instruments_by_id)
-    times = positions.filter_map { |p| instruments_by_id[p.instrument_id][:last_price_at] }
-    times.max&.iso8601
-  end
-
-  def position_with_txns(pos, by_instrument)
-    position_json(pos).merge(transactions: serialize_transactions(by_instrument[pos.instrument_id]))
-  end
-
-  def valuation_settings
-    { fx_margin: AppConfig.config.fx_margin, base_currency: AppConfig.config.base_currency }
-  end
-
-  def portfolio_json(portfolio)
-    { id: portfolio.id, name: portfolio.name, base_currency: portfolio.base_currency }
-  end
-
-  def position_json(pos)
-    pos.to_h.transform_values { |v| decimal_string(v) }
-  end
-
-  def serialize_transactions(txns)
-    (txns || []).sort_by(&:executed_at).map do |t|
-      { id: t.id, quantity: decimal_string(t.quantity), price: decimal_string(t.price),
-        currency: t.currency, executed_at: t.executed_at.iso8601 }
-    end
-  end
-
-  def serialize_totals(totals)
-    {
-      market_value_pln: decimal_string(totals[:market_value_pln]),
-      cost_pln: decimal_string(totals[:cost_pln]),
-      pnl_pln: decimal_string(totals[:pnl_pln]),
-      incomplete: totals[:incomplete]
-    }
-  end
-
-  # Plain decimal notation ("6000.0"), not BigDecimal's default engineering form ("0.6e4").
-  def decimal_string(value)
-    value.is_a?(BigDecimal) ? value.to_s('F') : value
+  def value(txns, price_map, rates = SnapshotService.fx_to_pln)
+    ValuationService.positions(transactions: txns, instruments_by_id: price_map,
+                               fx_to_pln: rates, **AppConfig.valuation_settings)
   end
 end

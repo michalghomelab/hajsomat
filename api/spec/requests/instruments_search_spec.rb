@@ -9,7 +9,7 @@ RSpec.describe 'Instrument search API', type: :request do
                                     exchange: 'NMS', currency: 'USD',
                                     quoteType: 'EQUITY' }] }.to_json)
 
-    get '/api/instruments/search', params: { q: 'appl' }
+    get '/api/instruments', params: { q: 'appl' }
     expect(response.status).to eq(200)
     results = response.parsed_body
     expect(results.first['symbol']).to eq('AAPL')
@@ -17,7 +17,7 @@ RSpec.describe 'Instrument search API', type: :request do
   end
 
   it 'returns an empty array for a blank query' do
-    get '/api/instruments/search', params: { q: '' }
+    get '/api/instruments', params: { q: '' }
     expect(response.status).to eq(200)
     expect(response.parsed_body).to eq([])
   end

@@ -16,18 +16,18 @@ class ValuationService
 
   def self.build_position(instrument_id, txns, instruments_by_id, fx_ctx)
     meta = instruments_by_id.fetch(instrument_id)
-    currency = meta[:currency]
+    currency = meta.currency
     rate = fx_ctx[:rates][currency]
     margin = currency == fx_ctx[:base] ? BigDecimal(0) : fx_ctx[:margin]
     quantity, cost_native, cost_pln, avg_price = aggregate(txns, rate)
     cost_pln *= (BigDecimal(1) + margin) if cost_pln # broker FX spread on the purchase
-    native = compute_native(quantity, meta[:last_price], cost_native)
+    native = compute_native(quantity, meta.last_price, cost_native)
     pln = compute_pln(native[:market_value_native], cost_pln, rate, margin)
 
     Position.new(
-      instrument_id: instrument_id, symbol: meta[:symbol], currency: currency,
+      instrument_id: instrument_id, symbol: meta.symbol, currency: currency,
       quantity: quantity, avg_price: avg_price, cost_native: cost_native,
-      last_price: meta[:last_price], cost_pln: cost_pln, **native, **pln
+      last_price: meta.last_price, cost_pln: cost_pln, **native, **pln
     )
   end
   private_class_method :build_position

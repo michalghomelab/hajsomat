@@ -14,9 +14,7 @@ class SnapshotService
 
   def call
     fx = self.class.fx_to_pln
-    instruments_by_id = Instrument.all.to_h do |i|
-      [i.id, { symbol: i.symbol, currency: i.currency, last_price: i.last_price }]
-    end
+    instruments_by_id = InstrumentPriceMap.call
 
     Portfolio.all.each do |portfolio|
       txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all

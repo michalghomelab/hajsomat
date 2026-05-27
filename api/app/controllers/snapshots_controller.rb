@@ -9,9 +9,6 @@ class SnapshotsController < RageController::API
            end
            .order(:date)
            .all
-    render json: rows.map { |r|
-      { date: r[:date].to_s, total_value_pln: r[:total_value_pln].to_s,
-        total_cost_pln: r[:total_cost_pln].to_s, pnl_pln: r[:pnl_pln].to_s }
-    }
+    render json: SnapshotPresenter.call(rows)
   end
 end
