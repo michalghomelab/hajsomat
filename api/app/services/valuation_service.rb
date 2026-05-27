@@ -20,6 +20,7 @@ class ValuationService
     rate = fx_ctx[:rates][currency]
     margin = currency == fx_ctx[:base] ? BigDecimal(0) : fx_ctx[:margin]
     quantity, cost_native, cost_pln, avg_price = aggregate(txns, rate)
+    cost_pln *= (BigDecimal(1) + margin) if cost_pln # broker FX spread on the purchase
     native = compute_native(quantity, meta[:last_price], cost_native)
     pln = compute_pln(native[:market_value_native], cost_pln, rate, margin)
 
@@ -65,8 +66,8 @@ class ValuationService
   end
   private_class_method :compute_native
 
-  # FX margin (broker spread) applies only to the current market value, not to the
-  # historical cost basis, which is already in real PLN paid.
+  # Market value uses the current rate minus the broker FX spread (the cost basis
+  # already had the spread added at purchase time in build_position).
   def self.compute_pln(market_value_native, cost_pln, rate, margin)
     market_value_pln = market_value_native && rate ? market_value_native * rate * (BigDecimal(1) - margin) : nil
     pnl_pln = market_value_pln && cost_pln ? market_value_pln - cost_pln : nil

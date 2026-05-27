@@ -101,15 +101,15 @@ RSpec.describe ValuationService do
     expect(described_class.totals(positions)[:incomplete]).to be(false)
   end
 
-  it 'applies the FX margin only to the market value, not the cost basis' do
+  it 'applies the FX margin round-trip (cost up, value down)' do
     txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(100))]
     instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: bd(100) } }
     fx = { 'USD' => bd(4), 'PLN' => bd(1) }
     p = described_class.positions(transactions: txns, instruments_by_id: instruments,
                                   fx_to_pln: fx, fx_margin: '0.005').first
-    expect(p.cost_pln).to eq(bd(400))          # 100*4 (no margin on cost)
+    expect(p.cost_pln).to eq(bd(402))          # 100*4*(1+0.005) broker spread on purchase
     expect(p.market_value_pln).to eq(bd(398))  # 100*4*(1-0.005)
-    expect(p.pnl_pln).to eq(bd(-2))
+    expect(p.pnl_pln).to eq(bd(-4))
   end
 
   it 'uses the per-transaction historical FX rate for cost, current rate for value' do
