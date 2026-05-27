@@ -60,15 +60,19 @@
         {data.name}
         <button class="text-sm text-blue-600 font-normal" onclick={startRename}>✎ zmień nazwę</button>
       </h1>
-      <div class="flex gap-2">
-        <button class="border px-3 py-1 rounded" onclick={refresh} disabled={refreshing}>
-          {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
-        </button>
-        <button class="border px-3 py-1 rounded" onclick={backfill} disabled={backfilling}>
-          {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
-        </button>
-      </div>
     {/if}
+  </div>
+
+  <div class="flex justify-between items-center gap-2 border-y py-2">
+    <button class="bg-green-600 text-white px-4 py-2 rounded" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
+    <div class="flex gap-2">
+      <button class="border px-3 py-1 rounded" onclick={refresh} disabled={refreshing}>
+        {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
+      </button>
+      <button class="border px-3 py-1 rounded" onclick={backfill} disabled={backfilling}>
+        {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
+      </button>
+    </div>
   </div>
   {#if nameError}<p class="text-red-600 text-sm">{nameError}</p>{/if}
   {#if refreshError}<p class="text-red-600 text-sm">⚠ {refreshError}</p>{/if}
@@ -129,7 +133,6 @@
     <h2 class="text-sm font-semibold text-gray-600 mb-1">Zmiana dzień do dnia</h2>
     <DailyChangeChart {snapshots} />
   </div>
-  <button class="bg-green-600 text-white px-4 py-2 rounded" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
   {#if showAdd}
     <Modal title="Dodaj transakcję" onClose={() => (showAdd = false)}>
       <TransactionForm portfolioId={id} onAdded={() => { showAdd = false; load(); }} />
