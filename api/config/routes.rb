@@ -4,5 +4,7 @@ Rage.routes.draw do
     post 'portfolios', to: 'portfolios#create'
     get 'portfolios/:id', to: 'portfolios#show'
     get 'portfolios/:id/snapshots', to: 'portfolios#snapshots'
+    post 'portfolios/:id/transactions', to: 'transactions#create'
+    delete 'transactions/:id', to: 'transactions#destroy'
   end
 end
