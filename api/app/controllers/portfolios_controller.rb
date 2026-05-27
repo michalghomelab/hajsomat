@@ -13,16 +13,7 @@ class PortfoliosController < RageController::API
     portfolio = Portfolio[params[:id].to_i]
     return render json: { error: 'not found' }, status: :not_found unless portfolio
 
-    fx = SnapshotService.fx_to_pln
-    txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
-    positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_map, fx_to_pln: fx)
-    txns_by_instrument = txns.group_by(&:instrument_id)
-    render json: portfolio_json(portfolio).merge(
-      totals: serialize_totals(ValuationService.totals(positions)),
-      positions: positions.map { |pos|
-        position_json(pos).merge(transactions: serialize_transactions(txns_by_instrument[pos.instrument_id]))
-      }
-    )
+    render json: portfolio_json(portfolio).merge(detail(portfolio))
   end
 
   def create
@@ -62,7 +53,28 @@ class PortfoliosController < RageController::API
 
   def positions_for(portfolio, instruments_by_id, fx_rates)
     txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
-    ValuationService.positions(transactions: txns, instruments_by_id: instruments_by_id, fx_to_pln: fx_rates)
+    ValuationService.positions(transactions: txns, instruments_by_id: instruments_by_id,
+                               fx_to_pln: fx_rates, **valuation_settings)
+  end
+
+  def detail(portfolio)
+    fx = SnapshotService.fx_to_pln
+    txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
+    positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_map,
+                                           fx_to_pln: fx, **valuation_settings)
+    by_instrument = txns.group_by(&:instrument_id)
+    {
+      totals: serialize_totals(ValuationService.totals(positions)),
+      positions: positions.map { |pos| position_with_txns(pos, by_instrument) }
+    }
+  end
+
+  def position_with_txns(pos, by_instrument)
+    position_json(pos).merge(transactions: serialize_transactions(by_instrument[pos.instrument_id]))
+  end
+
+  def valuation_settings
+    { fx_margin: AppConfig.config.fx_margin, base_currency: AppConfig.config.base_currency }
   end
 
   def portfolio_json(portfolio)

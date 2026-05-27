@@ -100,4 +100,25 @@ RSpec.describe ValuationService do
     positions = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
     expect(described_class.totals(positions)[:incomplete]).to be(false)
   end
+
+  it 'applies the FX margin to foreign-currency conversions' do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(100))]
+    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: bd(100) } }
+    fx = { 'USD' => bd(4), 'PLN' => bd(1) }
+    p = described_class.positions(transactions: txns, instruments_by_id: instruments,
+                                  fx_to_pln: fx, fx_margin: '0.005').first
+    expect(p.cost_pln).to eq(bd(402))          # 100*4*(1+0.005)
+    expect(p.market_value_pln).to eq(bd(398))  # 100*4*(1-0.005)
+    expect(p.pnl_pln).to eq(bd(-4))
+  end
+
+  it 'does not apply the FX margin to base-currency positions' do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(100))]
+    instruments = { 1 => { symbol: 'P', currency: 'PLN', last_price: bd(110) } }
+    fx = { 'PLN' => bd(1) }
+    p = described_class.positions(transactions: txns, instruments_by_id: instruments,
+                                  fx_to_pln: fx, fx_margin: '0.005').first
+    expect(p.cost_pln).to eq(bd(100))
+    expect(p.market_value_pln).to eq(bd(110))
+  end
 end

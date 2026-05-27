@@ -16,7 +16,8 @@ class SnapshotService
     Portfolio.all.each do |portfolio|
       txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
       positions = ValuationService.positions(
-        transactions: txns, instruments_by_id: instruments_by_id, fx_to_pln: fx
+        transactions: txns, instruments_by_id: instruments_by_id, fx_to_pln: fx,
+        fx_margin: AppConfig.config.fx_margin, base_currency: AppConfig.config.base_currency
       )
       totals = ValuationService.totals(positions)
       upsert_snapshot(portfolio.id, date, totals)

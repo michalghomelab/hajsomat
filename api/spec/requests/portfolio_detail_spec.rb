@@ -13,7 +13,7 @@ RSpec.describe 'Portfolio detail API', type: :request do
     body = response.parsed_body
     expect(body['name']).to eq('Main')
     expect(body['positions'].first['symbol']).to eq('AAPL')
-    expect(body['totals']['market_value_pln']).to eq('6000.0')
+    expect(body['totals']['market_value_pln']).to eq('5970.0') # 10*150*4*(1-0.005) FX margin
     expect(body['totals']['incomplete']).to be(false)
 
     txns = body['positions'].first['transactions']
