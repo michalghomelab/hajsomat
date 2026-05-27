@@ -7,7 +7,7 @@
   import DailyChangeChart from "./DailyChangeChart.svelte";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]);
-  let refreshError = $state(""); let refreshing = $state(false);
+  let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
   let editingName = $state(false); let nameInput = $state(""); let nameError = $state("");
 
   async function load() {
@@ -19,6 +19,12 @@
     try { await api.refresh(); await load(); }
     catch (e) { refreshError = e.message || "Odświeżanie nie powiodło się"; }
     finally { refreshing = false; }
+  }
+  async function backfill() {
+    refreshError = ""; backfilling = true;
+    try { await api.backfill(); await load(); }
+    catch (e) { refreshError = e.message || "Uzupełnianie historii nie powiodło się"; }
+    finally { backfilling = false; }
   }
   let expanded = $state({});
   function toggle(sym) { expanded[sym] = !expanded[sym]; }
@@ -52,9 +58,14 @@
         {data.name}
         <button class="text-sm text-blue-600 font-normal" onclick={startRename}>✎ zmień nazwę</button>
       </h1>
-      <button class="border px-3 py-1 rounded" onclick={refresh} disabled={refreshing}>
-        {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
-      </button>
+      <div class="flex gap-2">
+        <button class="border px-3 py-1 rounded" onclick={refresh} disabled={refreshing}>
+          {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
+        </button>
+        <button class="border px-3 py-1 rounded" onclick={backfill} disabled={backfilling}>
+          {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
+        </button>
+      </div>
     {/if}
   </div>
   {#if nameError}<p class="text-red-600 text-sm">{nameError}</p>{/if}

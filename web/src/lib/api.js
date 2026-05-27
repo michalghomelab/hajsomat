@@ -21,4 +21,5 @@ export const api = {
   deleteTransaction: (id) =>
     fetch(`/api/transactions/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); }),
   refresh: () => fetch("/api/refresh", { method: "POST" }).then(json),
+  backfill: () => fetch("/api/backfill", { method: "POST" }).then(json),
 };

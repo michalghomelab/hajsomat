@@ -1,4 +1,5 @@
 require 'bigdecimal'
+require 'date'
 
 RSpec.describe MarketData::YahooClient do
   let(:client) { described_class.new }
@@ -61,6 +62,24 @@ RSpec.describe MarketData::YahooClient do
         .to_return(status: 404, body: chart_404_body)
 
       expect { client.fx_rate('EUR', 'PLN') }.to raise_error(MarketData::YahooClient::Error, /no FX rate/)
+    end
+  end
+
+  describe '#history' do
+    it 'maps timestamps to dates and closes to BigDecimals, skipping nils' do
+      ts1 = Time.utc(2026, 2, 12).to_i
+      ts2 = Time.utc(2026, 2, 13).to_i
+      ts3 = Time.utc(2026, 2, 14).to_i
+      body = { chart: { result: [{ timestamp: [ts1, ts2, ts3],
+                                   indicators: { quote: [{ close: [100.0, nil, 101.5] }] } }],
+                        error: nil } }.to_json
+      stub_request(:get, %r{query1\.finance\.yahoo\.com/v8/finance/chart/SXR8\.DE})
+        .to_return(status: 200, body: body)
+
+      h = client.history('SXR8.DE', range: '5d')
+      expect(h[Date.new(2026, 2, 12)]).to eq(BigDecimal('100.0'))
+      expect(h[Date.new(2026, 2, 14)]).to eq(BigDecimal('101.5'))
+      expect(h).not_to have_key(Date.new(2026, 2, 13)) # nil close skipped
     end
   end
 

@@ -35,6 +35,20 @@ module MarketData
       q[:price]
     end
 
+    # symbol -> { Date => BigDecimal(close) } daily history over the given range
+    def history(symbol, range: '1y')
+      body = get("/v8/finance/chart/#{URI.encode_www_form_component(symbol)}", interval: '1d', range: range)
+      result = body&.dig('chart', 'result', 0)
+      return {} unless result
+
+      timestamps = Array(result['timestamp'])
+      closes = Array(result.dig('indicators', 'quote', 0, 'close'))
+      timestamps.zip(closes).each_with_object({}) do |(ts, close), acc|
+        t = Time.at(ts).utc
+        acc[Date.new(t.year, t.month, t.day)] = BigDecimal(close.to_s) if close
+      end
+    end
+
     def symbol_search(query)
       body = get('/v1/finance/search', q: query, quotesCount: 10, newsCount: 0)
       Array(body['quotes']).map do |row|

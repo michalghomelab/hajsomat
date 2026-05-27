@@ -9,5 +9,6 @@ Rage.routes.draw do
     delete 'transactions/:id', to: 'transactions#destroy'
     get 'instruments/search', to: 'instruments#search'
     post 'refresh', to: 'refresh#create'
+    post 'backfill', to: 'backfill#create'
   end
 end
