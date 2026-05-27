@@ -7,6 +7,7 @@ Rage.routes.draw do
     get 'portfolios/:id/snapshots', to: 'portfolios#snapshots'
     post 'portfolios/:id/transactions', to: 'transactions#create'
     delete 'transactions/:id', to: 'transactions#destroy'
+    get 'snapshots', to: 'snapshots#index'
     get 'instruments/search', to: 'instruments#search'
     post 'refresh', to: 'refresh#create'
     post 'backfill', to: 'backfill#create'

@@ -4,31 +4,44 @@
   let { snapshots } = $props();
   let canvas = $state(null);
 
-  function deltas(snaps) {
+  // Split each day's value change into the deposit part (change in cost basis =
+  // money added that day) and the market part (the rest = price/FX moves).
+  function series(snaps) {
     const out = [];
     for (let i = 1; i < snaps.length; i++) {
-      out.push({
-        date: snaps[i].date,
-        change: Number(snaps[i].total_value_pln) - Number(snaps[i - 1].total_value_pln),
-      });
+      const dValue = Number(snaps[i].total_value_pln) - Number(snaps[i - 1].total_value_pln);
+      const dCost = Number(snaps[i].total_cost_pln) - Number(snaps[i - 1].total_cost_pln);
+      out.push({ date: snaps[i].date, deposit: dCost, market: dValue - dCost });
     }
     return out;
   }
 
   $effect(() => {
-    const d = deltas(snapshots ?? []);
+    const d = series(snapshots ?? []);
     if (!canvas || !d.length) return;
     const chart = new Chart(canvas, {
       type: "bar",
       data: {
         labels: d.map((x) => x.date),
-        datasets: [{
-          label: "Zmiana dzienna (PLN)",
-          data: d.map((x) => x.change),
-          backgroundColor: d.map((x) => (x.change >= 0 ? "#16a34a" : "#dc2626")),
-        }],
+        datasets: [
+          {
+            label: "Zmiana rynkowa (PLN)",
+            data: d.map((x) => x.market),
+            backgroundColor: d.map((x) => (x.market >= 0 ? "#16a34a" : "#dc2626")),
+          },
+          {
+            label: "Wpłata (PLN)",
+            data: d.map((x) => x.deposit),
+            backgroundColor: "#2563eb",
+          },
+        ],
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { x: { stacked: true }, y: { stacked: true } },
+        plugins: { legend: { display: true } },
+      },
     });
     return () => chart.destroy();
   });
