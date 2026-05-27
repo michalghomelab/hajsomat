@@ -14,10 +14,14 @@ class PortfoliosController < RageController::API
     return render json: { error: 'not found' }, status: :not_found unless portfolio
 
     fx = SnapshotService.fx_to_pln
-    positions = positions_for(portfolio, instruments_map, fx)
+    txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
+    positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_map, fx_to_pln: fx)
+    txns_by_instrument = txns.group_by(&:instrument_id)
     render json: portfolio_json(portfolio).merge(
       totals: serialize_totals(ValuationService.totals(positions)),
-      positions: positions.map { |pos| position_json(pos) }
+      positions: positions.map { |pos|
+        position_json(pos).merge(transactions: serialize_transactions(txns_by_instrument[pos.instrument_id]))
+      }
     )
   end
 
@@ -67,6 +71,13 @@ class PortfoliosController < RageController::API
 
   def position_json(pos)
     pos.to_h.transform_values { |v| decimal_string(v) }
+  end
+
+  def serialize_transactions(txns)
+    (txns || []).sort_by(&:executed_at).map do |t|
+      { id: t.id, quantity: decimal_string(t.quantity), price: decimal_string(t.price),
+        currency: t.currency, executed_at: t.executed_at.iso8601 }
+    end
   end
 
   def serialize_totals(totals)

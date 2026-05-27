@@ -18,5 +18,7 @@ export const api = {
   searchInstruments: (q) => fetch(`/api/instruments/search?q=${encodeURIComponent(q)}`).then(json),
   addTransaction: (portfolioId, payload) =>
     fetch(`/api/portfolios/${portfolioId}/transactions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(json),
+  deleteTransaction: (id) =>
+    fetch(`/api/transactions/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); }),
   refresh: () => fetch("/api/refresh", { method: "POST" }).then(json),
 };

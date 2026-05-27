@@ -19,6 +19,13 @@
     catch (e) { refreshError = e.message || "Odświeżanie nie powiodło się"; }
     finally { refreshing = false; }
   }
+  let expanded = $state({});
+  function toggle(sym) { expanded[sym] = !expanded[sym]; }
+  async function deleteTxn(txnId) {
+    if (!confirm("Usunąć tę transakcję?")) return;
+    await api.deleteTransaction(txnId);
+    await load();
+  }
   function startRename() { nameInput = data.name; nameError = ""; editingName = true; }
   async function saveName() {
     nameError = "";
@@ -67,14 +74,38 @@
     </tr></thead>
     <tbody>
       {#each data.positions as pos}
-        <tr class="border-t">
-          <td class="p-2">{pos.symbol}</td>
+        <tr class="border-t cursor-pointer hover:bg-gray-50" onclick={() => toggle(pos.symbol)}>
+          <td class="p-2">{expanded[pos.symbol] ? "▾" : "▸"} {pos.symbol}</td>
           <td class="p-2 text-right">{pos.quantity}</td>
           <td class="p-2 text-right">{money(pos.avg_price, pos.currency)}</td>
           <td class="p-2 text-right">{money(pos.last_price, pos.currency)}</td>
           <td class="p-2 text-right">{money(pos.market_value_pln)}</td>
           <td class="p-2 text-right {pnlClass(pos.pnl_pln)}">{money(pos.pnl_pln)}</td>
         </tr>
+        {#if expanded[pos.symbol]}
+          <tr class="bg-gray-50">
+            <td colspan="6" class="p-2">
+              <div class="font-semibold text-xs mb-1">Zakupy ({pos.transactions.length})</div>
+              <table class="w-full text-xs">
+                <thead><tr class="text-gray-500">
+                  <th class="text-left p-1">Data</th><th class="text-right p-1">Ilość</th>
+                  <th class="text-right p-1">Cena</th><th class="text-right p-1">Wartość</th><th class="p-1"></th>
+                </tr></thead>
+                <tbody>
+                  {#each pos.transactions as t}
+                    <tr class="border-t border-gray-200">
+                      <td class="p-1">{t.executed_at.slice(0, 10)}</td>
+                      <td class="p-1 text-right">{t.quantity}</td>
+                      <td class="p-1 text-right">{money(t.price, t.currency)}</td>
+                      <td class="p-1 text-right">{money(Number(t.quantity) * Number(t.price), t.currency)}</td>
+                      <td class="p-1 text-right"><button class="text-red-600" onclick={() => deleteTxn(t.id)}>usuń</button></td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        {/if}
       {/each}
     </tbody>
   </table>

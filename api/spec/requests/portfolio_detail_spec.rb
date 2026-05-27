@@ -15,6 +15,11 @@ RSpec.describe 'Portfolio detail API', type: :request do
     expect(body['positions'].first['symbol']).to eq('AAPL')
     expect(body['totals']['market_value_pln']).to eq('6000.0')
     expect(body['totals']['incomplete']).to be(false)
+
+    txns = body['positions'].first['transactions']
+    expect(txns.size).to eq(1)
+    expect(txns.first['quantity']).to eq('10.0')
+    expect(txns.first['price']).to eq('100.0')
   end
 
   it 'renames a portfolio' do
