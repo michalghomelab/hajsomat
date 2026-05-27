@@ -6,7 +6,7 @@
   <div class="bg-white rounded-lg shadow-lg max-w-lg w-full" onclick={(e) => e.stopPropagation()}>
     <div class="flex justify-between items-center px-4 py-3 border-b">
       <h3 class="font-semibold">{title}</h3>
-      <button class="text-gray-500 text-2xl leading-none" onclick={onClose} aria-label="Zamknij">×</button>
+      <button class="text-gray-500 text-2xl leading-none hover:text-gray-800" onclick={onClose} aria-label="Zamknij">×</button>
     </div>
     <div class="p-4">
       {@render children?.()}

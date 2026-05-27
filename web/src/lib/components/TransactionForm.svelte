@@ -40,5 +40,5 @@
     <input class="border rounded px-3 py-2" type="date" bind:value={executedAt} />
   </div>
   {#if error}<p class="text-red-600 text-sm">{error}</p>{/if}
-  <button class="bg-green-600 text-white px-4 py-2 rounded" onclick={submit}>Zapisz</button>
+  <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick={submit}>Zapisz</button>
 </div>

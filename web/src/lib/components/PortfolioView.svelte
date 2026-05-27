@@ -47,29 +47,29 @@
 
 {#if data}
 <div class="p-6 max-w-4xl mx-auto space-y-6">
-  <button class="text-blue-600" onclick={onBack}>← Portfele</button>
+  <button class="text-blue-600 hover:underline" onclick={onBack}>← Portfele</button>
   <div class="flex justify-between items-center gap-2">
     {#if editingName}
       <div class="flex gap-2 flex-1">
         <input class="border rounded px-3 py-2 flex-1 text-xl font-bold" bind:value={nameInput} />
-        <button class="bg-blue-600 text-white px-3 py-1 rounded" onclick={saveName}>Zapisz</button>
-        <button class="border px-3 py-1 rounded" onclick={() => (editingName = false)}>Anuluj</button>
+        <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" onclick={saveName}>Zapisz</button>
+        <button class="border px-3 py-1 rounded hover:bg-gray-100" onclick={() => (editingName = false)}>Anuluj</button>
       </div>
     {:else}
       <h1 class="text-2xl font-bold flex items-center gap-2">
         {data.name}
-        <button class="text-sm text-blue-600 font-normal" onclick={startRename}>✎ zmień nazwę</button>
+        <button class="text-sm text-blue-600 font-normal hover:underline" onclick={startRename}>✎ zmień nazwę</button>
       </h1>
     {/if}
   </div>
 
   <div class="flex justify-between items-center gap-2 border-y py-2">
-    <button class="bg-green-600 text-white px-4 py-2 rounded" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
+    <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
     <div class="flex gap-2">
-      <button class="border px-3 py-1 rounded" onclick={refresh} disabled={refreshing}>
+      <button class="border px-3 py-1 rounded hover:bg-gray-100" onclick={refresh} disabled={refreshing}>
         {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
       </button>
-      <button class="border px-3 py-1 rounded" onclick={backfill} disabled={backfilling}>
+      <button class="border px-3 py-1 rounded hover:bg-gray-100" onclick={backfill} disabled={backfilling}>
         {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
       </button>
     </div>
@@ -116,7 +116,7 @@
                       <td class="p-1 text-right">{t.quantity}</td>
                       <td class="p-1 text-right">{money(t.price, t.currency)}</td>
                       <td class="p-1 text-right">{money(Number(t.quantity) * Number(t.price), t.currency)}</td>
-                      <td class="p-1 text-right"><button class="text-red-600" onclick={() => deleteTxn(t.id)}>usuń</button></td>
+                      <td class="p-1 text-right"><button class="text-red-600 hover:text-red-800 hover:underline" onclick={() => deleteTxn(t.id)}>usuń</button></td>
                     </tr>
                   {/each}
                 </tbody>
