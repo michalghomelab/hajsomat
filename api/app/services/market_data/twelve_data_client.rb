@@ -32,6 +32,14 @@ module MarketData
       BigDecimal(body.fetch('rate').to_s)
     end
 
+    def symbol_search(query)
+      body = get('/symbol_search', symbol: query)
+      Array(body['data']).map do |row|
+        { symbol: row['symbol'], name: row['instrument_name'],
+          exchange: row['exchange'], currency: row['currency'], mic: row['mic_code'] }
+      end
+    end
+
     private
 
     def get(path, params)
