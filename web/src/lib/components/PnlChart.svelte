@@ -2,7 +2,7 @@
   import { Chart, registerables } from "chart.js";
   Chart.register(...registerables);
   let { snapshots } = $props();
-  let canvas;
+  let canvas = $state(null);
 
   $effect(() => {
     if (!canvas || !snapshots?.length) return;
