@@ -21,7 +21,7 @@
 
   async function load() {
     loading = true;
-    portfolios = await api.portfolios();
+    portfolios = (await api.portfolios()).sort((a, b) => a.name.localeCompare(b.name, "pl"));
     snapshots = await api.allSnapshots();
     loading = false;
   }
