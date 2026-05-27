@@ -5,6 +5,7 @@
   import ChartPanel from "./ChartPanel.svelte";
   import Countdown from "./Countdown.svelte";
   import Modal from "./Modal.svelte";
+  import { market } from "../marketStatus.svelte.js";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -12,7 +13,6 @@
   let showCreate = $state(false);
   let loading = $state(true);
   let refreshing = $state(false);
-  let marketOpen = $state(true);
 
   let totals = $derived.by(() => {
     const sum = (k) => portfolios.reduce((a, p) => a + Number(p[k] || 0), 0);
@@ -24,7 +24,6 @@
     loading = true;
     portfolios = (await api.portfolios()).sort((a, b) => a.name.localeCompare(b.name, "pl"));
     snapshots = await api.allSnapshots();
-    try { marketOpen = (await api.schedule()).market_open; } catch { marketOpen = true; }
     loading = false;
   }
   async function create() {
@@ -44,8 +43,8 @@
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
   <div class="flex gap-2 mb-6 items-center">
     <button class="btn btn-primary" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
-    <button class="btn btn-outline" onclick={refreshPrices} disabled={refreshing || !marketOpen}
-            title={marketOpen ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
+    <button class="btn btn-outline" onclick={refreshPrices} disabled={refreshing || !market.open}
+            title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
       {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
     </button>
     <div class="ml-auto">
