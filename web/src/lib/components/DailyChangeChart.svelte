@@ -1,9 +1,9 @@
 <script>
-  import { onMount } from "svelte";
   import { Chart, registerables } from "chart.js";
   Chart.register(...registerables);
   let { snapshots } = $props();
   let canvas;
+  let chart;
 
   function deltas(snaps) {
     const out = [];
@@ -16,10 +16,11 @@
     return out;
   }
 
-  onMount(() => {
+  $effect(() => {
     const d = deltas(snapshots ?? []);
-    if (!d.length) return;
-    new Chart(canvas, {
+    if (!canvas || !d.length) return;
+    chart?.destroy();
+    chart = new Chart(canvas, {
       type: "bar",
       data: {
         labels: d.map((x) => x.date),
@@ -29,13 +30,14 @@
           backgroundColor: d.map((x) => (x.change >= 0 ? "#16a34a" : "#dc2626")),
         }],
       },
-      options: { responsive: true, plugins: { legend: { display: true } } },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } },
     });
+    return () => chart?.destroy();
   });
 </script>
 
 {#if (snapshots?.length ?? 0) > 1}
-  <div class="border rounded p-4"><canvas bind:this={canvas}></canvas></div>
+  <div class="border rounded p-4" style="height: 320px"><canvas bind:this={canvas}></canvas></div>
 {:else}
   <p class="text-gray-500 text-sm">Zmiany dzienne pojawią się po co najmniej dwóch dziennych snapshotach.</p>
 {/if}
