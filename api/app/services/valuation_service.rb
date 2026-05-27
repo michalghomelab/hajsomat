@@ -51,7 +51,13 @@ class ValuationService
     {
       market_value_pln: positions.sum(BigDecimal(0)) { |p| p.market_value_pln || BigDecimal(0) },
       cost_pln: positions.sum(BigDecimal(0)) { |p| p.cost_pln || BigDecimal(0) },
-      pnl_pln: positions.sum(BigDecimal(0)) { |p| p.pnl_pln || BigDecimal(0) }
+      pnl_pln: positions.sum(BigDecimal(0)) { |p| p.pnl_pln || BigDecimal(0) },
+      incomplete: incomplete?(positions)
     }
   end
+
+  def self.incomplete?(positions)
+    positions.any? { |p| p.market_value_pln.nil? }
+  end
+  private_class_method :incomplete?
 end

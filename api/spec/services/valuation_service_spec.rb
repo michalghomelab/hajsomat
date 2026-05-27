@@ -84,4 +84,20 @@ RSpec.describe ValuationService do
   it 'returns zero totals for empty positions' do
     expect(described_class.totals([])[:market_value_pln]).to eq(bd(0))
   end
+
+  it 'flags totals as incomplete when a position lacks a market value' do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
+    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: nil } }
+    fx = { 'USD' => bd(4), 'PLN' => bd(1) }
+    positions = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
+    expect(described_class.totals(positions)[:incomplete]).to be(true)
+  end
+
+  it 'flags totals as complete when all positions are priced' do
+    txns = [Txn.new(instrument_id: 1, quantity: bd(1), price: bd(10))]
+    instruments = { 1 => { symbol: 'X', currency: 'USD', last_price: bd(12) } }
+    fx = { 'USD' => bd(4), 'PLN' => bd(1) }
+    positions = described_class.positions(transactions: txns, instruments_by_id: instruments, fx_to_pln: fx)
+    expect(described_class.totals(positions)[:incomplete]).to be(false)
+  end
 end

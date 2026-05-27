@@ -46,6 +46,8 @@ module MarketData
       uri = URI("#{@http_base}#{path}")
       uri.query = URI.encode_www_form(params.merge(apikey: @api_key))
       res = Net::HTTP.get_response(uri)
+      raise "Twelve Data #{path} returned HTTP #{res.code}" unless res.is_a?(Net::HTTPSuccess)
+
       JSON.parse(res.body)
     end
   end

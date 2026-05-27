@@ -32,4 +32,21 @@ RSpec.describe RefreshService do
     expect(summary[:instruments_updated]).to eq(2)
     expect(summary[:fx_updated]).to eq(2)
   end
+
+  it 'keeps updating other currencies when one FX fetch fails' do
+    failing_client = Class.new do
+      def prices(symbols) = { 'AAPL' => BigDecimal('150'), 'VWCE:XETR' => BigDecimal('60') }.slice(*symbols)
+
+      def fx_rate(base, _quote)
+        raise 'boom' if base == 'USD'
+
+        BigDecimal('4.3')
+      end
+    end.new
+
+    summary = described_class.new(client: failing_client).call
+    expect(FxRate[base: 'EUR', quote: 'PLN'].rate).to eq(BigDecimal('4.3'))
+    expect(FxRate[base: 'USD', quote: 'PLN']).to be_nil
+    expect(summary[:fx_updated]).to eq(1)
+  end
 end

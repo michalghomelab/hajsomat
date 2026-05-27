@@ -35,11 +35,16 @@ class RefreshService
 
   def update_fx(instruments)
     currencies = instruments.map(&:currency).uniq.reject { |c| c == base_currency }
-    currencies.each do |cur|
-      rate = @client.fx_rate(cur, base_currency)
-      FxRate.upsert_rate(cur, base_currency, rate)
-    end
-    currencies.size
+    currencies.count { |cur| update_one_fx(cur) }
+  end
+
+  def update_one_fx(currency)
+    rate = @client.fx_rate(currency, base_currency)
+    FxRate.upsert_rate(currency, base_currency, rate)
+    true
+  rescue StandardError => e
+    Rage.logger.warn("FX update failed for #{currency}/#{base_currency}: #{e.message}")
+    false
   end
 
   def base_currency

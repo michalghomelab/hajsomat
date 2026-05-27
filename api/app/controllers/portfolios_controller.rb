@@ -4,7 +4,7 @@ class PortfoliosController < RageController::API
     instruments_by_id = instruments_map
     payload = Portfolio.all.map do |portfolio|
       totals = ValuationService.totals(positions_for(portfolio, instruments_by_id, fx))
-      portfolio_json(portfolio).merge(totals.transform_values(&:to_s))
+      portfolio_json(portfolio).merge(serialize_totals(totals))
     end
     render json: payload
   end
@@ -16,7 +16,7 @@ class PortfoliosController < RageController::API
     fx = SnapshotService.fx_to_pln
     positions = positions_for(portfolio, instruments_map, fx)
     render json: portfolio_json(portfolio).merge(
-      totals: ValuationService.totals(positions).transform_values(&:to_s),
+      totals: serialize_totals(ValuationService.totals(positions)),
       positions: positions.map { |pos| position_json(pos) }
     )
   end
@@ -56,5 +56,14 @@ class PortfoliosController < RageController::API
 
   def position_json(pos)
     pos.to_h.transform_values { |v| v.is_a?(BigDecimal) ? v.to_s : v }
+  end
+
+  def serialize_totals(totals)
+    {
+      market_value_pln: totals[:market_value_pln].to_s,
+      cost_pln: totals[:cost_pln].to_s,
+      pnl_pln: totals[:pnl_pln].to_s,
+      incomplete: totals[:incomplete]
+    }
   end
 end
