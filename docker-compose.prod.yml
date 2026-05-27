@@ -3,7 +3,7 @@
 #   docker compose -f docker-compose.prod.yml up -d
 services:
   app:
-    image: ghcr.io/michalg-/hajsomat:latest
+    image: ghcr.io/michalghomelab/hajsomat:latest
     environment:
       - DATABASE_URL=sqlite:///data/portfolio.sqlite3
       - RAGE_ENV=production
