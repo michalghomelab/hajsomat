@@ -39,7 +39,10 @@
   }
   onMount(() => {
     load();
-    return onScheduledRefresh(() => load(true));
+    return onScheduledRefresh(async () => {
+      await load(true);
+      return portfolios.map((p) => p.last_updated).filter(Boolean).sort().at(-1) ?? null;
+    });
   });
 </script>
 

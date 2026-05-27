@@ -47,7 +47,10 @@
   }
   onMount(() => {
     load();
-    return onScheduledRefresh(() => load(true));
+    return onScheduledRefresh(async () => {
+      await load(true);
+      return data?.last_updated ?? null;
+    });
   });
 </script>
 
