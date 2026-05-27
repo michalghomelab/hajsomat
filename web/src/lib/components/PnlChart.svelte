@@ -1,33 +1,37 @@
 <script>
-  import { Chart, registerables } from "chart.js";
-  Chart.register(...registerables);
-  const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-  Chart.defaults.color = dark ? "#cbd5e1" : "#334155";
-  Chart.defaults.borderColor = dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+  import ApexCharts from "apexcharts";
   let { snapshots } = $props();
-  let canvas = $state(null);
+  let el = $state(null);
+  const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
   $effect(() => {
-    if (!canvas || !snapshots?.length) return;
-    const chart = new Chart(canvas, {
-      type: "line",
-      data: {
-        labels: snapshots.map((s) => s.date),
-        datasets: [{
-          label: "Wartość portfela (PLN)",
-          data: snapshots.map((s) => Number(s.total_value_pln)),
-          borderColor: "#2563eb",
-          tension: 0.2,
-        }],
+    if (!el || !snapshots?.length) return;
+    const chart = new ApexCharts(el, {
+      chart: {
+        type: "area", height: 320, fontFamily: "inherit", background: "transparent",
+        toolbar: { show: false }, zoom: { enabled: false }, animations: { easing: "easeinout" },
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } },
+      theme: { mode: dark ? "dark" : "light" },
+      series: [{ name: "Wartość", data: snapshots.map((s) => [s.date, Number(s.total_value_pln)]) }],
+      colors: ["#3b82f6"],
+      stroke: { curve: "smooth", width: 2.5 },
+      fill: { type: "gradient", gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
+      dataLabels: { enabled: false },
+      xaxis: { type: "datetime" },
+      yaxis: { labels: { formatter: (v) => Math.round(v).toLocaleString("pl-PL") } },
+      grid: { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", strokeDashArray: 4 },
+      tooltip: {
+        x: { format: "dd.MM.yyyy" },
+        y: { formatter: (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" }) },
+      },
     });
+    chart.render();
     return () => chart.destroy();
   });
 </script>
 
 {#if snapshots?.length}
-  <div class="card bg-base-100 shadow-sm p-4" style="height: 320px"><canvas bind:this={canvas}></canvas></div>
+  <div class="card bg-base-100 shadow-sm p-2"><div bind:this={el}></div></div>
 {:else}
   <p class="text-base-content/60 text-sm">Brak danych historycznych — pojawią się po pierwszym dziennym snapshotcie.</p>
 {/if}
