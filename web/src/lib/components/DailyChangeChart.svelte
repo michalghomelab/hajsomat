@@ -52,6 +52,7 @@
       yaxis: { labels: { formatter: (v) => Math.round(v).toLocaleString("pl-PL") } },
       grid: { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", strokeDashArray: 4 },
       tooltip: {
+        shared: true, intersect: false,
         x: { format: "dd.MM.yyyy" },
         y: { formatter: (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" }) },
       },
