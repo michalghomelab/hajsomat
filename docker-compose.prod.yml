@@ -1,9 +1,9 @@
-# Production stack — single image built/pushed by GitHub Actions.
-# Set IMAGE (e.g. IMAGE=your-dockerhub-user/hajsomat), then:
+# Production stack — single image built/pushed by GitHub Actions to GHCR.
+#   docker login ghcr.io        # once, with a GitHub PAT (read:packages)
 #   docker compose -f docker-compose.prod.yml up -d
 services:
   app:
-    image: ${IMAGE:?set IMAGE e.g. your-dockerhub-user/hajsomat}:latest
+    image: ghcr.io/michalg-/hajsomat:latest
     environment:
       - DATABASE_URL=sqlite:///data/portfolio.sqlite3
       - RAGE_ENV=production
