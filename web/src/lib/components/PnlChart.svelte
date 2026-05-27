@@ -11,6 +11,7 @@
   const series = (snaps) => [
     { name: "Wartość", data: snaps.map((s) => [s.date, Number(s.total_value_pln)]) },
     { name: "Wpłaty (koszt)", data: snaps.map((s) => [s.date, Number(s.total_cost_pln)]) },
+    { name: "Zysk", data: snaps.map((s) => [s.date, Number(s.pnl_pln)]) },
   ];
 
   // Build the chart once when the element mounts; reused across data changes.
@@ -24,12 +25,12 @@
       },
       theme: { mode: dark ? "dark" : "light" },
       series: untrack(() => series(snapshots ?? [])),
-      colors: ["#3b82f6", "#f59e0b"],
-      stroke: { curve: "smooth", width: [2.5, 2], dashArray: [0, 5] },
+      colors: ["#3b82f6", "#f59e0b", "#16a34a"],
+      stroke: { curve: "smooth", width: [2.5, 2, 2], dashArray: [0, 5, 0] },
       fill: {
-        type: ["gradient", "solid"],
+        type: ["gradient", "solid", "solid"],
         gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 },
-        opacity: [1, 0],
+        opacity: [1, 0, 0],
       },
       dataLabels: { enabled: false },
       legend: { position: "top" },
