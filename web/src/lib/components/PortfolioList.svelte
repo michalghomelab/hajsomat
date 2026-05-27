@@ -11,6 +11,11 @@
   let newName = $state("");
   let showCreate = $state(false);
 
+  let totals = $derived.by(() => {
+    const sum = (k) => portfolios.reduce((a, p) => a + Number(p[k] || 0), 0);
+    return { value: sum("market_value_pln"), cost: sum("cost_pln"), pnl: sum("pnl_pln") };
+  });
+
   async function load() {
     portfolios = await api.portfolios();
     snapshots = await api.allSnapshots();
@@ -25,6 +30,16 @@
 
 <div class="p-6 max-w-3xl mx-auto">
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
+  {#if portfolios.length}
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body py-4">
+        <p class="text-lg">
+          Łącznie: <strong>{money(totals.value)}</strong>
+          · <span class={pnlClass(totals.pnl)}>P/L {money(totals.pnl)} ({percent(totals.pnl, totals.cost)})</span>
+        </p>
+      </div>
+    </div>
+  {/if}
   <button class="btn btn-primary mb-6" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
   {#if showCreate}
     <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
