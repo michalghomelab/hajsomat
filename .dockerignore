@@ -1,0 +1,11 @@
+.git
+.worktrees
+docs
+**/node_modules
+**/.bundle
+**/tmp
+**/log
+**/*.sqlite3
+api/spec
+api/import_*.json
+api/import_*.rb

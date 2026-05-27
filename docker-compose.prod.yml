@@ -1,22 +1,17 @@
-# Production stack — pulls images built/pushed by GitHub Actions to GHCR.
-# Set IMAGE_PREFIX, e.g. IMAGE_PREFIX=ghcr.io/your-user, then: docker compose -f docker-compose.prod.yml up -d
+# Production stack — single image built/pushed by GitHub Actions.
+# Set IMAGE (e.g. IMAGE=your-dockerhub-user/hajsomat), then:
+#   docker compose -f docker-compose.prod.yml up -d
 services:
-  api:
-    image: ${IMAGE_PREFIX:?set IMAGE_PREFIX e.g. ghcr.io/your-user}/hajsomat-api:latest
+  app:
+    image: ${IMAGE:?set IMAGE e.g. your-dockerhub-user/hajsomat}:latest
     environment:
       - DATABASE_URL=sqlite:///data/portfolio.sqlite3
       - RAGE_ENV=production
     volumes:
-      - api_data:/data
-    restart: unless-stopped
-
-  web:
-    image: ${IMAGE_PREFIX:?set IMAGE_PREFIX}/hajsomat-web:latest
+      - app_data:/data
     ports:
       - "8080:80"
-    depends_on:
-      - api
     restart: unless-stopped
 
 volumes:
-  api_data:
+  app_data:
