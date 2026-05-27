@@ -1,3 +1,8 @@
 Rage.routes.draw do
-  root to: ->(env) { [200, {}, ["It works!"]] }
+  scope path: 'api' do
+    get 'portfolios', to: 'portfolios#index'
+    post 'portfolios', to: 'portfolios#create'
+    get 'portfolios/:id', to: 'portfolios#show'
+    get 'portfolios/:id/snapshots', to: 'portfolios#snapshots'
+  end
 end

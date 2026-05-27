@@ -5,6 +5,9 @@ api/vendor/bundle/
 # DB
 db/*.sqlite3
 api/db/*.sqlite3
+# Logs
+api/log/
+log/
 # Node
 web/node_modules/
 web/dist/
