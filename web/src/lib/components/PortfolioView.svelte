@@ -7,14 +7,16 @@
   import DailyChangeChart from "./DailyChangeChart.svelte";
   import Modal from "./Modal.svelte";
   let { id, onBack } = $props();
-  let data = $state(null); let snapshots = $state([]);
+  let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
   let editingName = $state(false); let nameInput = $state(""); let nameError = $state("");
   let showAdd = $state(false);
 
   async function load() {
+    loading = true;
     data = await api.portfolio(id);
     snapshots = await api.snapshots(id);
+    loading = false;
   }
   async function refresh() {
     refreshError = ""; refreshing = true;
@@ -144,4 +146,12 @@
     </Modal>
   {/if}
 </div>
+{:else if loading}
+  <div class="p-6 max-w-4xl mx-auto space-y-6">
+    <div class="skeleton h-8 w-32"></div>
+    <div class="skeleton h-12 w-full"></div>
+    <div class="skeleton h-24 w-full"></div>
+    <div class="skeleton h-64 w-full"></div>
+    <div class="skeleton h-80 w-full"></div>
+  </div>
 {/if}
