@@ -26,6 +26,9 @@
     Wartość: <strong>{money(data.totals.market_value_pln)}</strong>
     · <span class={pnlClass(data.totals.pnl_pln)}>P/L {money(data.totals.pnl_pln)}</span>
   </div>
+  {#if data.totals.incomplete}
+    <p class="text-amber-600 text-sm">⚠ Część pozycji nie ma aktualnej wyceny — suma PLN jest niepełna. Kliknij „Odśwież ceny".</p>
+  {/if}
 
   <table class="w-full text-sm border">
     <thead class="bg-gray-100"><tr>

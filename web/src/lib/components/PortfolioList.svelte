@@ -25,7 +25,9 @@
     {#each portfolios as p}
       <li class="border rounded p-4 flex justify-between cursor-pointer hover:bg-gray-50" onclick={() => onSelect(p.id)}>
         <span class="font-medium">{p.name}</span>
-        <span class={pnlClass(p.pnl_pln)}>{money(p.market_value_pln)} ({money(p.pnl_pln)})</span>
+        <span class={pnlClass(p.pnl_pln)}>
+          {money(p.market_value_pln)} ({money(p.pnl_pln)}){#if p.incomplete}<span class="text-amber-600" title="Suma niepełna — brak części wycen"> *</span>{/if}
+        </span>
       </li>
     {/each}
   </ul>
