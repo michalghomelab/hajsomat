@@ -30,16 +30,6 @@
 
 <div class="p-6 max-w-3xl mx-auto">
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
-  {#if portfolios.length}
-    <div class="card bg-base-100 shadow-sm mb-6">
-      <div class="card-body py-4">
-        <p class="text-lg">
-          Łącznie: <strong>{money(totals.value)}</strong>
-          · <span class={pnlClass(totals.pnl)}>P/L {money(totals.pnl)} ({percent(totals.pnl, totals.cost)})</span>
-        </p>
-      </div>
-    </div>
-  {/if}
   <button class="btn btn-primary mb-6" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
   {#if showCreate}
     <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
@@ -64,6 +54,16 @@
 
   <div class="mt-8 space-y-6">
     <h2 class="text-lg font-semibold text-base-content">Łącznie — wszystkie portfele</h2>
+    {#if portfolios.length}
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body py-4">
+          <p class="text-lg">
+            Wartość: <strong>{money(totals.value)}</strong>
+            · <span class={pnlClass(totals.pnl)}>P/L {money(totals.pnl)} ({percent(totals.pnl, totals.cost)})</span>
+          </p>
+        </div>
+      </div>
+    {/if}
     <PnlChart {snapshots} />
     <div>
       <h3 class="text-sm font-semibold text-base-content/70 mb-1">Zmiana dzień do dnia (wpłaty vs rynek)</h3>
