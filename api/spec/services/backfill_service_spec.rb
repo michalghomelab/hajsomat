@@ -28,7 +28,7 @@ RSpec.describe BackfillService do
     expect(result[:snapshots_written]).to eq(2)
 
     snap = PortfolioSnapshot[portfolio_id: portfolio.id, date: Date.new(2026, 2, 13)]
-    expect(snap.total_value_pln).to eq(BigDecimal('437.8'))  # 1*110*4*(1-0.005)
-    expect(snap.total_cost_pln).to eq(BigDecimal('402'))     # 1*100*4*(1+0.005)
+    expect(snap.total_value_pln).to eq(BigDecimal('437.8'))  # 1*110*4*(1-0.005), margin on value
+    expect(snap.total_cost_pln).to eq(BigDecimal('400'))     # 1*100*4, no margin on cost
   end
 end

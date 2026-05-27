@@ -16,28 +16,47 @@ class ValuationService
 
   def self.build_position(instrument_id, txns, instruments_by_id, fx_ctx)
     meta = instruments_by_id.fetch(instrument_id)
-    quantity, cost_native, avg_price = aggregate(txns)
-    rate = fx_ctx[:rates][meta[:currency]]
-    # FX margin applies only when converting a foreign currency, not the base currency itself.
-    margin = meta[:currency] == fx_ctx[:base] ? BigDecimal(0) : fx_ctx[:margin]
+    currency = meta[:currency]
+    rate = fx_ctx[:rates][currency]
+    margin = currency == fx_ctx[:base] ? BigDecimal(0) : fx_ctx[:margin]
+    quantity, cost_native, cost_pln, avg_price = aggregate(txns, rate)
     native = compute_native(quantity, meta[:last_price], cost_native)
-    pln = compute_pln(native, cost_native, rate, margin)
+    pln = compute_pln(native[:market_value_native], cost_pln, rate, margin)
 
     Position.new(
-      instrument_id: instrument_id, symbol: meta[:symbol], currency: meta[:currency],
+      instrument_id: instrument_id, symbol: meta[:symbol], currency: currency,
       quantity: quantity, avg_price: avg_price, cost_native: cost_native,
-      last_price: meta[:last_price], **native, **pln
+      last_price: meta[:last_price], cost_pln: cost_pln, **native, **pln
     )
   end
   private_class_method :build_position
 
-  def self.aggregate(txns)
+  def self.aggregate(txns, rate)
     quantity = txns.sum(BigDecimal(0), &:quantity)
     cost_native = txns.sum(BigDecimal(0)) { |t| t.quantity * t.price }
     avg_price = quantity.zero? ? BigDecimal(0) : (cost_native / quantity).round(6, half: :up)
-    [quantity, cost_native, avg_price]
+    [quantity, cost_native, cost_in_pln(txns, rate), avg_price]
   end
   private_class_method :aggregate
+
+  # Historical PLN cost: each buy uses the FX rate captured at its purchase date
+  # (NBP table A), falling back to the current rate only when that rate is missing.
+  def self.cost_in_pln(txns, rate)
+    total = BigDecimal(0)
+    txns.each do |t|
+      fx = tx_fx_rate(t) || rate
+      return nil unless fx
+
+      total += t.quantity * t.price * fx
+    end
+    total
+  end
+  private_class_method :cost_in_pln
+
+  def self.tx_fx_rate(txn)
+    txn.respond_to?(:fx_rate) ? txn.fx_rate : nil
+  end
+  private_class_method :tx_fx_rate
 
   def self.compute_native(quantity, last_price, cost_native)
     market_value_native = last_price ? quantity * last_price : nil
@@ -46,15 +65,12 @@ class ValuationService
   end
   private_class_method :compute_native
 
-  def self.compute_pln(native, cost_native, rate, margin)
-    return { market_value_pln: nil, cost_pln: nil, pnl_pln: nil } unless rate
-
-    one = BigDecimal(1)
-    mv_native = native[:market_value_native]
-    market_value_pln = mv_native ? mv_native * rate * (one - margin) : nil
-    cost_pln = cost_native * rate * (one + margin)
-    pnl_pln = market_value_pln ? market_value_pln - cost_pln : nil
-    { market_value_pln: market_value_pln, cost_pln: cost_pln, pnl_pln: pnl_pln }
+  # FX margin (broker spread) applies only to the current market value, not to the
+  # historical cost basis, which is already in real PLN paid.
+  def self.compute_pln(market_value_native, cost_pln, rate, margin)
+    market_value_pln = market_value_native && rate ? market_value_native * rate * (BigDecimal(1) - margin) : nil
+    pnl_pln = market_value_pln && cost_pln ? market_value_pln - cost_pln : nil
+    { market_value_pln: market_value_pln, pnl_pln: pnl_pln }
   end
   private_class_method :compute_pln
 

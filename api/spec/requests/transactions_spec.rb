@@ -9,6 +9,8 @@ RSpec.describe 'Transactions API', type: :request do
                  body: { chart: { result: [{ meta: { currency: 'USD', symbol: 'AAPL',
                                                      regularMarketPrice: 150.0 } }],
                                   error: nil } }.to_json)
+    stub_request(:get, %r{api\.nbp\.pl/api/exchangerates/rates/a/usd/})
+      .to_return(status: 200, body: { rates: [{ mid: 3.9 }] }.to_json)
 
     post "/api/portfolios/#{portfolio.id}/transactions",
          params: { symbol: 'AAPL', quantity: '10', price: '150',
@@ -16,7 +18,8 @@ RSpec.describe 'Transactions API', type: :request do
     expect(response.status).to eq(201)
     expect(Instrument.where(symbol: 'AAPL').count).to eq(1)
     expect(Instrument.first(symbol: 'AAPL').currency).to eq('USD')
-    expect(Transaction.where(portfolio_id: portfolio.id).count).to eq(1)
+    txn = Transaction.where(portfolio_id: portfolio.id).first
+    expect(txn.fx_rate).to eq(BigDecimal('3.9'))
   end
 
   it 'rejects an invalid transaction (zero quantity)' do

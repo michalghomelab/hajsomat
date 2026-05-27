@@ -15,10 +15,10 @@ RSpec.describe SnapshotService do
     count = described_class.new.call(date: Date.new(2026, 5, 26))
     expect(count).to eq(1)
     snap = PortfolioSnapshot[portfolio_id: portfolio.id, date: Date.new(2026, 5, 26)]
-    # includes the 0.5% FX margin on the USD conversion
+    # FX margin applies to value only; cost uses the (fallback) current rate, no margin
     expect(snap.total_value_pln).to eq(BigDecimal('5970')) # 10*150*4*(1-0.005)
-    expect(snap.total_cost_pln).to eq(BigDecimal('4020'))  # 10*100*4*(1+0.005)
-    expect(snap.pnl_pln).to eq(BigDecimal('1950'))
+    expect(snap.total_cost_pln).to eq(BigDecimal('4000'))  # 10*100*4
+    expect(snap.pnl_pln).to eq(BigDecimal('1970'))
   end
 
   it 'is idempotent for the same date' do
