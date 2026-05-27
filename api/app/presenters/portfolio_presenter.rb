@@ -1,13 +1,24 @@
-# Serializes a portfolio: `summary` for the list, `detail` for the single view.
+# Serializes a portfolio. Omit `transactions:` for the list summary; pass the
+# { instrument_id => [txns] } map to get the full detail view with positions.
 class PortfolioPresenter
+  def self.call(portfolio, positions:, price_map:, transactions: nil)
+    new(portfolio, positions, price_map).as_json(transactions)
+  end
+
   def initialize(portfolio, positions, price_map)
     @portfolio = portfolio
     @positions = positions
     @price_map = price_map
   end
 
+  def as_json(transactions)
+    transactions ? detail(transactions) : summary
+  end
+
+  private
+
   def summary
-    base.merge(serialized_totals).merge(last_updated: last_updated)
+    base.merge(serialized_totals, last_updated: last_updated)
   end
 
   def detail(txns_by_instrument)
@@ -17,8 +28,6 @@ class PortfolioPresenter
       positions: @positions.map { |pos| position(pos, txns_by_instrument) }
     )
   end
-
-  private
 
   def base
     { id: @portfolio.id, name: @portfolio.name, base_currency: @portfolio.base_currency }

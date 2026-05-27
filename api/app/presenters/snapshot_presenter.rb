@@ -1,5 +1,3 @@
-require 'bigdecimal'
-
 # Serializes snapshot rows — works for PortfolioSnapshot models and aggregate
 # dataset rows alike (both respond to `[:date]`, `[:total_value_pln]`, …).
 class SnapshotPresenter
@@ -7,14 +5,10 @@ class SnapshotPresenter
     rows.map do |r|
       {
         date: r[:date].to_s,
-        total_value_pln: money(r[:total_value_pln]),
-        total_cost_pln: money(r[:total_cost_pln]),
-        pnl_pln: money(r[:pnl_pln])
+        total_value_pln: Decimals.string(r[:total_value_pln]),
+        total_cost_pln: Decimals.string(r[:total_cost_pln]),
+        pnl_pln: Decimals.string(r[:pnl_pln])
       }
     end
-  end
-
-  def self.money(value)
-    value.nil? ? nil : Decimals.string(BigDecimal(value.to_s))
   end
 end

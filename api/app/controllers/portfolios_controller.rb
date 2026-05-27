@@ -2,7 +2,9 @@ class PortfoliosController < RageController::API
   def index
     price_map = InstrumentPriceMap.call
     fx = SnapshotService.fx_to_pln
-    render json: Portfolio.all.map { |p| PortfolioPresenter.new(p, positions(p, price_map, fx), price_map).summary }
+    render json: Portfolio.all.map { |p|
+      PortfolioPresenter.call(p, positions: positions(p, price_map, fx), price_map: price_map)
+    }
   end
 
   def show
@@ -12,7 +14,8 @@ class PortfoliosController < RageController::API
     price_map = InstrumentPriceMap.call
     txns = buys(portfolio)
     positions = value(txns, price_map)
-    render json: PortfolioPresenter.new(portfolio, positions, price_map).detail(txns.group_by(&:instrument_id))
+    render json: PortfolioPresenter.call(portfolio, positions: positions, price_map: price_map,
+                                                    transactions: txns.group_by(&:instrument_id))
   end
 
   def create
@@ -21,7 +24,8 @@ class PortfoliosController < RageController::API
     result = PortfolioContract.new.call(input)
     return render json: { errors: result.errors.to_h }, status: 422 if result.failure?
 
-    render json: PortfolioPresenter.new(Portfolio.create(result.to_h), [], {}).summary, status: :created
+    render json: PortfolioPresenter.call(Portfolio.create(result.to_h), positions: [], price_map: {}),
+           status: :created
   end
 
   def update
@@ -32,7 +36,7 @@ class PortfoliosController < RageController::API
     return render json: { errors: result.errors.to_h }, status: 422 if result.failure?
 
     portfolio.update(name: result[:name])
-    render json: PortfolioPresenter.new(portfolio, [], {}).summary
+    render json: PortfolioPresenter.call(portfolio, positions: [], price_map: {})
   end
 
   private
