@@ -2019,6 +2019,14 @@ Expected: all specs pass.
 
 ---
 
+## Addendum (added mid-execution per user request)
+
+**RuboCop (Task A):** `rubocop` + `rubocop-rspec` added to the api test/dev group. Config at `api/.rubocop.yml` (`TargetRubyVersion 3.3`, excludes generated scaffold: `config/**/*`, `Rakefile`, `config.ru`, `db/migrations/**/*`). Existing code autocorrected to green. From Task A onward, every implementer runs `rubocop` on the files they touch and leaves them offense-free.
+
+**dry-configurable (Task C):** App-wide configuration via a central `AppConfig` (`api/config/app_config.rb`, `extend Dry::Configurable`) for secrets + database: `twelve_data.api_key` (from `TWELVE_DATA_API_KEY` env), `twelve_data.base_url`, `database_url` (from `DATABASE_URL` env), `base_currency` (PLN), and refresh/snapshot times. `config/initializers/db.rb` connects via `AppConfig.config.database_url` (guarded `unless defined?(DB)` so request specs reuse the spec_helper DB). `MarketData::TwelveDataClient` defaults its key/base_url from AppConfig; `RefreshService` reads `base_currency` from AppConfig (drops the `BASE_CURRENCY` constant). `spec_helper.rb` requires `config/app_config` so the constant is available in all specs. The scheduler (Task 5.4) reads `refresh_times`/`snapshot_time` from AppConfig.
+
+**dry-validation (Task B):** Input validation moves from Sequel model `validate` overrides to dry-validation contracts at the controller boundary (DRY: one validation path). Files: `api/app/contracts/portfolio_contract.rb`, `api/app/contracts/transaction_contract.rb`. The `Transaction`/`Portfolio` models keep their associations but DROP the `validate` override. The Task 1.2 model spec is refactored into a contract spec (`api/spec/contracts/transaction_contract_spec.rb`). Controllers (Tasks 5.1, 5.2) call the relevant contract, returning `422` with `result.errors.to_h` on failure. This supersedes the `model.valid?`/`p.errors` and `Portfolio#validate` steps written in Tasks 5.1/5.2 — use contracts there instead.
+
 ## Self-Review Notes (author checklist — already applied)
 
 - **Spec coverage:** portfolios/multi-portfolio (5.1), transactions buy + sell-ready schema (1.2, 5.2), Twelve Data prices+FX (3.1), 3×/day refresh + daily snapshot (4.1, 4.2, 5.4), PLN base + valuation convention (Phase 2), SQLite + Sequel (Phase 0/1), Docker-only (Phase 0/6.5), instrument search (5.3), frontend list/view/form/chart (Phase 6). Fee column present but unused (1.2) per spec.
