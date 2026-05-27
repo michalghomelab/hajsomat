@@ -1,13 +1,16 @@
 <script>
   import ApexCharts from "apexcharts";
+  import { untrack } from "svelte";
   import { attachWheelZoom } from "../chartZoom.js";
   let { snapshots } = $props();
   let el = $state(null);
+  let chart = null;
+  let detachZoom = null;
   const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
   // Split each day's value change into the deposit part (change in cost basis =
   // money added that day) and the market part (the rest = price/FX moves).
-  function series(snaps) {
+  function dayChanges(snaps) {
     const out = [];
     for (let i = 1; i < snaps.length; i++) {
       const dValue = Number(snaps[i].total_value_pln) - Number(snaps[i - 1].total_value_pln);
@@ -17,26 +20,30 @@
     return out;
   }
 
+  const series = (snaps) => {
+    const d = dayChanges(snaps);
+    return [
+      {
+        name: "Zmiana rynkowa",
+        data: d.map((x) => ({
+          x: x.date, y: Number(x.market.toFixed(2)),
+          fillColor: x.market >= 0 ? "#16a34a" : "#dc2626",
+        })),
+      },
+      { name: "Wpłata", data: d.map((x) => ({ x: x.date, y: Number(x.deposit.toFixed(2)) })) },
+    ];
+  };
+
+  // Build the chart once when the element mounts; reused across data changes.
   $effect(() => {
-    const d = series(snapshots ?? []);
-    if (!el || !d.length) return;
-    const chart = new ApexCharts(el, {
+    if (!el) return;
+    const instance = new ApexCharts(el, {
       chart: {
         type: "bar", height: 320, stacked: true, fontFamily: "inherit",
-        background: "transparent", toolbar: { show: false },
-        zoom: { enabled: false },
+        background: "transparent", toolbar: { show: false }, zoom: { enabled: false },
       },
       theme: { mode: dark ? "dark" : "light" },
-      series: [
-        {
-          name: "Zmiana rynkowa",
-          data: d.map((x) => ({
-            x: x.date, y: Number(x.market.toFixed(2)),
-            fillColor: x.market >= 0 ? "#16a34a" : "#dc2626",
-          })),
-        },
-        { name: "Wpłata", data: d.map((x) => ({ x: x.date, y: Number(x.deposit.toFixed(2)) })) },
-      ],
+      series: untrack(() => series(snapshots ?? [])),
       colors: ["#16a34a", "#6366f1"],
       plotOptions: { bar: { columnWidth: "75%", borderRadius: 2 } },
       dataLabels: { enabled: false },
@@ -49,12 +56,24 @@
         y: { formatter: (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" }) },
       },
     });
-    chart.render();
-    const detach = attachWheelZoom(chart, el);
+    instance.render();
+    chart = instance;
+    detachZoom = attachWheelZoom(instance, el);
     return () => {
-      detach();
-      chart.destroy();
+      detachZoom?.();
+      detachZoom = null;
+      instance.destroy();
+      chart = null;
     };
+  });
+
+  // Push new data in place — no teardown, so the page doesn't jump or flicker.
+  $effect(() => {
+    const data = snapshots ?? [];
+    if (!chart) return;
+    chart.updateSeries(series(data));
+    detachZoom?.();
+    detachZoom = attachWheelZoom(chart, el);
   });
 </script>
 

@@ -1,24 +1,29 @@
 <script>
   import ApexCharts from "apexcharts";
+  import { untrack } from "svelte";
   import { attachWheelZoom } from "../chartZoom.js";
   let { snapshots } = $props();
   let el = $state(null);
+  let chart = null;
+  let detachZoom = null;
   const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
+  const series = (snaps) => [
+    { name: "Wartość", data: snaps.map((s) => [s.date, Number(s.total_value_pln)]) },
+    { name: "Wpłaty (koszt)", data: snaps.map((s) => [s.date, Number(s.total_cost_pln)]) },
+  ];
+
+  // Build the chart once when the element mounts; reused across data changes.
   $effect(() => {
-    if (!el || !snapshots?.length) return;
-    const chart = new ApexCharts(el, {
+    if (!el) return;
+    const instance = new ApexCharts(el, {
       chart: {
         type: "area", height: 320, fontFamily: "inherit", background: "transparent",
-        toolbar: { show: false },
-        zoom: { enabled: false },
+        toolbar: { show: false }, zoom: { enabled: false },
         animations: { easing: "easeinout" },
       },
       theme: { mode: dark ? "dark" : "light" },
-      series: [
-        { name: "Wartość", data: snapshots.map((s) => [s.date, Number(s.total_value_pln)]) },
-        { name: "Wpłaty (koszt)", data: snapshots.map((s) => [s.date, Number(s.total_cost_pln)]) },
-      ],
+      series: untrack(() => series(snapshots ?? [])),
       colors: ["#3b82f6", "#f59e0b"],
       stroke: { curve: "smooth", width: [2.5, 2], dashArray: [0, 5] },
       fill: {
@@ -36,12 +41,24 @@
         y: { formatter: (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" }) },
       },
     });
-    chart.render();
-    const detach = attachWheelZoom(chart, el);
+    instance.render();
+    chart = instance;
+    detachZoom = attachWheelZoom(instance, el);
     return () => {
-      detach();
-      chart.destroy();
+      detachZoom?.();
+      detachZoom = null;
+      instance.destroy();
+      chart = null;
     };
+  });
+
+  // Push new data in place — no teardown, so the page doesn't jump or flicker.
+  $effect(() => {
+    const data = snapshots ?? [];
+    if (!chart) return;
+    chart.updateSeries(series(data));
+    detachZoom?.();
+    detachZoom = attachWheelZoom(chart, el);
   });
 </script>
 
