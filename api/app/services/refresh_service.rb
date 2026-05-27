@@ -14,25 +14,23 @@ class RefreshService
 
   private
 
-  def instruments_in_use
-    ids = Transaction.distinct.select_map(:instrument_id)
-    Instrument.where(id: ids).all
-  end
+  def instruments_in_use = Instrument.where(id: Transaction.distinct.select(:instrument_id)).all
 
   def update_prices(instruments)
     return 0 if instruments.empty?
 
     by_symbol = instruments.to_h { |i| [i.symbol, i] }
     prices = @client.prices(by_symbol.keys)
-    updated = 0
-    prices.each do |symbol, price|
-      inst = by_symbol[symbol]
-      next unless inst
+    now = Time.now
+    DB.transaction do
+      prices.sum do |symbol, price|
+        inst = by_symbol[symbol]
+        next 0 unless inst
 
-      inst.update(last_price: price, last_price_at: Time.now)
-      updated += 1
+        inst.update(last_price: price, last_price_at: now)
+        1
+      end
     end
-    updated
   end
 
   def update_fx(instruments)

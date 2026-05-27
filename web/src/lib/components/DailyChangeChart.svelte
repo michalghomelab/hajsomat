@@ -1,5 +1,6 @@
 <script>
   import ApexCharts from "apexcharts";
+  import { attachWheelZoom } from "../chartZoom.js";
   let { snapshots } = $props();
   let el = $state(null);
   const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
@@ -22,8 +23,8 @@
     const chart = new ApexCharts(el, {
       chart: {
         type: "bar", height: 320, stacked: true, fontFamily: "inherit",
-        background: "transparent", toolbar: { show: true, autoSelected: "pan", tools: { download: false } },
-        zoom: { enabled: true, type: "x", allowMouseWheelZoom: true },
+        background: "transparent", toolbar: { show: false },
+        zoom: { enabled: false },
       },
       theme: { mode: dark ? "dark" : "light" },
       series: [
@@ -49,7 +50,11 @@
       },
     });
     chart.render();
-    return () => chart.destroy();
+    const detach = attachWheelZoom(chart, el);
+    return () => {
+      detach();
+      chart.destroy();
+    };
   });
 </script>
 
