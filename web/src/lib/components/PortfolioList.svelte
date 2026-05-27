@@ -56,11 +56,11 @@
     <h2 class="text-lg font-semibold text-base-content">Łącznie — wszystkie portfele</h2>
     {#if portfolios.length}
       <div class="card bg-base-100 shadow-sm">
-        <div class="card-body py-4">
-          <p class="text-lg">
-            Wartość: <strong>{money(totals.value)}</strong>
-            · <span class={pnlClass(totals.pnl)}>P/L {money(totals.pnl)} ({percent(totals.pnl, totals.cost)})</span>
-          </p>
+        <div class="card-body flex-row justify-between items-center py-4">
+          <span class="font-medium text-base-content">Razem</span>
+          <span>
+            {money(totals.value)} (<span class={pnlClass(totals.pnl)}>{money(totals.pnl)} · {percent(totals.pnl, totals.cost)}</span>)
+          </span>
         </div>
       </div>
     {/if}
