@@ -10,6 +10,17 @@ services:
       - api_data:/data
     ports:
       - "3000:3000"
+    develop:
+      watch:
+        - action: sync
+          path: ./api
+          target: /app
+          ignore:
+            - log/
+            - tmp/
+            - db/
+        - action: rebuild
+          path: ./api/Gemfile
   web:
     build: ./web
     volumes:
@@ -19,6 +30,13 @@ services:
       - "5173:5173"
     depends_on:
       - api
+    develop:
+      watch:
+        - action: sync
+          path: ./web/src
+          target: /app/src
+        - action: rebuild
+          path: ./web/package.json
 
 volumes:
   api_data:
