@@ -4,7 +4,7 @@ class TransactionContract < Dry::Validation::Contract
   params do
     required(:symbol).filled(:string)
     optional(:mic).maybe(:string)
-    required(:currency).filled(:string)
+    optional(:currency).maybe(:string)
     required(:quantity).filled(:decimal)
     required(:price).filled(:decimal)
     required(:executed_at).filled(:time)

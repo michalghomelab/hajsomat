@@ -3,6 +3,6 @@ class InstrumentsController < RageController::API
     query = params[:q].to_s
     return render json: [] if query.strip.empty?
 
-    render json: MarketData::TwelveDataClient.new.symbol_search(query)
+    render json: MarketData::YahooClient.new.symbol_search(query)
   end
 end

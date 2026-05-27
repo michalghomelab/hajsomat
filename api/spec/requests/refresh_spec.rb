@@ -7,10 +7,17 @@ RSpec.describe 'Refresh API', type: :request do
     Transaction.create(portfolio_id: pf.id, instrument_id: inst.id, kind: 'buy',
                        quantity: 1, price: 1, currency: 'USD', executed_at: Time.now)
 
-    stub_request(:get, 'https://api.twelvedata.com/price')
-      .with(query: hash_including(symbol: 'AAPL')).to_return(status: 200, body: '{"price":"150"}')
-    stub_request(:get, 'https://api.twelvedata.com/exchange_rate')
-      .with(query: hash_including(symbol: 'USD/PLN')).to_return(status: 200, body: '{"rate":4.0}')
+    stub_request(:get, %r{query1\.finance\.yahoo\.com/v8/finance/chart/AAPL})
+      .to_return(status: 200,
+                 body: { chart: { result: [{ meta: { currency: 'USD', symbol: 'AAPL',
+                                                     regularMarketPrice: 150.0 } }],
+                                  error: nil } }.to_json)
+
+    stub_request(:get, %r{query1\.finance\.yahoo\.com/v8/finance/chart/USDPLN})
+      .to_return(status: 200,
+                 body: { chart: { result: [{ meta: { currency: 'PLN', symbol: 'USDPLN=X',
+                                                     regularMarketPrice: 4.0 } }],
+                                  error: nil } }.to_json)
 
     post '/api/refresh'
     expect(response.status).to eq(200)

@@ -1,5 +1,5 @@
 class RefreshService
-  def initialize(client: MarketData::TwelveDataClient.new)
+  def initialize(client: MarketData::YahooClient.new)
     @client = client
   end
 
@@ -20,11 +20,11 @@ class RefreshService
   def update_prices(instruments)
     return 0 if instruments.empty?
 
-    by_td = instruments.to_h { |i| [i.td_symbol, i] }
-    prices = @client.prices(by_td.keys)
+    by_symbol = instruments.to_h { |i| [i.symbol, i] }
+    prices = @client.prices(by_symbol.keys)
     updated = 0
-    prices.each do |td_symbol, price|
-      inst = by_td[td_symbol]
+    prices.each do |symbol, price|
+      inst = by_symbol[symbol]
       next unless inst
 
       inst.update(last_price: price, last_price_at: Time.now)

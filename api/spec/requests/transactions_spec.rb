@@ -4,15 +4,18 @@ RSpec.describe 'Transactions API', type: :request do
   let(:portfolio) { Portfolio.create(name: 'Main') }
 
   it 'creates a transaction and the instrument when new' do
-    stub_request(:get, 'https://api.twelvedata.com/price')
-      .with(query: hash_including(symbol: 'AAPL'))
-      .to_return(status: 200, body: '{"price":"150"}')
+    stub_request(:get, %r{query1\.finance\.yahoo\.com/v8/finance/chart/AAPL})
+      .to_return(status: 200,
+                 body: { chart: { result: [{ meta: { currency: 'USD', symbol: 'AAPL',
+                                                     regularMarketPrice: 150.0 } }],
+                                  error: nil } }.to_json)
 
     post "/api/portfolios/#{portfolio.id}/transactions",
-         params: { symbol: 'AAPL', currency: 'USD', quantity: '10', price: '150',
+         params: { symbol: 'AAPL', quantity: '10', price: '150',
                    executed_at: '2026-05-20T10:00:00Z' }, as: :json
     expect(response.status).to eq(201)
     expect(Instrument.where(symbol: 'AAPL').count).to eq(1)
+    expect(Instrument.first(symbol: 'AAPL').currency).to eq('USD')
     expect(Transaction.where(portfolio_id: portfolio.id).count).to eq(1)
   end
 

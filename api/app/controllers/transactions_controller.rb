@@ -11,7 +11,7 @@ class TransactionsController < RageController::API
       kind: 'buy',
       quantity: data[:quantity],
       price: data[:price],
-      currency: data[:currency],
+      currency: data[:currency] || instrument.currency,
       executed_at: data[:executed_at]
     )
     render json: { id: txn.id }, status: :created
@@ -33,19 +33,22 @@ class TransactionsController < RageController::API
   end
 
   def resolve_instrument(data)
-    mic = data[:mic].to_s.empty? ? nil : data[:mic]
-    existing = Instrument[symbol: data[:symbol], mic: mic]
+    existing = Instrument[symbol: data[:symbol]]
     return existing if existing
 
-    instrument = Instrument.create(symbol: data[:symbol], mic: mic, currency: data[:currency])
-    fetch_initial_price(instrument)
+    instrument = Instrument.new(symbol: data[:symbol], mic: data[:mic])
+    q = fetch_quote(instrument.symbol)
+    instrument.currency = q&.dig(:currency) || data[:currency]
+    instrument.last_price = q&.dig(:price)
+    instrument.last_price_at = Time.now if q
+    instrument.save
     instrument
   end
 
-  def fetch_initial_price(instrument)
-    price = MarketData::TwelveDataClient.new.prices([instrument.td_symbol])[instrument.td_symbol]
-    instrument.update(last_price: price, last_price_at: Time.now) if price
+  def fetch_quote(symbol)
+    MarketData::YahooClient.new.quote(symbol)
   rescue StandardError => e
-    Rage.logger.warn("initial price fetch failed for #{instrument.td_symbol}: #{e.message}")
+    Rage.logger.warn("initial quote failed for #{symbol}: #{e.message}")
+    nil
   end
 end

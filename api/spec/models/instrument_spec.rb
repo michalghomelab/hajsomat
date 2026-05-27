@@ -1,11 +1,8 @@
 RSpec.describe Instrument do
-  it 'builds the Twelve Data symbol with MIC suffix when present' do
-    i = described_class.new(symbol: 'VWCE', mic: 'XETR', currency: 'EUR')
-    expect(i.td_symbol).to eq('VWCE:XETR')
-  end
-
-  it 'uses the bare symbol for US tickers without a MIC' do
-    i = described_class.new(symbol: 'AAPL', mic: nil, currency: 'USD')
-    expect(i.td_symbol).to eq('AAPL')
+  it 'persists and reads back symbol and currency' do
+    inst = described_class.create(symbol: 'SXR8.DE', currency: 'EUR')
+    found = described_class[inst.id]
+    expect(found.symbol).to eq('SXR8.DE')
+    expect(found.currency).to eq('EUR')
   end
 end

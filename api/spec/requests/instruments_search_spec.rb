@@ -1,12 +1,13 @@
 require 'rage/rspec'
 
 RSpec.describe 'Instrument search API', type: :request do
-  it 'proxies Twelve Data symbol_search' do
-    stub_request(:get, 'https://api.twelvedata.com/symbol_search')
-      .with(query: hash_including(symbol: 'appl'))
+  it 'proxies Yahoo Finance symbol_search' do
+    stub_request(:get, %r{query1\.finance\.yahoo\.com/v1/finance/search})
+      .with(query: hash_including(q: 'appl'))
       .to_return(status: 200,
-                 body: '{"data":[{"symbol":"AAPL","instrument_name":"Apple Inc",' \
-                       '"exchange":"NASDAQ","currency":"USD","mic_code":"XNAS"}]}')
+                 body: { quotes: [{ symbol: 'AAPL', shortname: 'Apple Inc',
+                                    exchange: 'NMS', currency: 'USD',
+                                    quoteType: 'EQUITY' }] }.to_json)
 
     get '/api/instruments/search', params: { q: 'appl' }
     expect(response.status).to eq(200)
