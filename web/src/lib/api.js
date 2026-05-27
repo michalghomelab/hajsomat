@@ -12,6 +12,7 @@ export const api = {
   portfolio: (id) => fetch(`/api/portfolios/${id}`).then(json),
   snapshots: (id) => fetch(`/api/portfolios/${id}/snapshots`).then(json),
   allSnapshots: () => fetch("/api/snapshots").then(json),
+  schedule: () => fetch("/api/schedule").then(json),
   createPortfolio: (name) =>
     fetch("/api/portfolios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }).then(json),
   renamePortfolio: (id, name) =>
