@@ -107,26 +107,23 @@
             <td class="text-right {pnlClass(pos.pnl_pln)}">{money(pos.pnl_pln)}</td>
           </tr>
           {#if expanded[pos.symbol]}
-            <tr class="bg-base-200">
-              <td colspan="6" class="p-2">
-                <div class="font-semibold text-xs mb-1">Zakupy ({pos.transactions.length})</div>
-                <table class="w-full text-xs">
-                  <thead><tr class="text-base-content/60">
-                    <th class="text-left p-1">Data</th><th class="text-right p-1">Ilość</th>
-                    <th class="text-right p-1">Cena</th><th class="text-right p-1">Wartość</th><th class="p-1"></th>
-                  </tr></thead>
-                  <tbody>
+            <tr>
+              <td colspan="6" class="p-0">
+                <div class="bg-base-200/60 px-4 py-3">
+                  <div class="text-xs font-semibold uppercase tracking-wide text-base-content/60 mb-2">
+                    Zakupy ({pos.transactions.length})
+                  </div>
+                  <div class="space-y-1.5">
                     {#each pos.transactions as t}
-                      <tr class="border-t border-base-300">
-                        <td class="p-1">{t.executed_at.slice(0, 10)}</td>
-                        <td class="p-1 text-right">{t.quantity}</td>
-                        <td class="p-1 text-right">{money(t.price, t.currency)}</td>
-                        <td class="p-1 text-right">{money(Number(t.quantity) * Number(t.price), t.currency)}</td>
-                        <td class="p-1 text-right"><button class="btn btn-ghost btn-xs text-error" onclick={() => deleteTxn(t.id)}>usuń</button></td>
-                      </tr>
+                      <div class="flex items-center gap-3 rounded-lg bg-base-100 px-3 py-2 text-sm">
+                        <span class="text-base-content/60 w-24 shrink-0">{t.executed_at.slice(0, 10)}</span>
+                        <span class="flex-1 text-right tabular-nums">{t.quantity} × {money(t.price, t.currency)}</span>
+                        <span class="w-32 text-right font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</span>
+                        <button class="btn btn-ghost btn-xs btn-circle text-error" onclick={() => deleteTxn(t.id)} aria-label="Usuń">✕</button>
+                      </div>
                     {/each}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </td>
             </tr>
           {/if}
