@@ -7,6 +7,8 @@ export default defineConfig({
     host: true,
     allowedHosts: ["lvh.me", ".lvh.me", "localhost"],
     proxy: { "/api": "http://api:3000" },
+    // Docker bind mounts on macOS drop fs events; poll so edits are reliably picked up.
+    watch: { usePolling: true, interval: 300 },
   },
   test: { environment: "jsdom", globals: true },
 });
