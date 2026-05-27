@@ -3,7 +3,7 @@
   import { api } from "../api.js";
   import { money, pnlClass, percent, dateTime } from "../format.js";
   import ChartPanel from "./ChartPanel.svelte";
-  import RefreshCountdown from "./RefreshCountdown.svelte";
+  import Countdown from "./Countdown.svelte";
   import Modal from "./Modal.svelte";
   let { onSelect } = $props();
   let portfolios = $state([]);
@@ -45,7 +45,10 @@
     <button class="btn btn-outline" onclick={refreshPrices} disabled={refreshing}>
       {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
     </button>
-    <div class="ml-auto"><RefreshCountdown /></div>
+    <div class="ml-auto flex flex-col items-end gap-0.5">
+      <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
+      <Countdown field="next_snapshot_at" label="snapshot" title="Następny dzienny snapshot" />
+    </div>
   </div>
   {#if showCreate}
     <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
