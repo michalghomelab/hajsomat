@@ -46,7 +46,7 @@
   });
 </script>
 
-<div class="p-6 max-w-3xl mx-auto">
+<div class="p-6 max-w-4xl mx-auto">
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
   <div class="flex gap-2 mb-6 items-center">
     <button class="btn btn-primary" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
