@@ -4,6 +4,8 @@ require 'bigdecimal'
 # Reconstructs daily portfolio snapshots from Yahoo historical closes + FX,
 # valuing each day with the transactions in effect on that day.
 class BackfillService
+  extend Callable
+
   def initialize(client: MarketData::YahooClient.new, range: '1y')
     @client = client
     @range = range
@@ -28,10 +30,6 @@ class BackfillService
 
   private
 
-  def settings
-    @settings ||= { fx_margin: AppConfig.config.fx_margin, base_currency: AppConfig.config.base_currency }
-  end
-
   def fx_histories
     base = AppConfig.config.base_currency
     currencies = @instruments.map(&:currency).uniq.reject { |c| c == base }
@@ -49,7 +47,7 @@ class BackfillService
   def write_snapshot(portfolio, date, txns)
     as_of = txns.select { |t| to_date(t.executed_at) <= date }
     positions = ValuationService.positions(transactions: as_of, instruments_by_id: instruments_on(date),
-                                           fx_to_pln: fx_on(date), **settings)
+                                           fx_to_pln: fx_on(date), **AppConfig.valuation_settings)
     upsert(portfolio.id, date, ValuationService.totals(positions))
   end
 
@@ -60,7 +58,7 @@ class BackfillService
   end
 
   def fx_on(date)
-    fx = { settings[:base_currency] => BigDecimal(1) }
+    fx = { AppConfig.config.base_currency => BigDecimal(1) }
     @fx_hist.each { |cur, hist| fx[cur] = value_on(hist, date) }
     fx.compact
   end

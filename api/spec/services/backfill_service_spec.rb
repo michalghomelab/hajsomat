@@ -24,7 +24,7 @@ RSpec.describe BackfillService do
   it 'writes one snapshot per historical trading day with margined values' do
     allow(Date).to receive(:today).and_return(Date.new(2026, 2, 14))
 
-    result = described_class.new(client: fake_client).call
+    result = described_class.call(client: fake_client)
     expect(result[:snapshots_written]).to eq(2)
 
     snap = PortfolioSnapshot[portfolio_id: portfolio.id, date: Date.new(2026, 2, 13)]

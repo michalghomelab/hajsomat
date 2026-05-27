@@ -12,7 +12,7 @@ RSpec.describe SnapshotService do
   end
 
   it 'writes one snapshot per portfolio with correct PLN totals' do
-    count = described_class.new.call(date: Date.new(2026, 5, 26))
+    count = described_class.call(date: Date.new(2026, 5, 26))
     expect(count).to eq(1)
     snap = PortfolioSnapshot[portfolio_id: portfolio.id, date: Date.new(2026, 5, 26)]
     # FX margin round-trip: value down 0.5%, cost up 0.5%
@@ -22,8 +22,8 @@ RSpec.describe SnapshotService do
   end
 
   it 'is idempotent for the same date' do
-    described_class.new.call(date: Date.new(2026, 5, 26))
-    described_class.new.call(date: Date.new(2026, 5, 26))
+    described_class.call(date: Date.new(2026, 5, 26))
+    described_class.call(date: Date.new(2026, 5, 26))
     expect(PortfolioSnapshot.where(portfolio_id: portfolio.id, date: Date.new(2026, 5, 26)).count).to eq(1)
   end
 end

@@ -16,4 +16,8 @@ class AppConfig
   # hours (GPW/Xetra/US session window); daily snapshot after US close.
   setting :refresh_cron, default: '0 9-22 * * 1-5 Europe/Warsaw'
   setting :snapshot_cron, default: '30 22 * * 1-5 Europe/Warsaw'
+
+  def self.valuation_settings
+    { fx_margin: config.fx_margin, base_currency: config.base_currency }
+  end
 end

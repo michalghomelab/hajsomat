@@ -1,4 +1,6 @@
 class RefreshService
+  extend Callable
+
   def initialize(client: MarketData::YahooClient.new)
     @client = client
   end

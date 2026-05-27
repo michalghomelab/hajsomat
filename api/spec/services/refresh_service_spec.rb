@@ -23,7 +23,7 @@ RSpec.describe RefreshService do
   end
 
   it 'updates instrument prices and FX rates' do
-    summary = described_class.new(client: fake_client).call
+    summary = described_class.call(client: fake_client)
 
     expect(aapl.refresh.last_price).to eq(BigDecimal('150'))
     expect(sxr8.refresh.last_price).to eq(BigDecimal('696.62'))
@@ -44,7 +44,7 @@ RSpec.describe RefreshService do
       end
     end.new
 
-    summary = described_class.new(client: failing_client).call
+    summary = described_class.call(client: failing_client)
     expect(FxRate[base: 'EUR', quote: 'PLN'].rate).to eq(BigDecimal('4.3'))
     expect(FxRate[base: 'USD', quote: 'PLN']).to be_nil
     expect(summary[:fx_updated]).to eq(1)
