@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { api } from "../api.js";
-  import { money, pnlClass } from "../format.js";
+  import { money, pnlClass, percent } from "../format.js";
   import PnlChart from "./PnlChart.svelte";
   import DailyChangeChart from "./DailyChangeChart.svelte";
   let { onSelect } = $props();
@@ -32,7 +32,7 @@
       <li class="border rounded p-4 flex justify-between cursor-pointer hover:bg-gray-50" onclick={() => onSelect(p.id)}>
         <span class="font-medium">{p.name}</span>
         <span class={pnlClass(p.pnl_pln)}>
-          {money(p.market_value_pln)} ({money(p.pnl_pln)}){#if p.incomplete}<span class="text-amber-600" title="Suma niepełna — brak części wycen"> *</span>{/if}
+          {money(p.market_value_pln)} ({money(p.pnl_pln)} · {percent(p.pnl_pln, p.cost_pln)}){#if p.incomplete}<span class="text-amber-600" title="Suma niepełna — brak części wycen"> *</span>{/if}
         </span>
       </li>
     {/each}

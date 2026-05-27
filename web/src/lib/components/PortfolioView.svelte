@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { api } from "../api.js";
-  import { money, pnlClass } from "../format.js";
+  import { money, pnlClass, percent } from "../format.js";
   import TransactionForm from "./TransactionForm.svelte";
   import PnlChart from "./PnlChart.svelte";
   import DailyChangeChart from "./DailyChangeChart.svelte";
@@ -72,7 +72,7 @@
   {#if refreshError}<p class="text-red-600 text-sm">⚠ {refreshError}</p>{/if}
   <div class="text-lg">
     Wartość: <strong>{money(data.totals.market_value_pln)}</strong>
-    · <span class={pnlClass(data.totals.pnl_pln)}>P/L {money(data.totals.pnl_pln)}</span>
+    · <span class={pnlClass(data.totals.pnl_pln)}>P/L {money(data.totals.pnl_pln)} ({percent(data.totals.pnl_pln, data.totals.cost_pln)})</span>
   </div>
   {#if data.totals.incomplete}
     <p class="text-amber-600 text-sm">⚠ Część pozycji nie ma aktualnej wyceny — suma PLN jest niepełna. Kliknij „Odśwież ceny".</p>

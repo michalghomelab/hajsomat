@@ -5,6 +5,14 @@ export function money(value, currency = "PLN") {
   return new Intl.NumberFormat("pl-PL", { style: "currency", currency }).format(n);
 }
 
+export function percent(pnl, cost) {
+  const c = Number(cost);
+  if (!c) return "";
+  const p = (Number(pnl) / c) * 100;
+  const sign = p > 0 ? "+" : "";
+  return `${sign}${p.toFixed(2)}%`;
+}
+
 export function pnlClass(value) {
   const n = Number(value);
   if (n > 0) return "text-green-600";
