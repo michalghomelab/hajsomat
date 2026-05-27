@@ -22,8 +22,8 @@
     const chart = new ApexCharts(el, {
       chart: {
         type: "bar", height: 320, stacked: true, fontFamily: "inherit",
-        background: "transparent", toolbar: { show: true, tools: { download: false } },
-        zoom: { enabled: true, type: "x" },
+        background: "transparent", toolbar: { show: true, autoSelected: "pan", tools: { download: false } },
+        zoom: { enabled: true, type: "x", allowMouseWheelZoom: true },
       },
       theme: { mode: dark ? "dark" : "light" },
       series: [
