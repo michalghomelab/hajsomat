@@ -11,6 +11,7 @@
   let newName = $state("");
   let showCreate = $state(false);
   let loading = $state(true);
+  let refreshing = $state(false);
 
   let totals = $derived.by(() => {
     const sum = (k) => portfolios.reduce((a, p) => a + Number(p[k] || 0), 0);
@@ -29,12 +30,22 @@
     await api.createPortfolio(newName.trim());
     newName = ""; showCreate = false; await load();
   }
+  async function refreshPrices() {
+    refreshing = true;
+    try { await api.refresh(); await load(); }
+    finally { refreshing = false; }
+  }
   onMount(load);
 </script>
 
 <div class="p-6 max-w-3xl mx-auto">
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
-  <button class="btn btn-primary mb-6" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
+  <div class="flex gap-2 mb-6">
+    <button class="btn btn-primary" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
+    <button class="btn btn-outline" onclick={refreshPrices} disabled={refreshing}>
+      {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
+    </button>
+  </div>
   {#if showCreate}
     <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
       <div class="space-y-3">
