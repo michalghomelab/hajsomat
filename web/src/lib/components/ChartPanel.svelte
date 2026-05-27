@@ -1,40 +1,57 @@
 <script>
   import PnlChart from "./PnlChart.svelte";
   import DailyChangeChart from "./DailyChangeChart.svelte";
-  import { RELATIVE, availableYears, loadRange, saveRange, filterSnapshots } from "../chartRange.js";
+  import {
+    RELATIVE, RESOLUTIONS, availableYears,
+    loadRange, saveRange, loadResolution, saveResolution,
+    filterSnapshots, resample,
+  } from "../chartRange.js";
 
   let { snapshots = [] } = $props();
   let range = $state(loadRange());
+  let resolution = $state(loadResolution());
 
   let years = $derived(availableYears(snapshots));
   // Fall back to lifetime if the persisted year isn't present in the data.
   let effectiveRange = $derived(
     range.startsWith("year:") && !years.includes(range.slice(5)) ? "all" : range
   );
-  let filtered = $derived(filterSnapshots(snapshots, effectiveRange));
+  let view = $derived(resample(filterSnapshots(snapshots, effectiveRange), resolution));
 
-  function select(id) {
+  function selectRange(id) {
     range = id;
     saveRange(id);
   }
-  const cls = (id) => `btn btn-xs ${effectiveRange === id ? "btn-primary" : "btn-ghost"}`;
+  function selectResolution(id) {
+    resolution = id;
+    saveResolution(id);
+  }
+  const rangeCls = (id) => `btn btn-xs ${effectiveRange === id ? "btn-primary" : "btn-ghost"}`;
+  const resCls = (id) => `btn btn-xs ${resolution === id ? "btn-primary" : "btn-ghost"}`;
 </script>
 
 <div class="space-y-2">
   {#if snapshots.length}
-    <div class="flex flex-wrap gap-1 justify-end">
+    <div class="flex flex-wrap gap-1 items-center">
+      <span class="text-xs text-base-content/50 mr-auto">Zakres</span>
       {#each RELATIVE as r}
-        <button class={cls(r.id)} onclick={() => select(r.id)}>{r.label}</button>
+        <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
       {/each}
       {#each years as y}
-        <button class={cls(`year:${y}`)} onclick={() => select(`year:${y}`)}>{y}</button>
+        <button class={rangeCls(`year:${y}`)} onclick={() => selectRange(`year:${y}`)}>{y}</button>
       {/each}
-      <button class={cls("all")} onclick={() => select("all")}>Całość</button>
+      <button class={rangeCls("all")} onclick={() => selectRange("all")}>Całość</button>
+    </div>
+    <div class="flex flex-wrap gap-1 items-center">
+      <span class="text-xs text-base-content/50 mr-auto">Rozdzielczość</span>
+      {#each RESOLUTIONS as r}
+        <button class={resCls(r.id)} onclick={() => selectResolution(r.id)}>{r.label}</button>
+      {/each}
     </div>
   {/if}
-  <PnlChart snapshots={filtered} />
+  <PnlChart snapshots={view} />
   <div>
-    <h3 class="text-sm font-semibold text-base-content/70 mb-1">Zmiana dzień do dnia (wpłaty vs rynek)</h3>
-    <DailyChangeChart snapshots={filtered} />
+    <h3 class="text-sm font-semibold text-base-content/70 mb-1">Zmiana (wpłaty vs rynek)</h3>
+    <DailyChangeChart snapshots={view} />
   </div>
 </div>

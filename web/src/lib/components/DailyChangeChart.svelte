@@ -48,7 +48,7 @@
       plotOptions: { bar: { columnWidth: "75%", borderRadius: 2 } },
       dataLabels: { enabled: false },
       legend: { position: "top" },
-      xaxis: { type: "datetime" },
+      xaxis: { type: "datetime", crosshairs: { width: 1 } },
       yaxis: { labels: { formatter: (v) => Math.round(v).toLocaleString("pl-PL") } },
       grid: { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", strokeDashArray: 4 },
       tooltip: {

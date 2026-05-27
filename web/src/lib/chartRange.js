@@ -42,3 +42,55 @@ export function filterSnapshots(snapshots, range) {
   const cutoff = from.toISOString().slice(0, 10);
   return all.filter((s) => s.date >= cutoff);
 }
+
+// --- Resolution (downsampling to period-end points) ---
+const RES_KEY = "hajsomat:chartResolution";
+
+export const RESOLUTIONS = [
+  { id: "day", label: "Dzień" },
+  { id: "week", label: "Tydzień" },
+  { id: "month", label: "Miesiąc" },
+  { id: "quarter", label: "Kwartał" },
+  { id: "year", label: "Rok" },
+];
+
+export function loadResolution() {
+  try {
+    return localStorage.getItem(RES_KEY) || "day";
+  } catch {
+    return "day";
+  }
+}
+
+export function saveResolution(id) {
+  try {
+    localStorage.setItem(RES_KEY, id);
+  } catch {
+    // ignore — selection just won't persist
+  }
+}
+
+// Bucket key for a "YYYY-MM-DD" date at the given resolution. Keys are sortable
+// and monotonic, so grouping preserves chronological order.
+function bucketKey(dateStr, res) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (res === "year") return `${y}`;
+  if (res === "quarter") return `${y}-Q${Math.floor((m - 1) / 3) + 1}`;
+  if (res === "month") return `${y}-${String(m).padStart(2, "0")}`;
+  if (res === "week") {
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() - ((dt.getUTCDay() + 6) % 7)); // back to Monday
+    return dt.toISOString().slice(0, 10);
+  }
+  return dateStr; // day
+}
+
+// Keep the last snapshot of each period (period-end value), in date order.
+export function resample(snapshots, resolution) {
+  const all = snapshots ?? [];
+  if (!all.length || resolution === "day") return all;
+  const sorted = [...all].sort((a, b) => (a.date < b.date ? -1 : 1));
+  const lastByBucket = new Map();
+  for (const s of sorted) lastByBucket.set(bucketKey(s.date, resolution), s);
+  return [...lastByBucket.values()];
+}
