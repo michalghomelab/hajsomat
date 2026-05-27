@@ -3,12 +3,10 @@
   Chart.register(...registerables);
   let { snapshots } = $props();
   let canvas;
-  let chart;
 
   $effect(() => {
     if (!canvas || !snapshots?.length) return;
-    chart?.destroy();
-    chart = new Chart(canvas, {
+    const chart = new Chart(canvas, {
       type: "line",
       data: {
         labels: snapshots.map((s) => s.date),
@@ -21,7 +19,7 @@
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } },
     });
-    return () => chart?.destroy();
+    return () => chart.destroy();
   });
 </script>
 

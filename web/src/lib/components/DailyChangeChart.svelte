@@ -3,7 +3,6 @@
   Chart.register(...registerables);
   let { snapshots } = $props();
   let canvas;
-  let chart;
 
   function deltas(snaps) {
     const out = [];
@@ -19,8 +18,7 @@
   $effect(() => {
     const d = deltas(snapshots ?? []);
     if (!canvas || !d.length) return;
-    chart?.destroy();
-    chart = new Chart(canvas, {
+    const chart = new Chart(canvas, {
       type: "bar",
       data: {
         labels: d.map((x) => x.date),
@@ -32,7 +30,7 @@
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } },
     });
-    return () => chart?.destroy();
+    return () => chart.destroy();
   });
 </script>
 
