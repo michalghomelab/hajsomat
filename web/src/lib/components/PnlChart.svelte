@@ -10,18 +10,19 @@
 
   const series = (snaps) => [
     { name: "Wartość", data: snaps.map((s) => [s.date, Number(s.total_value_pln)]) },
-    { name: "Wpłaty (koszt)", data: snaps.map((s) => [s.date, Number(s.total_cost_pln)]) },
+    { name: "Wpłaty", data: snaps.map((s) => [s.date, Number(s.total_cost_pln)]) },
     { name: "Zysk", data: snaps.map((s) => [s.date, Number(s.pnl_pln)]) },
   ];
 
   const money = (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
   // For Wartość (0) and Zysk (2), append the % change vs the previous datapoint
-  // (within the visible range); Wpłaty/koszt (1) stays plain.
+  // (within the visible range), coloured green/red; Wpłaty (1) stays plain.
   const withDelta = (v, { series: data, seriesIndex, dataPointIndex }) => {
     const prev = data[seriesIndex]?.[dataPointIndex - 1];
     if (seriesIndex === 1 || dataPointIndex <= 0 || prev == null || prev === 0) return money(v);
     const pct = ((v - prev) / Math.abs(prev)) * 100;
-    return `${money(v)} (${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(2)}%)`;
+    const color = pct >= 0 ? "#16a34a" : "#dc2626";
+    return `${money(v)} <span style="color:${color}">(${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(2)}%)</span>`;
   };
 
   // Build the chart once when the element mounts; reused across data changes.
