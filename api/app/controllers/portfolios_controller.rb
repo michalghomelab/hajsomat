@@ -3,8 +3,10 @@ class PortfoliosController < RageController::API
     fx = SnapshotService.fx_to_pln
     instruments_by_id = instruments_map
     payload = Portfolio.all.map do |portfolio|
-      totals = ValuationService.totals(positions_for(portfolio, instruments_by_id, fx))
-      portfolio_json(portfolio).merge(serialize_totals(totals))
+      positions = positions_for(portfolio, instruments_by_id, fx)
+      portfolio_json(portfolio)
+        .merge(serialize_totals(ValuationService.totals(positions)))
+        .merge(last_updated: last_update_for(positions, instruments_by_id))
     end
     render json: payload
   end
@@ -48,7 +50,9 @@ class PortfoliosController < RageController::API
   private
 
   def instruments_map
-    Instrument.all.to_h { |i| [i.id, { symbol: i.symbol, currency: i.currency, last_price: i.last_price }] }
+    Instrument.all.to_h do |i|
+      [i.id, { symbol: i.symbol, currency: i.currency, last_price: i.last_price, last_price_at: i.last_price_at }]
+    end
   end
 
   def positions_for(portfolio, instruments_by_id, fx_rates)
@@ -59,14 +63,21 @@ class PortfoliosController < RageController::API
 
   def detail(portfolio)
     fx = SnapshotService.fx_to_pln
+    instruments_by_id = instruments_map
     txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
-    positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_map,
+    positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_by_id,
                                            fx_to_pln: fx, **valuation_settings)
     by_instrument = txns.group_by(&:instrument_id)
     {
       totals: serialize_totals(ValuationService.totals(positions)),
+      last_updated: last_update_for(positions, instruments_by_id),
       positions: positions.map { |pos| position_with_txns(pos, by_instrument) }
     }
+  end
+
+  def last_update_for(positions, instruments_by_id)
+    times = positions.filter_map { |p| instruments_by_id[p.instrument_id][:last_price_at] }
+    times.max&.iso8601
   end
 
   def position_with_txns(pos, by_instrument)

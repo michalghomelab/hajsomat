@@ -13,6 +13,13 @@ export function percent(pnl, cost) {
   return `${sign}${p.toFixed(2)}%`;
 }
 
+export function dateTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" });
+}
+
 export function pnlClass(value) {
   const n = Number(value);
   if (n > 0) return "text-success";

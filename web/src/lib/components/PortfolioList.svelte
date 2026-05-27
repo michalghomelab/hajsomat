@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { api } from "../api.js";
-  import { money, pnlClass, percent } from "../format.js";
+  import { money, pnlClass, percent, dateTime } from "../format.js";
   import PnlChart from "./PnlChart.svelte";
   import DailyChangeChart from "./DailyChangeChart.svelte";
   import Modal from "./Modal.svelte";
@@ -15,6 +15,7 @@
     const sum = (k) => portfolios.reduce((a, p) => a + Number(p[k] || 0), 0);
     return { value: sum("market_value_pln"), cost: sum("cost_pln"), pnl: sum("pnl_pln") };
   });
+  let lastUpdated = $derived(portfolios.map((p) => p.last_updated).filter(Boolean).sort().at(-1) ?? null);
 
   async function load() {
     portfolios = await api.portfolios();
@@ -56,11 +57,14 @@
     <h2 class="text-lg font-semibold text-base-content">Łącznie — wszystkie portfele</h2>
     {#if portfolios.length}
       <div class="card bg-base-100 shadow-sm">
-        <div class="card-body flex-row justify-between items-center py-4">
-          <span class="font-medium text-base-content">Razem</span>
-          <span>
-            {money(totals.value)} (<span class={pnlClass(totals.pnl)}>{money(totals.pnl)} · {percent(totals.pnl, totals.cost)}</span>)
-          </span>
+        <div class="card-body py-4 gap-1">
+          <div class="flex justify-between items-center">
+            <span class="font-medium text-base-content">Razem</span>
+            <span>
+              {money(totals.value)} (<span class={pnlClass(totals.pnl)}>{money(totals.pnl)} · {percent(totals.pnl, totals.cost)}</span>)
+            </span>
+          </div>
+          <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(lastUpdated)}</p>
         </div>
       </div>
     {/if}
