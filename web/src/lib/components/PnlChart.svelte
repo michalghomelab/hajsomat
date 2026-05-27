@@ -9,7 +9,8 @@
     const chart = new ApexCharts(el, {
       chart: {
         type: "area", height: 320, fontFamily: "inherit", background: "transparent",
-        toolbar: { show: false }, zoom: { enabled: false }, animations: { easing: "easeinout" },
+        toolbar: { show: true, tools: { download: false } }, zoom: { enabled: true, type: "x" },
+        animations: { easing: "easeinout" },
       },
       theme: { mode: dark ? "dark" : "light" },
       series: [
