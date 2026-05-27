@@ -1,5 +1,3 @@
-require 'fx_rate'
-
 RSpec.describe FxRate do
   it 'inserts then updates the same base/quote pair' do
     described_class.upsert_rate('USD', 'PLN', BigDecimal('4.10'))

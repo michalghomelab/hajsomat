@@ -1,9 +1,4 @@
 require 'bigdecimal'
-require 'portfolio'
-require 'instrument'
-require 'transaction'
-require 'fx_rate'
-require 'refresh_service'
 
 RSpec.describe RefreshService do
   let(:portfolio) { Portfolio.create(name: 'Main') }

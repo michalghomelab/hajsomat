@@ -1,5 +1,3 @@
-require 'instrument'
-
 RSpec.describe Instrument do
   it 'builds the Twelve Data symbol with MIC suffix when present' do
     i = described_class.new(symbol: 'VWCE', mic: 'XETR', currency: 'EUR')

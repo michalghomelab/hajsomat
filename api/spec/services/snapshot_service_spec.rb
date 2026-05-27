@@ -1,12 +1,5 @@
 require 'bigdecimal'
 require 'date'
-require 'portfolio'
-require 'instrument'
-require 'transaction'
-require 'fx_rate'
-require 'portfolio_snapshot'
-require 'valuation_service'
-require 'snapshot_service'
 
 RSpec.describe SnapshotService do
   let(:portfolio) { Portfolio.create(name: 'Main') }

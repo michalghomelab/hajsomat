@@ -1,7 +1,3 @@
-require_relative '../services/valuation_service'
-require_relative '../services/snapshot_service'
-require_relative '../contracts/portfolio_contract'
-
 class PortfoliosController < RageController::API
   def index
     fx = SnapshotService.fx_to_pln

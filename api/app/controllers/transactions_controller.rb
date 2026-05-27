@@ -1,6 +1,3 @@
-require_relative '../contracts/transaction_contract'
-require_relative '../services/market_data/twelve_data_client'
-
 class TransactionsController < RageController::API
   def create
     result = TransactionContract.new.call(transaction_params)

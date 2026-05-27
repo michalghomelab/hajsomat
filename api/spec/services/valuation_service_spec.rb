@@ -1,5 +1,4 @@
 require 'bigdecimal'
-require 'valuation_service'
 
 Txn = Struct.new(:instrument_id, :quantity, :price, keyword_init: true)
 

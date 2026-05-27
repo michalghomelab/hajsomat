@@ -1,5 +1,3 @@
-require_relative 'market_data/twelve_data_client'
-
 class RefreshService
   def initialize(client: MarketData::TwelveDataClient.new)
     @client = client

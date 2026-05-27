@@ -1,7 +1,3 @@
-require 'portfolio'
-require 'instrument'
-require 'transaction'
-
 RSpec.describe Transaction do
   it 'persists and associates portfolio and instrument' do
     portfolio = Portfolio.create(name: 'Main')

@@ -1,7 +1,4 @@
 require 'rage/rspec'
-require 'portfolio'
-require 'instrument'
-require 'transaction'
 
 RSpec.describe 'Transactions API', type: :request do
   let(:portfolio) { Portfolio.create(name: 'Main') }

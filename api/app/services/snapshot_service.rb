@@ -1,5 +1,4 @@
 require 'date'
-require_relative 'valuation_service'
 
 class SnapshotService
   def self.fx_to_pln

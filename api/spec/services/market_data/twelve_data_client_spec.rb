@@ -1,5 +1,4 @@
 require 'bigdecimal'
-require 'market_data/twelve_data_client'
 
 RSpec.describe MarketData::TwelveDataClient do
   let(:client) { described_class.new(api_key: 'TESTKEY') }

@@ -1,5 +1,3 @@
-require 'portfolio_contract'
-
 RSpec.describe PortfolioContract do
   subject(:contract) { described_class.new }
 

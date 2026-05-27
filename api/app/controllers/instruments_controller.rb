@@ -1,5 +1,3 @@
-require_relative '../services/market_data/twelve_data_client'
-
 class InstrumentsController < RageController::API
   def search
     query = params[:q].to_s

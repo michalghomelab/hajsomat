@@ -1,5 +1,3 @@
-require 'transaction_contract'
-
 RSpec.describe TransactionContract do
   subject(:contract) { described_class.new }
 

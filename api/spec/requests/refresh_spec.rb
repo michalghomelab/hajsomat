@@ -1,7 +1,4 @@
 require 'rage/rspec'
-require 'portfolio'
-require 'instrument'
-require 'transaction'
 
 RSpec.describe 'Refresh API', type: :request do
   it 'triggers a refresh and reports a summary' do
