@@ -45,9 +45,8 @@
     <button class="btn btn-outline" onclick={refreshPrices} disabled={refreshing}>
       {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
     </button>
-    <div class="ml-auto flex flex-col items-end gap-0.5">
+    <div class="ml-auto">
       <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
-      <Countdown field="next_snapshot_at" label="snapshot" title="Następny dzienny snapshot" />
     </div>
   </div>
   {#if showCreate}
