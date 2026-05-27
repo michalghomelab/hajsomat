@@ -3,8 +3,7 @@
   import { api } from "../api.js";
   import { money, pnlClass, percent, dateTime } from "../format.js";
   import TransactionForm from "./TransactionForm.svelte";
-  import PnlChart from "./PnlChart.svelte";
-  import DailyChangeChart from "./DailyChangeChart.svelte";
+  import ChartPanel from "./ChartPanel.svelte";
   import Modal from "./Modal.svelte";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
@@ -139,11 +138,7 @@
     </table>
   </div>
 
-  <PnlChart {snapshots} />
-  <div>
-    <h2 class="text-sm font-semibold text-base-content/70 mb-1">Zmiana dzień do dnia</h2>
-    <DailyChangeChart {snapshots} />
-  </div>
+  <ChartPanel {snapshots} />
   {#if showAdd}
     <Modal title="Dodaj transakcję" onClose={() => (showAdd = false)}>
       <TransactionForm portfolioId={id} onAdded={() => { showAdd = false; load(); }} />

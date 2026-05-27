@@ -2,8 +2,7 @@
   import { onMount } from "svelte";
   import { api } from "../api.js";
   import { money, pnlClass, percent, dateTime } from "../format.js";
-  import PnlChart from "./PnlChart.svelte";
-  import DailyChangeChart from "./DailyChangeChart.svelte";
+  import ChartPanel from "./ChartPanel.svelte";
   import Modal from "./Modal.svelte";
   let { onSelect } = $props();
   let portfolios = $state([]);
@@ -94,11 +93,7 @@
           </div>
         </div>
       {/if}
-      <PnlChart {snapshots} />
-      <div>
-        <h3 class="text-sm font-semibold text-base-content/70 mb-1">Zmiana dzień do dnia (wpłaty vs rynek)</h3>
-        <DailyChangeChart {snapshots} />
-      </div>
+      <ChartPanel {snapshots} />
     </div>
   {/if}
 </div>
