@@ -5,10 +5,12 @@
   import TransactionForm from "./TransactionForm.svelte";
   import PnlChart from "./PnlChart.svelte";
   import DailyChangeChart from "./DailyChangeChart.svelte";
+  import Modal from "./Modal.svelte";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
   let editingName = $state(false); let nameInput = $state(""); let nameError = $state("");
+  let showAdd = $state(false);
 
   async function load() {
     data = await api.portfolio(id);
@@ -127,6 +129,11 @@
     <h2 class="text-sm font-semibold text-gray-600 mb-1">Zmiana dzień do dnia</h2>
     <DailyChangeChart {snapshots} />
   </div>
-  <TransactionForm portfolioId={id} onAdded={load} />
+  <button class="bg-green-600 text-white px-4 py-2 rounded" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
+  {#if showAdd}
+    <Modal title="Dodaj transakcję" onClose={() => (showAdd = false)}>
+      <TransactionForm portfolioId={id} onAdded={() => { showAdd = false; load(); }} />
+    </Modal>
+  {/if}
 </div>
 {/if}

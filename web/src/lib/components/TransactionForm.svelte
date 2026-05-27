@@ -23,8 +23,7 @@
   }
 </script>
 
-<div class="border rounded p-4 space-y-3">
-  <h3 class="font-semibold">Dodaj transakcję</h3>
+<div class="space-y-3">
   <div class="relative">
     <input class="border rounded px-3 py-2 w-full" placeholder="Szukaj tickera (np. AAPL)" bind:value={query} oninput={search} />
     {#if results.length}

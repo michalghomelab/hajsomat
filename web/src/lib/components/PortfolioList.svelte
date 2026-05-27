@@ -4,10 +4,12 @@
   import { money, pnlClass, percent } from "../format.js";
   import PnlChart from "./PnlChart.svelte";
   import DailyChangeChart from "./DailyChangeChart.svelte";
+  import Modal from "./Modal.svelte";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
   let newName = $state("");
+  let showCreate = $state(false);
 
   async function load() {
     portfolios = await api.portfolios();
@@ -16,17 +18,22 @@
   async function create() {
     if (!newName.trim()) return;
     await api.createPortfolio(newName.trim());
-    newName = ""; await load();
+    newName = ""; showCreate = false; await load();
   }
   onMount(load);
 </script>
 
 <div class="p-6 max-w-3xl mx-auto">
   <h1 class="text-2xl font-bold mb-4">Moje portfele</h1>
-  <div class="flex gap-2 mb-6">
-    <input class="border rounded px-3 py-2 flex-1" placeholder="Nazwa portfela" bind:value={newName} />
-    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick={create}>Dodaj</button>
-  </div>
+  <button class="bg-blue-600 text-white px-4 py-2 rounded mb-6" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
+  {#if showCreate}
+    <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
+      <div class="space-y-3">
+        <input class="border rounded px-3 py-2 w-full" placeholder="Nazwa portfela" bind:value={newName} />
+        <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick={create}>Dodaj</button>
+      </div>
+    </Modal>
+  {/if}
   <ul class="space-y-2">
     {#each portfolios as p}
       <li class="border rounded p-4 flex justify-between cursor-pointer hover:bg-gray-50" onclick={() => onSelect(p.id)}>
