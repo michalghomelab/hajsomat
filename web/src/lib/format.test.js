@@ -25,8 +25,8 @@ describe("percent", () => {
 
 describe("pnlClass", () => {
   it("is green for positive, red for negative, neutral for zero", () => {
-    expect(pnlClass("10")).toBe("text-green-600");
-    expect(pnlClass("-3")).toBe("text-red-600");
-    expect(pnlClass("0")).toBe("text-gray-500");
+    expect(pnlClass("10")).toBe("text-success");
+    expect(pnlClass("-3")).toBe("text-error");
+    expect(pnlClass("0")).toBe("text-base-content/60");
   });
 });

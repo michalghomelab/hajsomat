@@ -1,6 +1,9 @@
 <script>
   import { Chart, registerables } from "chart.js";
   Chart.register(...registerables);
+  const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  Chart.defaults.color = dark ? "#cbd5e1" : "#334155";
+  Chart.defaults.borderColor = dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
   let { snapshots } = $props();
   let canvas = $state(null);
 
@@ -48,7 +51,7 @@
 </script>
 
 {#if (snapshots?.length ?? 0) > 1}
-  <div class="border rounded p-4" style="height: 320px"><canvas bind:this={canvas}></canvas></div>
+  <div class="card bg-base-100 shadow-sm p-4" style="height: 320px"><canvas bind:this={canvas}></canvas></div>
 {:else}
-  <p class="text-gray-500 text-sm">Zmiany dzienne pojawią się po co najmniej dwóch dziennych snapshotach.</p>
+  <p class="text-base-content/60 text-sm">Zmiany dzienne pojawią się po co najmniej dwóch dziennych snapshotach.</p>
 {/if}

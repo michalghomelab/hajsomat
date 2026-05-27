@@ -25,20 +25,20 @@
 
 <div class="space-y-3">
   <div class="relative">
-    <input class="border rounded px-3 py-2 w-full" placeholder="Szukaj tickera (np. AAPL)" bind:value={query} oninput={search} />
+    <input class="input input-bordered w-full" placeholder="Szukaj tickera (np. AAPL)" bind:value={query} oninput={search} />
     {#if results.length}
-      <ul class="absolute z-10 bg-white border rounded w-full mt-1 max-h-48 overflow-auto">
+      <ul class="absolute z-10 bg-base-100 border border-base-300 rounded w-full mt-1 max-h-48 overflow-auto">
         {#each results as r}
-          <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer" onclick={() => pick(r)}>{r.symbol} — {r.name}{r.currency ? ` (${r.currency})` : r.exchange ? ` · ${r.exchange}` : ""}</li>
+          <li class="px-3 py-2 hover:bg-base-200 cursor-pointer" onclick={() => pick(r)}>{r.symbol} — {r.name}{r.currency ? ` (${r.currency})` : r.exchange ? ` · ${r.exchange}` : ""}</li>
         {/each}
       </ul>
     {/if}
   </div>
   <div class="grid grid-cols-3 gap-2">
-    <input class="border rounded px-3 py-2" placeholder="Ilość" bind:value={quantity} />
-    <input class="border rounded px-3 py-2" placeholder="Cena" bind:value={price} />
-    <input class="border rounded px-3 py-2" type="date" bind:value={executedAt} />
+    <input class="input input-bordered" placeholder="Ilość" bind:value={quantity} />
+    <input class="input input-bordered" placeholder="Cena" bind:value={price} />
+    <input class="input input-bordered" type="date" bind:value={executedAt} />
   </div>
-  {#if error}<p class="text-red-600 text-sm">{error}</p>{/if}
-  <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick={submit}>Zapisz</button>
+  {#if error}<p class="text-error text-sm">{error}</p>{/if}
+  <button class="btn btn-success" onclick={submit}>Zapisz</button>
 </div>

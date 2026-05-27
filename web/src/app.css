@@ -1,14 +1,13 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
 
 @layer base {
-  button:not(:disabled) {
-    cursor: pointer;
+  body {
+    @apply bg-base-200 text-base-content min-h-screen;
   }
   button:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
-  }
-  button {
-    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
   }
 }

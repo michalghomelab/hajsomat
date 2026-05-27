@@ -15,7 +15,7 @@ export function percent(pnl, cost) {
 
 export function pnlClass(value) {
   const n = Number(value);
-  if (n > 0) return "text-green-600";
-  if (n < 0) return "text-red-600";
-  return "text-gray-500";
+  if (n > 0) return "text-success";
+  if (n < 0) return "text-error";
+  return "text-base-content/60";
 }
