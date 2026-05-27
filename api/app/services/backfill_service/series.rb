@@ -4,14 +4,16 @@ class BackfillService
   class Series
     def initialize(by_date)
       @by_date = by_date || {}
+      @dates = @by_date.keys.sort
     end
 
     def on(date)
-      @by_date[date] || @by_date.keys.select { |d| d <= date }.max&.then { |d| @by_date[d] }
+      return @by_date[date] if @by_date.key?(date)
+
+      idx = (@dates.bsearch_index { |d| d > date } || @dates.size) - 1
+      idx >= 0 ? @by_date[@dates[idx]] : nil
     end
 
-    def dates
-      @by_date.keys
-    end
+    attr_reader :dates
   end
 end
