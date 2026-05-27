@@ -6,17 +6,18 @@
   import ChartPanel from "./ChartPanel.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
+  import { onScheduledRefresh } from "../autoRefresh.js";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
   let editingName = $state(false); let nameInput = $state(""); let nameError = $state("");
   let showAdd = $state(false);
 
-  async function load() {
-    loading = true;
+  async function load(silent = false) {
+    if (!silent) loading = true;
     data = await api.portfolio(id);
     snapshots = await api.snapshots(id);
-    loading = false;
+    if (!silent) loading = false;
   }
   async function refresh() {
     refreshError = ""; refreshing = true;
@@ -44,7 +45,10 @@
     try { await api.renamePortfolio(id, nameInput.trim()); editingName = false; await load(); }
     catch (e) { nameError = e.message || "Nie udało się zmienić nazwy"; }
   }
-  onMount(load);
+  onMount(() => {
+    load();
+    return onScheduledRefresh(() => load(true));
+  });
 </script>
 
 {#if data}

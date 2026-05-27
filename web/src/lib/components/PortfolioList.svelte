@@ -6,6 +6,7 @@
   import Countdown from "./Countdown.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
+  import { onScheduledRefresh } from "../autoRefresh.js";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -20,11 +21,11 @@
   });
   let lastUpdated = $derived(portfolios.map((p) => p.last_updated).filter(Boolean).sort().at(-1) ?? null);
 
-  async function load() {
-    loading = true;
+  async function load(silent = false) {
+    if (!silent) loading = true;
     portfolios = (await api.portfolios()).sort((a, b) => a.name.localeCompare(b.name, "pl"));
     snapshots = await api.allSnapshots();
-    loading = false;
+    if (!silent) loading = false;
   }
   async function create() {
     if (!newName.trim()) return;
@@ -36,7 +37,10 @@
     try { await api.refresh(); await load(); }
     finally { refreshing = false; }
   }
-  onMount(load);
+  onMount(() => {
+    load();
+    return onScheduledRefresh(() => load(true));
+  });
 </script>
 
 <div class="p-6 max-w-3xl mx-auto">
