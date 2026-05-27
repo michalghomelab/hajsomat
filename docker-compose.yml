@@ -1,0 +1,24 @@
+services:
+  api:
+    build: ./api
+    environment:
+      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-dummy}
+      - DATABASE_URL=sqlite:///data/portfolio.sqlite3
+      - RACK_ENV=development
+    volumes:
+      - ./api:/app
+      - api_data:/data
+    ports:
+      - "3000:3000"
+  web:
+    build: ./web
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  api_data:
