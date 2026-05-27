@@ -8,6 +8,7 @@
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
+  let marketOpen = $state(true);
   let editingName = $state(false); let nameInput = $state(""); let nameError = $state("");
   let showAdd = $state(false);
 
@@ -15,6 +16,7 @@
     loading = true;
     data = await api.portfolio(id);
     snapshots = await api.snapshots(id);
+    try { marketOpen = (await api.schedule()).market_open; } catch { marketOpen = true; }
     loading = false;
   }
   async function refresh() {
@@ -67,7 +69,8 @@
   <div class="flex justify-between items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
     <div class="flex gap-2">
-      <button class="btn btn-outline btn-sm" onclick={refresh} disabled={refreshing}>
+      <button class="btn btn-outline btn-sm" onclick={refresh} disabled={refreshing || !marketOpen}
+              title={marketOpen ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
         {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
       </button>
       <button class="btn btn-outline btn-sm" onclick={backfill} disabled={backfilling}>
