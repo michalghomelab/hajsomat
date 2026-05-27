@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+# Standalone scheduler process. Run separately from the web server, because the
+# forking app server doesn't reliably run an in-process background thread.
+require_relative '../config/application'
+require 'rufus-scheduler'
+
+scheduler = Rufus::Scheduler.new
+
+scheduler.cron(AppConfig.config.refresh_cron) do
+  RefreshService.call
+rescue StandardError => e
+  Rage.logger.error("scheduled refresh failed: #{e.message}")
+end
+
+scheduler.cron(AppConfig.config.snapshot_cron) do
+  SnapshotService.call
+rescue StandardError => e
+  Rage.logger.error("scheduled snapshot failed: #{e.message}")
+end
+
+Rage.logger.info("scheduler up — refresh: #{AppConfig.config.refresh_cron}, snapshot: #{AppConfig.config.snapshot_cron}")
+scheduler.join

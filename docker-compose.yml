@@ -21,6 +21,18 @@ services:
             - db/
         - action: rebuild
           path: ./api/Gemfile
+  scheduler:
+    build: ./api
+    command: bundle exec ruby bin/scheduler
+    environment:
+      - DATABASE_URL=sqlite:///data/portfolio.sqlite3
+      - RACK_ENV=development
+    volumes:
+      - ./api:/app
+      - api_data:/data
+    depends_on:
+      - api
+
   web:
     build: ./web
     volumes:
