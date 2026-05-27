@@ -25,6 +25,9 @@ module MarketData
       symbols.each_with_object({}) do |sym, acc|
         q = quote(sym)
         acc[sym] = q[:price] if q
+      rescue Error => e
+        # Skip a throttled/failed symbol so one bad quote doesn't abort the whole refresh.
+        Rage.logger.warn("price fetch failed for #{sym}: #{e.message}") if defined?(Rage)
       end
     end
 
@@ -62,13 +65,21 @@ module MarketData
     def get(path, params)
       uri = URI("#{@http_base}#{path}")
       uri.query = URI.encode_www_form(params)
-      req = Net::HTTP::Get.new(uri)
-      req['User-Agent'] = 'Mozilla/5.0'
-      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+      res = perform(uri)
+      if res.code == '429' # transient rate limit — back off once and retry
+        sleep 1
+        res = perform(uri)
+      end
       return nil if res.code == '404'
       raise Error, "Yahoo #{path} returned HTTP #{res.code}" unless res.is_a?(Net::HTTPSuccess)
 
       JSON.parse(res.body)
+    end
+
+    def perform(uri)
+      req = Net::HTTP::Get.new(uri)
+      req['User-Agent'] = 'Mozilla/5.0'
+      Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
     end
   end
 end

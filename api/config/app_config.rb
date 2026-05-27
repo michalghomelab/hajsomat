@@ -12,6 +12,8 @@ class AppConfig
     setting :base_url, default: 'https://query1.finance.yahoo.com'
   end
 
-  setting :refresh_times, default: %w[09:30 15:35 22:15]
-  setting :snapshot_time, default: '22:30'
+  # rufus cron (min hour day month weekday tz). Hourly on weekdays during market
+  # hours (GPW/Xetra/US session window); daily snapshot after US close.
+  setting :refresh_cron, default: '0 9-22 * * 1-5 Europe/Warsaw'
+  setting :snapshot_cron, default: '30 22 * * 1-5 Europe/Warsaw'
 end
