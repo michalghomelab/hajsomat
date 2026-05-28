@@ -4,9 +4,10 @@
   import { money, pnlClass, percent, dateTime } from "../format.js";
   import TransactionForm from "./TransactionForm.svelte";
   import ChartPanel from "./ChartPanel.svelte";
+  import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
-  import { onScheduledRefresh } from "../autoRefresh.js";
+  import { refreshEvery } from "../refreshInterval.svelte.js";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -45,12 +46,12 @@
     try { await api.renamePortfolio(id, nameInput.trim()); editingName = false; await load(); }
     catch (e) { nameError = e.message || "Nie udało się zmienić nazwy"; }
   }
-  onMount(() => {
-    load();
-    return onScheduledRefresh(async () => {
-      await load(true);
-      return data?.last_updated ?? null;
-    });
+  onMount(() => load());
+  $effect(() => {
+    const ms = refreshEvery.value;
+    if (!ms) return;
+    const t = setInterval(() => load(true), ms);
+    return () => clearInterval(t);
   });
 </script>
 
@@ -74,7 +75,8 @@
 
   <div class="flex justify-between items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-center">
+      <RefreshIntervalSelect />
       <button class="btn btn-outline btn-sm" onclick={refresh} disabled={refreshing || !market.open}
               title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
         {refreshing ? "Odświeżanie…" : "Odśwież ceny"}

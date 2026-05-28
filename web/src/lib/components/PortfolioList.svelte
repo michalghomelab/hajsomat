@@ -4,9 +4,10 @@
   import { money, pnlClass, percent, dateTime } from "../format.js";
   import ChartPanel from "./ChartPanel.svelte";
   import Countdown from "./Countdown.svelte";
+  import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
-  import { onScheduledRefresh } from "../autoRefresh.js";
+  import { refreshEvery } from "../refreshInterval.svelte.js";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -37,12 +38,12 @@
     try { await api.refresh(); await load(); }
     finally { refreshing = false; }
   }
-  onMount(() => {
-    load();
-    return onScheduledRefresh(async () => {
-      await load(true);
-      return portfolios.map((p) => p.last_updated).filter(Boolean).sort().at(-1) ?? null;
-    });
+  onMount(() => load());
+  $effect(() => {
+    const ms = refreshEvery.value;
+    if (!ms) return;
+    const t = setInterval(() => load(true), ms);
+    return () => clearInterval(t);
   });
 </script>
 
@@ -54,7 +55,8 @@
             title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
       {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
     </button>
-    <div class="ml-auto">
+    <div class="ml-auto flex items-center gap-3">
+      <RefreshIntervalSelect />
       <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
     </div>
   </div>
