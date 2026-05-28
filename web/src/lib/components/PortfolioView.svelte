@@ -9,6 +9,7 @@
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
+  import { sameSnapshots } from "../snapshots.js";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -18,7 +19,8 @@
   async function load(silent = false) {
     if (!silent) loading = true;
     data = await api.portfolio(id);
-    snapshots = await api.snapshots(id);
+    const next = await api.snapshots(id);
+    if (!sameSnapshots(next, snapshots)) snapshots = next; // skip chart churn when unchanged
     if (!silent) loading = false;
   }
   async function refresh() {
@@ -111,7 +113,7 @@
         <th class="text-right">Wartość (PLN)</th><th class="text-right">P/L (PLN)</th>
       </tr></thead>
       <tbody>
-        {#each data.positions as pos}
+        {#each data.positions as pos (pos.symbol)}
           <tr class="cursor-pointer hover" onclick={() => toggle(pos.symbol)}>
             <td>
               {expanded[pos.symbol] ? "▾" : "▸"} {pos.symbol}
@@ -132,7 +134,7 @@
                     Zakupy ({pos.transactions.length})
                   </div>
                   <div class="space-y-1.5">
-                    {#each pos.transactions as t}
+                    {#each pos.transactions as t (t.id)}
                       <div class="flex items-center gap-3 rounded-lg bg-base-100 px-3 py-2 text-sm">
                         <span class="text-base-content/60 w-24 shrink-0">{t.executed_at.slice(0, 10)}</span>
                         <span class="flex-1 text-right tabular-nums">{t.quantity} × {money(t.price, t.currency)}</span>

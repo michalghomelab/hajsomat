@@ -8,6 +8,7 @@
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
+  import { sameSnapshots } from "../snapshots.js";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -25,7 +26,8 @@
   async function load(silent = false) {
     if (!silent) loading = true;
     portfolios = (await api.portfolios()).sort((a, b) => a.name.localeCompare(b.name, "pl"));
-    snapshots = await api.allSnapshots();
+    const next = await api.allSnapshots();
+    if (!sameSnapshots(next, snapshots)) snapshots = next; // skip chart churn when unchanged
     if (!silent) loading = false;
   }
   async function create() {
@@ -78,7 +80,7 @@
     </div>
   {:else}
     <ul class="space-y-2">
-      {#each portfolios as p}
+      {#each portfolios as p (p.id)}
         <li class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick={() => onSelect(p.id)}>
           <div class="card-body flex-row justify-between items-center py-4">
             <span class="font-medium text-base-content">{p.name}</span>
