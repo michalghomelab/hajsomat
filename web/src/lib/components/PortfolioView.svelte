@@ -16,6 +16,19 @@
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
   let editingName = $state(false); let nameInput = $state(""); let nameError = $state("");
   let showAdd = $state(false);
+  let showImport = $state(false); let importFile = $state(null); let importing = $state(false);
+  let importResult = $state(null); let importError = $state("");
+
+  async function doImport() {
+    if (!importFile) return;
+    importing = true; importError = ""; importResult = null;
+    try { importResult = await api.importXtb(id, importFile); await load(true); }
+    catch (e) { importError = e.message || "Import nie powiódł się"; }
+    finally { importing = false; }
+  }
+  function closeImport() {
+    showImport = false; importFile = null; importResult = null; importError = "";
+  }
 
   async function load(silent = false) {
     if (!silent) loading = true;
@@ -90,6 +103,7 @@
             {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
           </button>
         </li>
+        <li><button onclick={() => (showImport = true)}>Importuj raport XTB</button></li>
       </ul>
     </div>
   </div>
@@ -165,6 +179,20 @@
   {#if showAdd}
     <Modal title="Dodaj transakcję" onClose={() => (showAdd = false)}>
       <TransactionForm portfolioId={id} onAdded={() => { showAdd = false; load(); }} />
+    </Modal>
+  {/if}
+  {#if showImport}
+    <Modal title="Importuj raport XTB" onClose={closeImport}>
+      <div class="space-y-3">
+        <p class="text-sm text-base-content/70">Wgraj plik .xlsx z historią operacji (Cash Operations) z XTB. Transakcje już zaimportowane zostaną pominięte.</p>
+        <input type="file" accept=".xlsx" class="file-input file-input-bordered w-full"
+               onchange={(e) => (importFile = e.currentTarget.files[0])} />
+        <button class="btn btn-primary" onclick={doImport} disabled={!importFile || importing}>
+          {importing ? "Importowanie…" : "Importuj"}
+        </button>
+        {#if importResult}<p class="text-success text-sm">Zaimportowano: {importResult.imported}, pominięto: {importResult.skipped}.</p>{/if}
+        {#if importError}<p class="text-error text-sm">⚠ {importError}</p>{/if}
+      </div>
     </Modal>
   {/if}
 </div>

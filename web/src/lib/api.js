@@ -27,4 +27,6 @@ export const api = {
     fetch(`/api/transactions/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); }),
   refresh: () => fetch("/api/refresh", { method: "POST" }).then(json),
   backfill: () => fetch("/api/backfill", { method: "POST" }).then(json),
+  importXtb: (id, file) =>
+    fetch(`/api/portfolios/${id}/import`, { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file }).then(json),
 };

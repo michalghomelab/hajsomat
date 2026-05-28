@@ -5,6 +5,7 @@ gem 'dry-configurable'
 gem 'dry-struct'
 gem 'dry-validation'
 gem 'rage-rb'
+gem 'roo' # read XTB .xlsx reports
 gem 'rufus-scheduler'
 gem 'sequel'
 gem 'sqlite3'
