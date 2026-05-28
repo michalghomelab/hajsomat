@@ -74,10 +74,14 @@ docker login ghcr.io                                   # PAT z read:packages
 docker compose -f docker-compose.prod.yml up -d        # nginx + Rage, port 8080
 
 # przeniesienie bazy z deva (opcjonalnie)
+# najpierw checkpoint WAL — bez tego świeże zapisy siedzą w portfolio.sqlite3-wal i kopia ich nie złapie
+docker compose exec -T api ruby -e 'require "./config/application"; DB.run("PRAGMA wal_checkpoint(TRUNCATE)")'
 docker compose cp api:/data/portfolio.sqlite3 ./portfolio.sqlite3        # z deva
 docker compose -f docker-compose.prod.yml cp ./portfolio.sqlite3 app:/data/portfolio.sqlite3
 docker compose -f docker-compose.prod.yml restart app
 ```
+
+> Migracje schematu odpalają się raz, synchronicznie, na starcie kontenera (`deploy/entrypoint.sh`), zanim wystartują Rage i scheduler.
 
 Obraz produkcyjny: nginx serwuje statyczny front i proxuje `/api` do Rage w tym samym kontenerze; baza SQLite na wolumenie; scheduler startuje automatycznie.
 
