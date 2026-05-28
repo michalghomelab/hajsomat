@@ -11,3 +11,10 @@
     cursor: not-allowed;
   }
 }
+
+/* Pulse a freshly-updated value: fades in from lighter to its target colour. */
+@keyframes value-flash {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+.value-flash { animation: value-flash 0.7s ease-out; }

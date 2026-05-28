@@ -5,6 +5,7 @@
   import ChartPanel from "./ChartPanel.svelte";
   import Countdown from "./Countdown.svelte";
   import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
+  import FlashValue from "./FlashValue.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
@@ -84,9 +85,11 @@
         <li class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick={() => onSelect(p.id)}>
           <div class="card-body flex-row justify-between items-center py-4">
             <span class="font-medium text-base-content">{p.name}</span>
-            <span class={pnlClass(p.pnl_pln)}>
-              {money(p.market_value_pln)} ({money(p.pnl_pln)} · {percent(p.pnl_pln, p.cost_pln)}){#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen"> *</span>{/if}
-            </span>
+            <FlashValue value={p.market_value_pln}>
+              <span class={pnlClass(p.pnl_pln)}>
+                {money(p.market_value_pln)} ({money(p.pnl_pln)} · {percent(p.pnl_pln, p.cost_pln)}){#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen"> *</span>{/if}
+              </span>
+            </FlashValue>
           </div>
         </li>
       {/each}
@@ -99,9 +102,9 @@
           <div class="card-body py-4 gap-1">
             <div class="flex justify-between items-center">
               <span class="font-medium text-base-content">Razem</span>
-              <span>
+              <FlashValue value={totals.value}>
                 {money(totals.value)} (<span class={pnlClass(totals.pnl)}>{money(totals.pnl)} · {percent(totals.pnl, totals.cost)}</span>)
-              </span>
+              </FlashValue>
             </div>
             <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(lastUpdated)}</p>
           </div>
