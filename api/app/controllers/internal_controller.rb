@@ -2,10 +2,7 @@
 # price refresh so the web process can push a "refreshed" signal to WS clients.
 class InternalController < RageController::API
   def refreshed
-    Rage::Cable.broadcast('prices', { type: 'refreshed' })
-    head :no_content
-  rescue StandardError => e
-    Rage.logger.warn("cable broadcast failed: #{e.message}")
+    PriceBroadcast.refreshed
     head :no_content
   end
 end
