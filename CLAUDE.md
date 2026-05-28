@@ -28,6 +28,10 @@ docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vi
 
 RuboCop must stay green (config in `api/.rubocop.yml`: line length 120, MethodLength 25, AbcSize 25). Prefer BigDecimal for money, dry-validation contracts, dry-configurable, dry-struct; rely on Zeitwerk autoload (no manual `require` for app classes).
 
+## Data backfills
+
+The app deploys to a homelab, so the production DB only ever changes via code that ships with the image. **Any one-off data change (backfilling a new column, fixing rows, seeding) MUST be a Sequel migration (`api/db/migrations/`, auto-run on boot) or a rake task (`api/lib/tasks/`)** — never a script run by hand against a local container, because that change won't reach production. A self-healing path baked into normal runtime (e.g. `InstrumentNameBackfiller` filling missing names during a price refresh) is also fine, since it runs on the homelab too.
+
 ## Architecture
 
 Two processes share one SQLite file (WAL mode, `PRAGMA foreign_keys=ON`):
