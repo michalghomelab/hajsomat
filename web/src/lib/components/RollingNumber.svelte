@@ -23,7 +23,7 @@
   }
 </script>
 
-<span class="rolling tabular-nums">{#each chars as ch, i (i)}{#if ch >= "0" && ch <= "9"}<span class="slot"><span class="ghost">0</span>{#key ch}<span class="digit" in:roll={{ y: dir > 0 ? -100 : 100 }} out:roll={{ y: dir > 0 ? 100 : -100 }}>{ch}</span>{/key}</span>{:else}{ch}{/if}{/each}</span>
+<span class="rolling tabular-nums">{#each chars as ch, i (i)}{#if ch >= "0" && ch <= "9"}<span class="slot"><span class="ghost">0</span><span class="window">{#key ch}<span class="digit" in:roll={{ y: dir > 0 ? -100 : 100 }} out:roll={{ y: dir > 0 ? 100 : -100 }}>{ch}</span>{/key}</span></span>{:else}{ch}{/if}{/each}</span>
 
 <style>
   .rolling {
@@ -33,7 +33,6 @@
   .slot {
     position: relative;
     display: inline-block;
-    overflow: hidden;
     vertical-align: baseline;
     line-height: 1;
   }
@@ -41,11 +40,16 @@
     visibility: hidden;
     line-height: 1;
   }
+  /* Clipping lives here, not on .slot: overflow:hidden on an inline-block would
+     move its baseline to the bottom edge and push the digits up. */
+  .window {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
   .digit {
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    inset: 0;
     line-height: 1;
     text-align: center;
   }
