@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from "svelte";
   import { api } from "../api.js";
+  import { refreshEvery } from "../refreshInterval.svelte.js";
 
   // `field` selects which time from /api/schedule to count down to.
   let { field, label, title } = $props();
@@ -32,8 +33,13 @@
     return days > 0 ? `${days}d ${hms}` : hms;
   });
 
-  onMount(() => {
+  // Initial fetch + refetch whenever the interval setting changes (after it's saved).
+  $effect(() => {
+    refreshEvery.version;
     loadSchedule();
+  });
+
+  onMount(() => {
     let ticks = 0;
     timer = setInterval(() => {
       now = Date.now();

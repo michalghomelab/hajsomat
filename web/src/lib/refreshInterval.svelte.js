@@ -10,6 +10,9 @@ export const INTERVALS = [
 ];
 
 let minutes = $state(60);
+// Bumped after the server has the new value, so dependents (e.g. the countdown)
+// can refetch derived data without racing the PATCH.
+let version = $state(0);
 
 async function reload() {
   try {
@@ -27,12 +30,15 @@ export const refreshEvery = {
   get ms() {
     return minutes * 60_000;
   },
+  get version() {
+    return version;
+  },
   async set(v) {
     minutes = v;
     try {
       await api.setSettings(v);
-    } catch {
-      // ignore — server unreachable
+    } finally {
+      version += 1;
     }
   },
 };
