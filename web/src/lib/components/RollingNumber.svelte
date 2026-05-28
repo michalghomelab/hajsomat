@@ -35,15 +35,18 @@
     display: inline-block;
     overflow: hidden;
     vertical-align: baseline;
+    line-height: 1;
   }
   .ghost {
     visibility: hidden;
+    line-height: 1;
   }
   .digit {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
+    line-height: 1;
     text-align: center;
   }
 </style>
