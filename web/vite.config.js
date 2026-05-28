@@ -6,7 +6,10 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: ["lvh.me", ".lvh.me", "localhost"],
-    proxy: { "/api": "http://api:3000" },
+    proxy: {
+      "/api": "http://api:3000",
+      "/cable": { target: "ws://api:3000", ws: true },
+    },
     // Docker bind mounts on macOS drop fs events; poll so edits are reliably picked up.
     watch: { usePolling: true, interval: 300 },
   },

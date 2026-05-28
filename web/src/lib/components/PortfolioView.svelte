@@ -8,8 +8,7 @@
   import Countdown from "./Countdown.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
-  import { refreshEvery } from "../refreshInterval.svelte.js";
-  import { onScheduledRefresh } from "../autoRefresh.js";
+  import { onPriceRefresh } from "../priceStream.js";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -48,14 +47,9 @@
     try { await api.renamePortfolio(id, nameInput.trim()); editingName = false; await load(); }
     catch (e) { nameError = e.message || "Nie udało się zmienić nazwy"; }
   }
-  onMount(() => load());
-  // Reload in step with the scheduler; re-arm when the interval setting changes.
-  $effect(() => {
-    refreshEvery.version;
-    return onScheduledRefresh(async () => {
-      await load(true);
-      return data?.last_updated ?? null;
-    });
+  onMount(() => {
+    load();
+    return onPriceRefresh(() => load(true)); // push from the server when prices refresh
   });
 </script>
 

@@ -3,6 +3,16 @@
 # forking app server doesn't reliably run an in-process background thread.
 require_relative '../config/application'
 require 'rufus-scheduler'
+require 'net/http'
+
+# Tell the web process a refresh landed, so it can push a WS "refreshed" signal
+# to subscribed clients (the scheduler can't broadcast cross-process itself).
+def notify_web
+  uri = URI("#{AppConfig.config.internal_base_url}/api/internal/refreshed")
+  Net::HTTP.post(uri, '')
+rescue StandardError => e
+  Rage.logger.warn("notify web failed: #{e.message}")
+end
 
 scheduler = Rufus::Scheduler.new
 
@@ -19,6 +29,7 @@ scheduler.every('30s', first: :now) do
   if desired
     refresh[:job] = scheduler.cron(desired) do
       RefreshService.call
+      notify_web
     rescue StandardError => e
       Rage.logger.error("scheduled refresh failed: #{e.message}")
     end

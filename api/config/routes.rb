@@ -14,5 +14,6 @@ Rage.routes.draw do
     get 'instruments', to: 'instruments#index'
     post 'refresh', to: 'refresh#create'
     post 'backfill', to: 'backfill#create'
+    post 'internal/refreshed', to: 'internal#refreshed'
   end
 end

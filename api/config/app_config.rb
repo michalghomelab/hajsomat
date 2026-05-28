@@ -17,6 +17,10 @@ class AppConfig
   setting :refresh_cron, default: '0 9-22 * * 1-5 Europe/Warsaw'
   setting :snapshot_cron, default: '30 22 * * 1-5 Europe/Warsaw'
 
+  # Where the scheduler reaches the web process to push WS notifications
+  # (dev: the api service; prod: same container on localhost).
+  setting :internal_base_url, default: ENV.fetch('INTERNAL_BASE_URL', 'http://localhost:3000')
+
   def self.valuation_settings
     { fx_margin: config.fx_margin, base_currency: config.base_currency }
   end
