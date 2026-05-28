@@ -190,8 +190,14 @@
         <button class="btn btn-primary" onclick={doImport} disabled={!importFile || importing}>
           {importing ? "Importowanie…" : "Importuj"}
         </button>
-        {#if importResult}<p class="text-success text-sm">Zaimportowano: {importResult.imported}, pominięto: {importResult.skipped}.</p>{/if}
-        {#if importError}<p class="text-error text-sm">⚠ {importError}</p>{/if}
+        {#if importResult}
+          <div class="alert alert-success text-sm py-2">
+            <span>✓ Zaimportowano: <strong>{importResult.imported}</strong> · pominięto (już w bazie): <strong>{importResult.skipped}</strong></span>
+          </div>
+        {/if}
+        {#if importError}
+          <div class="alert alert-error text-sm py-2"><span>⚠ {importError}</span></div>
+        {/if}
       </div>
     </Modal>
   {/if}
