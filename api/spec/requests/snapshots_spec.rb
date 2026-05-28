@@ -17,4 +17,15 @@ RSpec.describe 'Aggregate snapshots API', type: :request do
     expect(Float(row['total_value_pln'])).to eq(150.0)
     expect(Float(row['pnl_pln'])).to eq(30.0)
   end
+
+  it 'writes today\'s snapshot for every portfolio on demand' do
+    Portfolio.create(name: 'A')
+    Portfolio.create(name: 'B')
+
+    post '/api/snapshots'
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body['snapshots_written']).to eq(2)
+    expect(PortfolioSnapshot.where(date: Date.today).count).to eq(2)
+  end
 end

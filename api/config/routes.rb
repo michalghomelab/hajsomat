@@ -9,6 +9,7 @@ Rage.routes.draw do
     post 'portfolios/:id/import', to: 'imports#create'
     delete 'transactions/:id', to: 'transactions#destroy'
     get 'snapshots', to: 'snapshots#index'
+    post 'snapshots', to: 'snapshots#create'
     get 'schedule', to: 'schedule#index'
     get 'settings', to: 'settings#show'
     patch 'settings', to: 'settings#update'

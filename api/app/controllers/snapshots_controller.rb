@@ -11,4 +11,10 @@ class SnapshotsController < RageController::API
            .all
     render json: SnapshotPresenter.call(rows)
   end
+
+  # Writes today's snapshot for every portfolio from current prices/FX, on demand
+  # (the scheduler does this automatically after the US close).
+  def create
+    render json: { snapshots_written: SnapshotService.call }
+  end
 end

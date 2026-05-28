@@ -17,6 +17,7 @@
   let showCreate = $state(false);
   let loading = $state(true);
   let refreshing = $state(false);
+  let snapshotting = $state(false);
 
   let totals = $derived.by(() => {
     const sum = (k) => portfolios.reduce((a, p) => a + Number(p[k] || 0), 0);
@@ -41,6 +42,11 @@
     try { await api.refresh(); await load(true); } // silent — update values in place, no skeleton
     finally { refreshing = false; }
   }
+  async function generateSnapshot() {
+    snapshotting = true;
+    try { await api.generateSnapshot(); await load(true); } // silent — refresh the chart with the new point
+    finally { snapshotting = false; }
+  }
   onMount(() => {
     load();
     return onPriceRefresh(() => load(true)); // push from the server when prices refresh
@@ -51,10 +57,22 @@
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
   <div class="flex gap-2 mb-6 items-center">
     <button class="btn btn-primary" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
-    <button class="btn btn-outline" onclick={refreshPrices} disabled={refreshing || !market.open}
-            title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
-      {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
-    </button>
+    <div class="dropdown">
+      <div tabindex="0" role="button" class="btn btn-outline">Akcje ▾</div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
+        <li>
+          <button onclick={refreshPrices} disabled={refreshing || !market.open}
+                  title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
+            {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
+          </button>
+        </li>
+        <li>
+          <button onclick={generateSnapshot} disabled={snapshotting}>
+            {snapshotting ? "Generowanie…" : "Wygeneruj snapshot"}
+          </button>
+        </li>
+      </ul>
+    </div>
     <div class="ml-auto flex items-center gap-3">
       <RefreshIntervalSelect />
       <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
