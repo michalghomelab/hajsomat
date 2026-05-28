@@ -153,6 +153,9 @@
             <tr>
               <td colspan="6" class="p-0">
                 <div class="bg-base-200/60 px-4 py-3">
+                  {#if pos.name}
+                    <div class="text-xs font-light text-base-content/50 mb-2">{pos.name} ({pos.symbol})</div>
+                  {/if}
                   <div class="text-xs font-semibold uppercase tracking-wide text-base-content/60 mb-2">
                     Zakupy ({pos.transactions.length})
                   </div>

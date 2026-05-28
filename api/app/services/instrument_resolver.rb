@@ -20,6 +20,7 @@ class InstrumentResolver
     Instrument.create(
       symbol: @symbol,
       mic: @mic,
+      name: quote&.dig(:name),
       currency: quote&.dig(:currency) || @currency,
       last_price: quote&.dig(:price),
       last_price_at: (Time.now if quote)

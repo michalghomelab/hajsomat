@@ -17,7 +17,8 @@ module MarketData
       meta = body&.dig('chart', 'result', 0, 'meta')
       return nil unless meta && meta['regularMarketPrice']
 
-      { price: BigDecimal(meta['regularMarketPrice'].to_s), currency: meta['currency'] }
+      { price: BigDecimal(meta['regularMarketPrice'].to_s), currency: meta['currency'],
+        name: meta['longName'] || meta['shortName'] }
     end
 
     # array of symbols -> { symbol => BigDecimal } ; unknown symbols omitted

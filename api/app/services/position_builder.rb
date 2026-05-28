@@ -22,7 +22,7 @@ class PositionBuilder
     mv_pln = market_value_pln(mv_native)
 
     Position.new(
-      instrument_id: @instrument_id, symbol: @price.symbol, currency: @price.currency,
+      instrument_id: @instrument_id, symbol: @price.symbol, name: @price.name, currency: @price.currency,
       quantity: quantity, avg_price: average_price(quantity, cost_native), cost_native: cost_native,
       last_price: @price.last_price,
       market_value_native: mv_native, pnl_native: diff(mv_native, cost_native),
