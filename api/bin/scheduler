@@ -15,10 +15,13 @@ scheduler.every('30s', first: :now) do
   next if desired == refresh[:cron]
 
   refresh[:job]&.unschedule
-  refresh[:job] = desired && scheduler.cron(desired) do
-    RefreshService.call
-  rescue StandardError => e
-    Rage.logger.error("scheduled refresh failed: #{e.message}")
+  refresh[:job] = nil
+  if desired
+    refresh[:job] = scheduler.cron(desired) do
+      RefreshService.call
+    rescue StandardError => e
+      Rage.logger.error("scheduled refresh failed: #{e.message}")
+    end
   end
   refresh[:cron] = desired
   Rage.logger.info("refresh schedule set to: #{desired || 'off'}")
@@ -32,6 +35,6 @@ rescue StandardError => e
   Rage.logger.error("scheduled snapshot failed: #{e.message}")
 end
 
-Rage.logger.info("scheduler up — refresh: clock-aligned from AppSettings interval, " \
+Rage.logger.info('scheduler up — refresh: clock-aligned from AppSettings interval, ' \
                  "snapshot: #{AppConfig.config.snapshot_cron}")
 scheduler.join
