@@ -76,14 +76,21 @@
 
   <div class="flex justify-between items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
-    <div class="flex gap-2">
-      <button class="btn btn-outline btn-sm" onclick={refresh} disabled={refreshing || !market.open}
-              title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
-        {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
-      </button>
-      <button class="btn btn-outline btn-sm" onclick={backfill} disabled={backfilling}>
-        {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
-      </button>
+    <div class="dropdown dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-outline btn-sm">Akcje ▾</div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
+        <li>
+          <button onclick={refresh} disabled={refreshing || !market.open}
+                  title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
+            {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
+          </button>
+        </li>
+        <li>
+          <button onclick={backfill} disabled={backfilling}>
+            {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
   <div class="flex items-center justify-end gap-3">
