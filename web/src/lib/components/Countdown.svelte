@@ -7,6 +7,7 @@
   let { field, label, title } = $props();
   let nextAt = $state(null);
   let now = $state(Date.now());
+  let loaded = $state(false);
   let timer;
   let rolling = false;
 
@@ -20,6 +21,7 @@
       nextAt = null;
     } finally {
       rolling = false;
+      loaded = true;
     }
   }
 
@@ -51,6 +53,8 @@
   onDestroy(() => clearInterval(timer));
 </script>
 
-{#if text}
+{#if !loaded}
+  <span class="skeleton inline-block h-4 w-44 rounded align-middle"></span>
+{:else if text}
   <span class="text-xs text-base-content/60 tabular-nums" {title}>⏱ {label} za {text}</span>
 {/if}
