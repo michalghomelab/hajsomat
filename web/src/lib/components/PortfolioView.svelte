@@ -5,6 +5,7 @@
   import TransactionForm from "./TransactionForm.svelte";
   import ChartPanel from "./ChartPanel.svelte";
   import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
+  import Countdown from "./Countdown.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
   import { refreshEvery } from "../refreshInterval.svelte.js";
@@ -78,8 +79,7 @@
 
   <div class="flex justify-between items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
-    <div class="flex gap-2 items-center">
-      <RefreshIntervalSelect />
+    <div class="flex gap-2">
       <button class="btn btn-outline btn-sm" onclick={refresh} disabled={refreshing || !market.open}
               title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
         {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
@@ -88,6 +88,10 @@
         {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
       </button>
     </div>
+  </div>
+  <div class="flex items-center justify-end gap-3">
+    <RefreshIntervalSelect />
+    <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
   </div>
   {#if nameError}<p class="text-error text-sm">{nameError}</p>{/if}
   {#if refreshError}<p class="text-error text-sm">⚠ {refreshError}</p>{/if}
