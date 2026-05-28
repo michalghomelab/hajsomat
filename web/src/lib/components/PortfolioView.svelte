@@ -6,7 +6,7 @@
   import ChartPanel from "./ChartPanel.svelte";
   import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
   import Countdown from "./Countdown.svelte";
-  import FlashValue from "./FlashValue.svelte";
+  import RollingNumber from "./RollingNumber.svelte";
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
@@ -96,10 +96,9 @@
   <div class="card bg-base-100 shadow-sm">
     <div class="card-body py-4">
       <p class="text-lg">
-        <FlashValue value={data.totals.market_value_pln}>
-          Wartość: <strong>{money(data.totals.market_value_pln)}</strong>
-          · <span class={pnlClass(data.totals.pnl_pln)}>P/L {money(data.totals.pnl_pln)} ({percent(data.totals.pnl_pln, data.totals.cost_pln)})</span>
-        </FlashValue>
+        Wartość: <strong><RollingNumber value={data.totals.market_value_pln} text={money(data.totals.market_value_pln)} /></strong>
+        · <span class={pnlClass(data.totals.pnl_pln)}>P/L <RollingNumber value={data.totals.pnl_pln} text={money(data.totals.pnl_pln)} />
+        (<RollingNumber value={data.totals.pnl_pln} text={percent(data.totals.pnl_pln, data.totals.cost_pln)} />)</span>
       </p>
       <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(data.last_updated)}</p>
       {#if data.totals.incomplete}
@@ -126,8 +125,8 @@
             <td class="text-right">{pos.quantity}</td>
             <td class="text-right">{money(pos.avg_price, pos.currency)}</td>
             <td class="text-right">{money(pos.last_price, pos.currency)}</td>
-            <td class="text-right"><FlashValue value={pos.market_value_pln}>{money(pos.market_value_pln)}</FlashValue></td>
-            <td class="text-right {pnlClass(pos.pnl_pln)}"><FlashValue value={pos.pnl_pln}>{money(pos.pnl_pln)}</FlashValue></td>
+            <td class="text-right"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
+            <td class="text-right {pnlClass(pos.pnl_pln)}"><RollingNumber value={pos.pnl_pln} text={money(pos.pnl_pln)} /></td>
           </tr>
           {#if expanded[pos.symbol]}
             <tr>
