@@ -27,7 +27,9 @@ scheduler.every('30s', first: :now) do
   refresh[:job]&.unschedule
   refresh[:job] = nil
   if desired
-    refresh[:job] = scheduler.cron(desired) do
+    # schedule_cron (not cron) returns the Job object, so we can unschedule it
+    # later; plain `cron` returns the job id string.
+    refresh[:job] = scheduler.schedule_cron(desired) do
       RefreshService.call
       notify_web
     rescue StandardError => e
