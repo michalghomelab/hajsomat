@@ -1,36 +1,38 @@
-// Shared, reactive "auto-refresh every N" setting for the views, persisted in
-// the browser. 0 = off.
-const KEY = "hajsomat:refreshInterval";
+import { api } from "./api.js";
 
+// App-wide auto-refresh interval (minutes; 0 = off), stored server-side so it's
+// shared across browsers and also drives how often the server fetches prices.
 export const INTERVALS = [
-  { label: "Wył.", ms: 0 },
-  { label: "30 s", ms: 30_000 },
-  { label: "1 min", ms: 60_000 },
-  { label: "5 min", ms: 300_000 },
-  { label: "15 min", ms: 900_000 },
+  { label: "Wył.", minutes: 0 },
+  { label: "5 min", minutes: 5 },
+  { label: "30 min", minutes: 30 },
+  { label: "1 h", minutes: 60 },
 ];
 
-function initial() {
+let minutes = $state(60);
+
+async function reload() {
   try {
-    const v = localStorage.getItem(KEY);
-    return v === null ? 300_000 : Number(v);
+    minutes = (await api.settings()).refresh_interval_minutes;
   } catch {
-    return 300_000;
+    // keep default until reachable
   }
 }
-
-let ms = $state(initial());
+reload();
 
 export const refreshEvery = {
-  get value() {
-    return ms;
+  get minutes() {
+    return minutes;
   },
-  set(v) {
-    ms = v;
+  get ms() {
+    return minutes * 60_000;
+  },
+  async set(v) {
+    minutes = v;
     try {
-      localStorage.setItem(KEY, String(v));
+      await api.setSettings(v);
     } catch {
-      // ignore — selection just won't persist
+      // ignore — server unreachable
     }
   },
 };

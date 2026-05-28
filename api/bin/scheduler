@@ -6,8 +6,16 @@ require 'rufus-scheduler'
 
 scheduler = Rufus::Scheduler.new
 
-scheduler.cron(AppConfig.config.refresh_cron) do
-  RefreshService.call
+# Price refresh: a 1-minute heartbeat that fires RefreshService once the app-wide
+# interval (AppSettings, set from the UI) has elapsed since the last price update
+# and the market session is open. Reading the interval each tick means UI changes
+# take effect without restarting the scheduler.
+scheduler.every('1m', first: :now) do
+  minutes = AppSettings.refresh_interval_minutes
+  if minutes.positive? && Schedule.market_open?
+    last = Schedule.last_price_refresh_at
+    RefreshService.call if last.nil? || (Time.now - last) >= minutes * 60
+  end
 rescue StandardError => e
   Rage.logger.error("scheduled refresh failed: #{e.message}")
 end
@@ -18,5 +26,6 @@ rescue StandardError => e
   Rage.logger.error("scheduled snapshot failed: #{e.message}")
 end
 
-Rage.logger.info("scheduler up — refresh: #{AppConfig.config.refresh_cron}, snapshot: #{AppConfig.config.snapshot_cron}")
+Rage.logger.info("scheduler up — refresh: every 1m gated by AppSettings interval + market hours, " \
+                 "snapshot: #{AppConfig.config.snapshot_cron}")
 scheduler.join

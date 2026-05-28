@@ -9,6 +9,8 @@ Rage.routes.draw do
     delete 'transactions/:id', to: 'transactions#destroy'
     get 'snapshots', to: 'snapshots#index'
     get 'schedule', to: 'schedule#index'
+    get 'settings', to: 'settings#show'
+    patch 'settings', to: 'settings#update'
     get 'instruments', to: 'instruments#index'
     post 'refresh', to: 'refresh#create'
     post 'backfill', to: 'backfill#create'

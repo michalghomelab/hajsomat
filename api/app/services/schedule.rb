@@ -5,10 +5,27 @@ require 'fugit'
 module Schedule
   module_function
 
-  def next_refresh_at = next_at(AppConfig.config.refresh_cron)
   def next_snapshot_at = next_at(AppConfig.config.snapshot_cron)
 
   def next_at(cron) = Fugit.parse_cron(cron).next_time.to_t
+
+  # Next price refresh, derived from the app-wide interval setting: last refresh
+  # (max last_price_at) + interval while the session is open; the next session
+  # open otherwise; nil when auto-refresh is off.
+  def next_refresh_at
+    minutes = AppSettings.refresh_interval_minutes
+    return nil if minutes.zero?
+    return next_at(AppConfig.config.refresh_cron) unless market_open?
+
+    candidate = (last_price_refresh_at || Time.now) + (minutes * 60)
+    [candidate, Time.now].max
+  end
+
+  # Time of the most recent price update (typecast via the model, since a dataset
+  # aggregate would hand back a raw string), or nil if nothing's priced yet.
+  def last_price_refresh_at
+    Instrument.exclude(last_price_at: nil).order(Sequel.desc(:last_price_at)).first&.last_price_at
+  end
 
   # Whether we're inside the refresh window (the cron's active weekdays/hours,
   # in its own timezone) — i.e. the market session prices update during. The

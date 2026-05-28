@@ -40,7 +40,7 @@
   }
   onMount(() => load());
   $effect(() => {
-    const ms = refreshEvery.value;
+    const ms = refreshEvery.ms;
     if (!ms) return;
     const t = setInterval(() => load(true), ms);
     return () => clearInterval(t);

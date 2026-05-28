@@ -14,7 +14,7 @@
     rolling = true;
     try {
       const s = await api.schedule();
-      nextAt = new Date(s[field]).getTime();
+      nextAt = s[field] ? new Date(s[field]).getTime() : null;
     } catch {
       nextAt = null;
     } finally {
@@ -34,10 +34,12 @@
 
   onMount(() => {
     loadSchedule();
+    let ticks = 0;
     timer = setInterval(() => {
       now = Date.now();
-      // Rolled past the scheduled time — fetch the next occurrence.
-      if (nextAt && now >= nextAt) loadSchedule();
+      ticks += 1;
+      // Refetch on rollover, and periodically so interval changes are reflected.
+      if ((nextAt && now >= nextAt) || ticks % 60 === 0) loadSchedule();
     }, 1000);
   });
   onDestroy(() => clearInterval(timer));

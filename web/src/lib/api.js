@@ -13,6 +13,9 @@ export const api = {
   snapshots: (id) => fetch(`/api/portfolios/${id}/snapshots`).then(json),
   allSnapshots: () => fetch("/api/snapshots").then(json),
   schedule: () => fetch("/api/schedule").then(json),
+  settings: () => fetch("/api/settings").then(json),
+  setSettings: (refresh_interval_minutes) =>
+    fetch("/api/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ refresh_interval_minutes }) }).then(json),
   createPortfolio: (name) =>
     fetch("/api/portfolios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }).then(json),
   renamePortfolio: (id, name) =>
