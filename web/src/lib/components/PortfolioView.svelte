@@ -25,7 +25,7 @@
   }
   async function refresh() {
     refreshError = ""; refreshing = true;
-    try { await api.refresh(); await load(); }
+    try { await api.refresh(); await load(true); } // silent — update values in place, no skeleton
     catch (e) { refreshError = e.message || "Odświeżanie nie powiodło się"; }
     finally { refreshing = false; }
   }

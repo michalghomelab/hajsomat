@@ -37,7 +37,7 @@
   }
   async function refreshPrices() {
     refreshing = true;
-    try { await api.refresh(); await load(); }
+    try { await api.refresh(); await load(true); } // silent — update values in place, no skeleton
     finally { refreshing = false; }
   }
   onMount(() => {
