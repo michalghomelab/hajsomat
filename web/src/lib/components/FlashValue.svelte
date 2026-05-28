@@ -1,17 +1,19 @@
 <script>
-  // Briefly flashes its content (fades in from lighter to the target colour)
-  // whenever `value` changes. No flash on first render. Colour is untouched —
-  // just an opacity pulse, so it works for black and coloured text alike.
+  // Pulses its content (fades in from lighter to the target colour) whenever
+  // `value` changes. Re-keying remounts the span so the CSS animation reliably
+  // replays on every change. No flash on first render.
   let { value, children } = $props();
-  let on = $state(false);
+  let key = $state(0);
   let prev = value;
 
   $effect(() => {
-    if (value === prev) return;
-    prev = value;
-    on = false; // restart the animation even on back-to-back changes
-    requestAnimationFrame(() => (on = true));
+    if (value !== prev) {
+      prev = value;
+      key += 1;
+    }
   });
 </script>
 
-<span class={on ? "value-flash" : ""}>{@render children()}</span>
+{#key key}
+  <span class={key > 0 ? "value-flash" : ""}>{@render children()}</span>
+{/key}
