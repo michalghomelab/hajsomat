@@ -3,7 +3,7 @@
 
   // Odometer/drum effect: each digit sits on a reel. When `value` rises the
   // digits roll down; when it falls they roll up. Non-digits (spaces, comma,
-  // currency, sign) render statically. `text` is the formatted string to show.
+  // currency, sign) render as plain text. `text` is the formatted string.
   let { value, text } = $props();
   let dir = $state(1);
   let prev = Number(value);
@@ -23,39 +23,27 @@
   }
 </script>
 
-<span class="rolling tabular-nums">
-  {#each chars as ch, i (i)}
-    {#if ch >= "0" && ch <= "9"}
-      <span class="slot">
-        {#key ch}
-          <span class="digit" in:roll={{ y: dir > 0 ? -100 : 100 }} out:roll={{ y: dir > 0 ? 100 : -100 }}>{ch}</span>
-        {/key}
-      </span>
-    {:else}
-      <span class="sep">{ch}</span>
-    {/if}
-  {/each}
-</span>
+<span class="rolling tabular-nums">{#each chars as ch, i (i)}{#if ch >= "0" && ch <= "9"}<span class="slot"><span class="ghost">0</span>{#key ch}<span class="digit" in:roll={{ y: dir > 0 ? -100 : 100 }} out:roll={{ y: dir > 0 ? 100 : -100 }}>{ch}</span>{/key}</span>{:else}{ch}{/if}{/each}</span>
 
 <style>
   .rolling {
-    display: inline-flex;
-    align-items: baseline;
+    display: inline-block;
+    white-space: nowrap;
   }
   .slot {
     position: relative;
     display: inline-block;
-    width: 1ch;
-    height: 1.25em;
-    line-height: 1.25em;
     overflow: hidden;
-    text-align: center;
+    vertical-align: baseline;
   }
-  .slot .digit {
+  .ghost {
+    visibility: hidden;
+  }
+  .digit {
     position: absolute;
-    inset: 0;
-  }
-  .sep {
-    white-space: pre;
+    left: 0;
+    top: 0;
+    width: 100%;
+    text-align: center;
   }
 </style>
