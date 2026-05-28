@@ -8,6 +8,7 @@
   import Modal from "./Modal.svelte";
   import { market } from "../marketStatus.svelte.js";
   import { refreshEvery } from "../refreshInterval.svelte.js";
+  import { onScheduledRefresh } from "../autoRefresh.js";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -39,11 +40,13 @@
     finally { refreshing = false; }
   }
   onMount(() => load());
+  // Reload in step with the scheduler; re-arm when the interval setting changes.
   $effect(() => {
-    const ms = refreshEvery.ms;
-    if (!ms) return;
-    const t = setInterval(() => load(true), ms);
-    return () => clearInterval(t);
+    refreshEvery.version;
+    return onScheduledRefresh(async () => {
+      await load(true);
+      return portfolios.map((p) => p.last_updated).filter(Boolean).sort().at(-1) ?? null;
+    });
   });
 </script>
 
