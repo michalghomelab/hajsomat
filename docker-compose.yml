@@ -2,7 +2,6 @@ services:
   api:
     build: ./api
     environment:
-      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-dummy}
       - DATABASE_URL=sqlite:///data/portfolio.sqlite3
       - RACK_ENV=development
     volumes:
