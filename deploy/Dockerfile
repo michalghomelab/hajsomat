@@ -2,7 +2,7 @@
 # Build context = repo root.
 
 # 1. Build the frontend
-FROM node:22-slim AS web
+FROM node:26-slim AS web
 RUN npm install -g npm@latest
 WORKDIR /web
 COPY web/package.json web/package-lock.json* ./
