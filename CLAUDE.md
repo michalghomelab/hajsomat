@@ -58,7 +58,9 @@ Data model (Sequel models in `app/models/`, migrations in `api/db/migrations/`, 
 
 ### Frontend (`web/src/`)
 
-Svelte 5 (runes: `$state`, `$effect`) + Vite + Tailwind v4 + daisyUI, ApexCharts for charts. Hash-based routing in `App.svelte` (`#/portfolio/:id`). All HTTP goes through `src/lib/api.js`. `src/lib/components/PortfolioView.svelte` is the portfolio detail view (positions, expandable transactions, refresh/backfill/import actions); `PortfolioList.svelte` is the home summary. Live price updates arrive over WebSocket via `src/lib/priceStream.js`.
+Svelte 5 (runes: `$state`, `$effect`) + Vite + Tailwind v4 + daisyUI, ApexCharts for charts, lucide icons (`@lucide/svelte/icons/<name>`, tree-shaken per-icon imports). Hash-based routing in `App.svelte` (`#/portfolio/:id`). All HTTP goes through `src/lib/api.js`. `src/lib/components/PortfolioView.svelte` is the portfolio detail view (positions, expandable transactions, refresh/backfill/import actions); `PortfolioList.svelte` is the home summary; `PortfolioChart.svelte` is the combined dual-axis value/daily-change chart. Live price updates arrive over WebSocket via `src/lib/priceStream.js`.
+
+Installable PWA via `vite-plugin-pwa` (config in `vite.config.js`): web manifest + Workbox service worker precaching the app shell and serving `/api` GETs NetworkFirst (offline shows last-known data). Icons live in `web/public/` (regenerate from `favicon.svg` with `sharp` if the logo changes). The SW is disabled in dev and needs HTTPS in prod (the homelab has it).
 
 ### Tests
 
