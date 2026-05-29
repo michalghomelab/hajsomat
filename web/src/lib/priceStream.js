@@ -55,13 +55,22 @@ function ensureConnected() {
 // drops the socket while backgrounded, and the server only pushes on its next
 // refresh — so on resume we reconnect immediately and pull fresh data now
 // (firing the same listeners a "refreshed" push would) instead of showing stale
-// values until the next server tick.
-if (typeof document !== "undefined") {
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible") return;
-    ensureConnected();
-    listeners.forEach((fn) => fn());
-  });
+// values until the next server tick. We listen on three events because no single
+// one fires reliably everywhere: visibilitychange (tab switch), pageshow (mobile
+// bfcache restore — common for installed PWAs), and focus (desktop).
+let lastResume = 0;
+function resume() {
+  if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+  const now = Date.now();
+  if (now - lastResume < 1000) return; // the three events often fire together
+  lastResume = now;
+  ensureConnected();
+  listeners.forEach((fn) => fn());
+}
+if (typeof window !== "undefined") {
+  document.addEventListener("visibilitychange", resume);
+  window.addEventListener("pageshow", resume);
+  window.addEventListener("focus", resume);
 }
 
 export function onPriceRefresh(fn) {
