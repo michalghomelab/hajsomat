@@ -43,8 +43,29 @@ function scheduleReconnect() {
   }, 3000);
 }
 
+function ensureConnected() {
+  const live = socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING);
+  if (live) return;
+  clearTimeout(reconnectTimer);
+  reconnectTimer = null;
+  connect();
+}
+
+// Re-sync when the tab/PWA returns to the foreground. Mobile suspends JS and
+// drops the socket while backgrounded, and the server only pushes on its next
+// refresh — so on resume we reconnect immediately and pull fresh data now
+// (firing the same listeners a "refreshed" push would) instead of showing stale
+// values until the next server tick.
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    ensureConnected();
+    listeners.forEach((fn) => fn());
+  });
+}
+
 export function onPriceRefresh(fn) {
-  if (!socket) connect();
+  ensureConnected();
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
