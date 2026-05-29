@@ -1,0 +1,36 @@
+version: 2
+updates:
+  # Ruby gems
+  - package-ecosystem: bundler
+    directory: /api
+    schedule:
+      interval: weekly
+    groups:
+      gems:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # Frontend npm packages
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # GitHub Actions used in workflows
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  # Base images in the Dockerfiles (Ruby / Node versions, etc.)
+  - package-ecosystem: docker
+    directories:
+      - /api
+      - /web
+      - /deploy
+    schedule:
+      interval: weekly
