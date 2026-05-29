@@ -13,6 +13,7 @@
   import { sameSnapshots } from "../snapshots.js";
   import Settings from "@lucide/svelte/icons/settings";
   import Pencil from "@lucide/svelte/icons/pencil";
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -73,7 +74,9 @@
 
 {#if data}
 <div class="p-6 max-w-4xl mx-auto space-y-6">
-  <button class="btn btn-ghost btn-sm" onclick={onBack}>← Portfele</button>
+  <button class="btn btn-outline btn-sm gap-1 pl-2" onclick={onBack} aria-label="Wróć do listy portfeli">
+    <ChevronLeft size={18} /> Portfele
+  </button>
   <div class="flex justify-between items-center gap-2">
     {#if editingName}
       <div class="flex gap-2 flex-1">
