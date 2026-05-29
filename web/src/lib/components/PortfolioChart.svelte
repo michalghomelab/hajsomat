@@ -2,6 +2,7 @@
   import ApexCharts from "apexcharts";
   import { untrack } from "svelte";
   import { attachWheelZoom } from "../chartZoom.js";
+  import { loadHiddenSeries, saveHiddenSeries } from "../chartRange.js";
   let { snapshots } = $props();
   let el = $state(null);
   let chart = null;
@@ -64,6 +65,18 @@
       type: "line", height: 380, stacked: false,
       fontFamily: "inherit", background: "transparent",
       toolbar: { show: false }, zoom: { enabled: false }, animations: { easing: "easeinout" },
+      events: {
+        // Restore the persisted on/off state once the chart is on screen, and
+        // persist every legend toggle so it survives reloads.
+        mounted: (ctx) => loadHiddenSeries().forEach((name) => ctx.hideSeries(name)),
+        legendClick: (ctx, i) => {
+          const name = ctx.w.globals.seriesNames[i];
+          if (!name) return;
+          const hidden = new Set(loadHiddenSeries());
+          hidden.has(name) ? hidden.delete(name) : hidden.add(name);
+          saveHiddenSeries([...hidden]);
+        },
+      },
     },
     theme: { mode: dark ? "dark" : "light" },
     series: series(snaps),

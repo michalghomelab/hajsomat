@@ -70,6 +70,25 @@ export function saveResolution(id) {
   }
 }
 
+// --- Legend visibility (which series are toggled off), persisted across reloads ---
+const HIDDEN_KEY = "hajsomat:chartHidden";
+
+export function loadHiddenSeries() {
+  try {
+    return JSON.parse(localStorage.getItem(HIDDEN_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveHiddenSeries(names) {
+  try {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify(names));
+  } catch {
+    // ignore — selection just won't persist
+  }
+}
+
 // Bucket key for a "YYYY-MM-DD" date at the given resolution. Keys are sortable
 // and monotonic, so grouping preserves chronological order.
 function bucketKey(dateStr, res) {
