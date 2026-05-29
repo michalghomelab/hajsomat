@@ -11,7 +11,7 @@ COPY web/ ./
 RUN npm run build
 
 # 2. Install gems (with build tools)
-FROM ruby:3.4-slim AS gems
+FROM ruby:4.0-slim AS gems
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
       build-essential libsqlite3-dev libyaml-dev git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN gem install bundler && \
     bundle install --jobs 4 --retry 3
 
 # 3. Runtime: ruby-slim + nginx
-FROM ruby:3.4-slim
+FROM ruby:4.0-slim
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
       nginx libsqlite3-0 libyaml-0-2 tzdata && \
     rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/default
