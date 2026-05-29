@@ -16,6 +16,14 @@ end
 
 scheduler = Rufus::Scheduler.new
 
+# Fill any snapshots missed while we were down (e.g. a deploy across the 22:30
+# window), so a restart at any hour never costs a data point.
+begin
+  SnapshotCatchup.call
+rescue StandardError => e
+  Rage.logger.error("snapshot catch-up failed: #{e.message}")
+end
+
 # Price refresh: a clock-aligned cron derived from the app-wide interval setting
 # (e.g. */5 within the session window). A 30s watcher re-applies the cron when
 # the setting changes, so UI changes take effect without restarting the process.
