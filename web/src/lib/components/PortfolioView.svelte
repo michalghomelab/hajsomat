@@ -100,7 +100,7 @@
       </div>
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
         <li>
-          <button onclick={refresh} disabled={refreshing || !market.open}
+          <button class="disabled:opacity-50" onclick={refresh} disabled={refreshing || !market.open}
                   title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
             {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
           </button>
