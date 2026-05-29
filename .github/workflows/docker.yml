@@ -20,7 +20,7 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential libsqlite3-dev libyaml-dev
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.4"
           bundler-cache: true
           working-directory: api
       - run: bundle exec rspec
