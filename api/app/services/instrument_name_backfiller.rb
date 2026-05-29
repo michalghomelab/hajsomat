@@ -4,14 +4,13 @@
 # name. Returns the number of instruments named.
 class InstrumentNameBackfiller
   extend Callable
+  extend Dry::Initializer
 
-  def initialize(instruments, client: MarketData::YahooClient.new)
-    @instruments = instruments
-    @client = client
-  end
+  param :instruments
+  option :client, default: -> { MarketData::YahooClient.new }
 
   def call
-    @instruments.select { |i| i.name.to_s.strip.empty? }.filter_map { |i| backfill(i) }.size
+    instruments.select { |i| i.name.to_s.strip.empty? }.filter_map { |i| backfill(i) }.size
   end
 
   private
@@ -24,9 +23,6 @@ class InstrumentNameBackfiller
   end
 
   def fetch_name(symbol)
-    @client.quote(symbol)&.dig(:name)
-  rescue StandardError => e
-    Rage.logger.warn("name backfill failed for #{symbol}: #{e.message}") if defined?(Rage)
-    nil
+    Safely.warn("name backfill for #{symbol}") { client.quote(symbol)&.dig(:name) }
   end
 end

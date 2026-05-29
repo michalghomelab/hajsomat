@@ -3,13 +3,11 @@
 # Returns the number of currencies successfully updated.
 class FxRateUpdater
   extend Callable
+  extend Dry::Initializer
 
-  def initialize(instruments, client: MarketData::YahooClient.new,
-                 base_currency: AppConfig.config.base_currency)
-    @instruments = instruments
-    @client = client
-    @base_currency = base_currency
-  end
+  param :instruments
+  option :client, default: -> { MarketData::YahooClient.new }
+  option :base_currency, default: -> { AppConfig.config.base_currency }
 
   def call
     currencies.count { |currency| update_one(currency) }
@@ -18,15 +16,13 @@ class FxRateUpdater
   private
 
   def currencies
-    @instruments.map(&:currency).uniq.reject { |c| c == @base_currency }
+    instruments.map(&:currency).uniq.reject { |c| c == base_currency }
   end
 
   def update_one(currency)
-    rate = @client.fx_rate(currency, @base_currency)
-    FxRate.upsert_rate(currency, @base_currency, rate)
-    true
-  rescue StandardError => e
-    Rage.logger.warn("FX update failed for #{currency}/#{@base_currency}: #{e.message}")
-    false
+    Safely.warn("FX update for #{currency}/#{base_currency}") do
+      FxRate.upsert_rate(currency, base_currency, client.fx_rate(currency, base_currency))
+      true
+    end
   end
 end

@@ -2,8 +2,6 @@
 # Safe to call from the web process; failures are logged, not raised.
 module PriceBroadcast
   def self.refreshed
-    Rage::Cable.broadcast('prices', { type: 'refreshed' })
-  rescue StandardError => e
-    Rage.logger.warn("cable broadcast failed: #{e.message}")
+    Safely.warn('cable broadcast') { Rage::Cable.broadcast('prices', { type: 'refreshed' }) }
   end
 end

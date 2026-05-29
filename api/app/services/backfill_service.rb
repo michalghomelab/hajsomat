@@ -5,17 +5,16 @@ require 'bigdecimal'
 # valuing each day with the transactions in effect on that day.
 class BackfillService
   extend Callable
+  extend Dry::Initializer
 
-  def initialize(client: MarketData::YahooClient.new)
-    @client = client
-  end
+  option :client, default: -> { MarketData::YahooClient.new }
 
   def call
     @instruments = Instrument.all
     @from = earliest_purchase
     return { snapshots_written: 0 } if @instruments.empty? || @from.nil?
 
-    @price_hist = @instruments.to_h { |i| [i.id, Series.new(@client.history(i.symbol, from: @from))] }
+    @price_hist = @instruments.to_h { |i| [i.id, Series.new(client.history(i.symbol, from: @from))] }
     @fx_hist = fx_histories
     dates = snapshot_dates
 
@@ -41,7 +40,7 @@ class BackfillService
   def fx_histories
     base = AppConfig.config.base_currency
     currencies = @instruments.map(&:currency).uniq.reject { |c| c == base }
-    currencies.to_h { |cur| [cur, Series.new(@client.history("#{cur}#{base}=X", from: @from))] }
+    currencies.to_h { |cur| [cur, Series.new(client.history("#{cur}#{base}=X", from: @from))] }
   end
 
   def snapshot_dates

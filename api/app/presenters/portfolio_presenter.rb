@@ -36,10 +36,10 @@ class PortfolioPresenter
   def serialized_totals
     totals = ValuationService.totals(@positions)
     {
-      market_value_pln: Decimals.string(totals[:market_value_pln]),
-      cost_pln: Decimals.string(totals[:cost_pln]),
-      pnl_pln: Decimals.string(totals[:pnl_pln]),
-      incomplete: totals[:incomplete]
+      market_value_pln: Decimals.string(totals.market_value_pln),
+      cost_pln: Decimals.string(totals.cost_pln),
+      pnl_pln: Decimals.string(totals.pnl_pln),
+      incomplete: totals.incomplete
     }
   end
 

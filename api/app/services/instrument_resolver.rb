@@ -1,16 +1,15 @@
 # Finds an existing instrument by symbol, or creates one seeded with a live quote.
 class InstrumentResolver
   extend Callable
+  extend Dry::Initializer
 
-  def initialize(symbol:, mic: nil, currency: nil, client: MarketData::YahooClient.new)
-    @symbol = symbol
-    @mic = mic
-    @currency = currency
-    @client = client
-  end
+  option :symbol
+  option :mic, default: -> {}
+  option :currency, default: -> {}
+  option :client, default: -> { MarketData::YahooClient.new }
 
   def call
-    Instrument[symbol: @symbol] || create
+    Instrument[symbol: symbol] || create
   end
 
   private
@@ -18,19 +17,16 @@ class InstrumentResolver
   def create
     quote = fetch_quote
     Instrument.create(
-      symbol: @symbol,
-      mic: @mic,
+      symbol: symbol,
+      mic: mic,
       name: quote&.dig(:name),
-      currency: quote&.dig(:currency) || @currency,
+      currency: quote&.dig(:currency) || currency,
       last_price: quote&.dig(:price),
       last_price_at: (Time.now if quote)
     )
   end
 
   def fetch_quote
-    @client.quote(@symbol)
-  rescue StandardError => e
-    Rage.logger.warn("initial quote failed for #{@symbol}: #{e.message}")
-    nil
+    Safely.warn("initial quote for #{symbol}") { client.quote(symbol) }
   end
 end

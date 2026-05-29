@@ -208,6 +208,7 @@ PLATFORMS
 
 DEPENDENCIES
   dry-configurable
+  dry-initializer
   dry-struct
   dry-validation
   rack-test

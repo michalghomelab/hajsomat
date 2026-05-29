@@ -8,12 +8,11 @@ require 'et-orbi'
 # snapshots are already up to date.
 class SnapshotCatchup
   extend Callable
+  extend Dry::Initializer
 
   SESSION_START_HOUR = 9 # snapshots run hourly from this hour (Europe/Warsaw)
 
-  def initialize(now: EtOrbi.now('Europe/Warsaw'))
-    @now = now
-  end
+  option :now, default: -> { EtOrbi.now('Europe/Warsaw') }
 
   def call
     expected = last_expected_day
@@ -27,7 +26,7 @@ class SnapshotCatchup
 
   private
 
-  def today = Date.parse(@now.strftime('%Y-%m-%d'))
+  def today = Date.parse(now.strftime('%Y-%m-%d'))
 
   def latest_snapshot_date
     max = PortfolioSnapshot.max(:date)
@@ -36,7 +35,7 @@ class SnapshotCatchup
 
   # Most recent weekday whose session (and thus first snapshot) has started.
   def last_expected_day
-    day = @now.hour >= SESSION_START_HOUR ? today : today - 1
+    day = now.hour >= SESSION_START_HOUR ? today : today - 1
     day -= 1 while day.saturday? || day.sunday?
     day
   end

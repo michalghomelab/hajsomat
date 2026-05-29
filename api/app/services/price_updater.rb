@@ -2,17 +2,16 @@
 # upsert. Returns the number of instruments updated.
 class PriceUpdater
   extend Callable
+  extend Dry::Initializer
 
-  def initialize(instruments, client: MarketData::YahooClient.new)
-    @instruments = instruments
-    @client = client
-  end
+  param :instruments
+  option :client, default: -> { MarketData::YahooClient.new }
 
   def call
-    return 0 if @instruments.empty?
+    return 0 if instruments.empty?
 
-    by_symbol = @instruments.to_h { |i| [i.symbol, i] }
-    prices = @client.prices(by_symbol.keys)
+    by_symbol = instruments.to_h { |i| [i.symbol, i] }
+    prices = client.prices(by_symbol.keys)
     now = Time.now
     rows = prices.filter_map do |symbol, price|
       inst = by_symbol[symbol]

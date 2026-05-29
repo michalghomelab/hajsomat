@@ -1,17 +1,13 @@
 # PLN per 1 unit of `currency` at the purchase date (NBP table A); nil on failure.
 class PurchaseFxRate
   extend Callable
+  extend Dry::Initializer
 
-  def initialize(currency, date, client: MarketData::NbpClient.new)
-    @currency = currency
-    @date = date
-    @client = client
-  end
+  param :currency
+  param :date
+  option :client, default: -> { MarketData::NbpClient.new }
 
   def call
-    @client.rate(@currency, @date)
-  rescue StandardError => e
-    Rage.logger.warn("NBP rate lookup failed for #{@currency} @ #{@date}: #{e.message}")
-    nil
+    Safely.warn("NBP rate lookup for #{currency} @ #{date}") { client.rate(currency, date) }
   end
 end

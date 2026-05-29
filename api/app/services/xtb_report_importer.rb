@@ -12,14 +12,13 @@ require 'bigdecimal'
 # new is looked up on Yahoo — so no hand-maintained symbol map is needed.
 class XtbReportImporter
   extend Callable
+  extend Dry::Initializer
 
   SHEET = 'Cash Operations'.freeze
   ORDER = %r{(?:OPEN|CLOSE) BUY\s+([\d.]+)(?:/[\d.]+)?\s*@\s*([\d.]+)}
 
-  def initialize(portfolio_id:, path:)
-    @portfolio_id = portfolio_id
-    @path = path
-  end
+  option :portfolio_id
+  option :path
 
   def call
     ops = parse_operations
@@ -35,7 +34,7 @@ class XtbReportImporter
   private
 
   def parse_operations
-    sheet = Roo::Excelx.new(@path, file_warning: :ignore).sheet(SHEET)
+    sheet = Roo::Excelx.new(path, file_warning: :ignore).sheet(SHEET)
     header = (1..sheet.last_row).find { |i| sheet.row(i)[0].to_s.strip == 'Type' }
     raise "#{SHEET} header not found" unless header
 
@@ -63,12 +62,12 @@ class XtbReportImporter
 
   # Returns the created Transaction, or nil when the external_ref already exists.
   def import_buy(row)
-    return if Transaction.where(portfolio_id: @portfolio_id, external_ref: row[:external_ref]).any?
+    return if Transaction.where(portfolio_id: portfolio_id, external_ref: row[:external_ref]).any?
 
     instrument = resolve(row[:base])
     currency = instrument.currency
     Transaction.create(
-      portfolio_id: @portfolio_id, instrument_id: instrument.id, kind: 'buy',
+      portfolio_id: portfolio_id, instrument_id: instrument.id, kind: 'buy',
       quantity: row[:quantity], price: row[:price], currency: currency,
       executed_at: row[:executed_at], fx_rate: PurchaseFxRate.call(currency, row[:executed_at]),
       external_ref: row[:external_ref]

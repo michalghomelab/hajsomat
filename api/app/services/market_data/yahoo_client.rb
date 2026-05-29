@@ -21,14 +21,12 @@ module MarketData
         name: meta['longName'] || meta['shortName'] }
     end
 
-    # array of symbols -> { symbol => BigDecimal } ; unknown symbols omitted
+    # array of symbols -> { symbol => BigDecimal } ; unknown/failed symbols omitted
+    # so one throttled quote doesn't abort the whole refresh.
     def prices(symbols)
       symbols.each_with_object({}) do |sym, acc|
-        q = quote(sym)
+        q = Safely.warn("price fetch for #{sym}") { quote(sym) }
         acc[sym] = q[:price] if q
-      rescue Error => e
-        # Skip a throttled/failed symbol so one bad quote doesn't abort the whole refresh.
-        Rage.logger.warn("price fetch failed for #{sym}: #{e.message}") if defined?(Rage)
       end
     end
 
