@@ -36,9 +36,15 @@
       {#each RELATIVE as r}
         <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
       {/each}
-      {#each years as y}
-        <button class={rangeCls(`year:${y}`)} onclick={() => selectRange(`year:${y}`)}>{y}</button>
-      {/each}
+      {#if years.length}
+        <select class="select select-xs min-h-0 h-6 w-[4.75rem] px-2 {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! border-primary!' : 'select-ghost text-base-content/70'}"
+                onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
+          <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
+          {#each years as y}
+            <option value={y} selected={effectiveRange === `year:${y}`}>{y}</option>
+          {/each}
+        </select>
+      {/if}
       <button class={rangeCls("all")} onclick={() => selectRange("all")}>Całość</button>
     </div>
     <div class="flex flex-wrap gap-1 items-center">
