@@ -12,6 +12,7 @@
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
   import Settings from "@lucide/svelte/icons/settings";
+  import Pencil from "@lucide/svelte/icons/pencil";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -83,15 +84,15 @@
     {:else}
       <h1 class="text-2xl font-bold flex items-center gap-2">
         {data.name}
-        <button class="btn btn-ghost btn-xs text-primary font-normal" onclick={startRename}>✎ zmień nazwę</button>
+        <button class="btn btn-ghost btn-xs btn-square text-primary" onclick={startRename} aria-label="Zmień nazwę" title="Zmień nazwę"><Pencil size={16} /></button>
       </h1>
     {/if}
   </div>
 
-  <div class="flex justify-between items-center gap-2 border-y border-base-300 py-2">
+  <div class="flex items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
     <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-outline btn-sm btn-square" aria-label="Akcje" title="Akcje">
+      <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
         <Settings size={20} />
       </div>
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">

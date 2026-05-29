@@ -11,6 +11,7 @@
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
   import Settings from "@lucide/svelte/icons/settings";
+  import Wallet from "@lucide/svelte/icons/wallet";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -57,7 +58,9 @@
 <div class="p-6 max-w-4xl mx-auto">
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
   <div class="flex flex-wrap gap-2 mb-2 items-center">
-    <button class="btn btn-primary" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
+    <button class="btn btn-primary gap-1" onclick={() => (showCreate = true)}>
+      <Wallet size={18} /> Nowy portfel
+    </button>
     <div class="dropdown">
       <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
         <Settings size={20} />
