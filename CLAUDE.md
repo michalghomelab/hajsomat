@@ -26,7 +26,7 @@ docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vi
 docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vitest run src/lib/format.test.js"  # single file
 ```
 
-RuboCop must stay green (config in `api/.rubocop.yml`: line length 120, MethodLength 25, AbcSize 25). Prefer BigDecimal for money, dry-validation contracts, dry-configurable, dry-struct value objects, and dry-initializer for service dependencies; rely on Zeitwerk autoload (no manual `require` for app classes — gems load via `Bundler.require`).
+RuboCop must stay green (config in `api/.rubocop.yml`: line length 120, MethodLength 25, AbcSize 25). Prefer BigDecimal for money, dry-validation contracts, dry-configurable, dry-struct value objects, dry-initializer for service dependencies, and dry-monads `Result` for services that can fail; rely on Zeitwerk autoload (no manual `require` for app classes — gems load via `Bundler.require`).
 
 ## Data backfills
 
@@ -42,7 +42,7 @@ In prod a single image (`deploy/`) runs nginx (serves the built SPA, proxies `/a
 
 ### Backend layering (`api/app/`)
 
-Controllers stay thin and delegate to **service objects**. Services `extend Callable` (invoked as `Service.call(...)`, which forwards to `new(...).call`) and `extend Dry::Initializer` (`param`/`option` for their deps instead of a hand-written `initialize`). Two shared helpers: `Safely.warn(context) { ... }` (`app/lib/`) wraps a transient external call, logging and returning nil on failure; `Upsertable` (`app/models/`, extended onto models) gives `upsert(values, conflict_target:)` for insert-or-update.
+Controllers stay **logic-free**: they call a service and `render_result(...)` (in `ApplicationController`). Services that can fail return a `Dry::Monads::Result` — `Success(data)` (→ JSON, or 204 when nil) or `Failure([status, body])` (→ that status); validation/not-found/orchestration lives in the service, not the controller (e.g. `CreatePortfolio`, `RenamePortfolio`, `DeleteTransaction`, `UpdateRefreshInterval`, `TransactionCreator`; `PortfolioValuation` is the read facade for index/show). Services `extend Callable` (invoked as `Service.call(...)`, which forwards to `new(...).call`) and `extend Dry::Initializer` (`param`/`option` for their deps instead of a hand-written `initialize`). Shared helpers: `Safely.warn(context) { ... }` (`app/lib/`) wraps a transient external call, logging and returning nil on failure; `Upsertable` (`app/models/`, extended onto models) gives `upsert(values, conflict_target:)`. Query logic lives in Sequel `dataset_module` scopes on the models (e.g. `Instrument.in_use`, `PortfolioSnapshot.totals_by_date`).
 
 Valuation is the core flow and is split into composable pieces:
 - `InstrumentPriceMap` → `{ instrument_id => InstrumentPrice }` (a dry-struct typed view of pricing data).
@@ -50,7 +50,7 @@ Valuation is the core flow and is split into composable pieces:
 - `PositionBuilder` produces a `Position` struct. Cost in PLN uses each buy's captured `fx_rate` (falls back to current rate); the broker spread (`AppConfig.fx_margin`, 0.5%) is *added* to cost and *subtracted* from market value. PLN-denominated positions skip FX and spread. Any missing rate makes the PLN cost nil → totals flagged `incomplete`.
 - Presenters (`PortfolioPresenter`, etc.) serialize to JSON. `Decimals.string` renders money as plain decimal strings (`"6000.0"`, never `"0.6e4"`); pass `transactions:` to `PortfolioPresenter.call` to get the detail view with positions, omit it for the list summary.
 
-Market data: `MarketData::YahooClient` wraps Yahoo's unofficial chart/search endpoints (quote, prices, fx_rate via `BASE QUOTE=X`, daily `history`, `symbol_search`). It returns `nil`/skips on 404 and retries once on 429. `InstrumentResolver` finds an instrument by symbol or creates one seeded from a live quote. `PurchaseFxRate` captures the NBP rate for a buy. `BackfillService` reconstructs daily snapshots backward from Yahoo history + FX, valuing each day with the transactions in effect then.
+Market data: the app talks to **`MarketData.gateway`** (a `MarketData::Gateway` facade), never a concrete client. The gateway delegates quote/prices/fx_rate/history/symbol_search to a provider resolved from `MarketData::PROVIDERS` via `AppConfig.market_data.provider` — adding a provider = implement those methods + register it + switch the config. The current provider, `MarketData::YahooClient`, wraps Yahoo's unofficial chart/search endpoints (fx_rate via `BASE QUOTE=X`), returning `nil`/skipping on 404 and retrying once on 429. `InstrumentResolver` finds an instrument by symbol or creates one seeded from a live quote. `PurchaseFxRate` captures the NBP rate for a buy. `BackfillService` reconstructs daily snapshots backward from Yahoo history + FX, valuing each day with the transactions in effect then.
 
 XTB import (`XtbReportImporter`): parses a "Cash Operations" `.xlsx`, dedups by operation ID stored as `external_ref` (idempotent re-upload), resolves tickers by their base (the part before the exchange suffix, e.g. `IGLN` from `IGLN.UK`) against held instruments or a Yahoo search, skips fully-sold positions, and imports all-or-nothing in a DB transaction.
 
