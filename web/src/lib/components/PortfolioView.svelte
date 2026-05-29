@@ -143,7 +143,7 @@
         {#each data.positions as pos (pos.symbol)}
           <tr class="cursor-pointer hover" onclick={() => toggle(pos.symbol)}>
             <td>
-              {expanded[pos.symbol] ? "▾" : "▸"} {pos.symbol}
+              {expanded[pos.symbol] ? "▾" : "▸"} <span title={pos.name}>{pos.symbol}</span>
               <a href={`https://finance.yahoo.com/quote/${pos.symbol}`} target="_blank" rel="noopener"
                  class="link link-primary ml-1 text-xs" title="Wykres na Yahoo" onclick={(e) => e.stopPropagation()}>↗</a>
             </td>

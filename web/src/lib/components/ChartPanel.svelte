@@ -1,6 +1,5 @@
 <script>
-  import PnlChart from "./PnlChart.svelte";
-  import DailyChangeChart from "./DailyChangeChart.svelte";
+  import PortfolioChart from "./PortfolioChart.svelte";
   import {
     RELATIVE, RESOLUTIONS, availableYears,
     loadRange, saveRange, loadResolution, saveResolution,
@@ -49,9 +48,5 @@
       {/each}
     </div>
   {/if}
-  <PnlChart snapshots={view} />
-  <div>
-    <h3 class="text-sm font-semibold text-base-content/70 mb-1">Zmiana (wpłaty vs rynek)</h3>
-    <DailyChangeChart snapshots={view} />
-  </div>
+  <PortfolioChart snapshots={view} />
 </div>
