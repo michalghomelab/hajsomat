@@ -107,7 +107,7 @@
     <ul class="space-y-2">
       {#each portfolios as p (p.id)}
         <li class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick={() => onSelect(p.id)}>
-          <div class="card-body flex-row justify-between items-center py-4">
+          <div class="card-body items-start gap-1 sm:flex-row sm:justify-between sm:items-center py-4">
             <span class="font-medium text-base-content">{p.name}</span>
             <span class="text-right {pnlClass(p.pnl_pln)}">
               <span class="whitespace-nowrap"><RollingNumber value={p.market_value_pln} text={money(p.market_value_pln)} /></span>
@@ -123,7 +123,7 @@
       {#if portfolios.length}
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body py-4 gap-1">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-center">
               <span class="font-medium text-base-content">Razem</span>
               <span class="text-right">
                 <span class="whitespace-nowrap"><RollingNumber value={totals.value} text={money(totals.value)} /></span>
