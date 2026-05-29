@@ -26,7 +26,7 @@ docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vi
 docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vitest run src/lib/format.test.js"  # single file
 ```
 
-RuboCop must stay green (config in `api/.rubocop.yml`: line length 120, MethodLength 25, AbcSize 25). Prefer BigDecimal for money, dry-validation contracts, dry-configurable, dry-struct; rely on Zeitwerk autoload (no manual `require` for app classes).
+RuboCop must stay green (config in `api/.rubocop.yml`: line length 120, MethodLength 25, AbcSize 25). Prefer BigDecimal for money, dry-validation contracts, dry-configurable, dry-struct value objects, and dry-initializer for service dependencies; rely on Zeitwerk autoload (no manual `require` for app classes — gems load via `Bundler.require`).
 
 ## Data backfills
 
@@ -36,13 +36,13 @@ The app deploys to a homelab, so the production DB only ever changes via code th
 
 Two processes share one SQLite file (WAL mode, `PRAGMA foreign_keys=ON`):
 - **`api`** — Rage (`rage-rb`) JSON API, routes under `/api` (`api/config/routes.rb`).
-- **`scheduler`** (`api/bin/scheduler`) — standalone rufus-scheduler process (the forking app server can't reliably host a background thread). Hourly price refresh on a clock-aligned cron derived from the `refresh_interval_minutes` setting, re-applied live by a 30s watcher; daily snapshot after US close. The scheduler can't broadcast WebSocket messages itself, so after a refresh it POSTs `/api/internal/refreshed` and the web process pushes a WS "refreshed" signal to subscribers (`PricesChannel`).
+- **`scheduler`** (`api/bin/scheduler`) — standalone rufus-scheduler process (the forking app server can't reliably host a background thread). Hourly price refresh on a clock-aligned cron derived from the `refresh_interval_minutes` setting, re-applied live by a 30s watcher. A snapshot is written right after each refresh, but only on the top-of-hour tick (so it's at most hourly whatever the interval), keyed by date + upserted so the last in-session run (~22:00) finalizes today's point; `SnapshotCatchup` fills any days missed while down. The scheduler can't broadcast WebSocket messages itself, so after a refresh it POSTs `/api/internal/refreshed` and the web process pushes a WS "refreshed" signal to subscribers (`PricesChannel`).
 
 In prod a single image (`deploy/`) runs nginx (serves the built SPA, proxies `/api`) + Rage + scheduler.
 
 ### Backend layering (`api/app/`)
 
-Controllers stay thin and delegate to **service objects**. Services include `Callable` (`extend Callable`) so they're invoked as `Service.call(...)`; the module forwards to `new(...).call`.
+Controllers stay thin and delegate to **service objects**. Services `extend Callable` (invoked as `Service.call(...)`, which forwards to `new(...).call`) and `extend Dry::Initializer` (`param`/`option` for their deps instead of a hand-written `initialize`). Two shared helpers: `Safely.warn(context) { ... }` (`app/lib/`) wraps a transient external call, logging and returning nil on failure; `Upsertable` (`app/models/`, extended onto models) gives `upsert(values, conflict_target:)` for insert-or-update.
 
 Valuation is the core flow and is split into composable pieces:
 - `InstrumentPriceMap` → `{ instrument_id => InstrumentPrice }` (a dry-struct typed view of pricing data).
