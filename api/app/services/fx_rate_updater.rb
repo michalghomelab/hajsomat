@@ -6,7 +6,7 @@ class FxRateUpdater
   extend Dry::Initializer
 
   param :instruments
-  option :client, default: -> { MarketData::YahooClient.new }
+  option :client, default: -> { MarketData.gateway }
   option :base_currency, default: -> { AppConfig.config.base_currency }
 
   def call

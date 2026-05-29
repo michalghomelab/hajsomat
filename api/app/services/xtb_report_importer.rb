@@ -87,7 +87,7 @@ class XtbReportImporter
   end
 
   def search_symbol(base)
-    MarketData::YahooClient.new.symbol_search(base).find { |c| c[:currency] }&.dig(:symbol)
+    MarketData.gateway.symbol_search(base).find { |c| c[:currency] }&.dig(:symbol)
   end
 
   def to_time(value)

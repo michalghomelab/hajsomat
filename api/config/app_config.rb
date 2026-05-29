@@ -9,6 +9,7 @@ class AppConfig
   setting :fx_margin, default: '0.005'
 
   setting :market_data do
+    setting :provider, default: 'yahoo' # key into MarketData::PROVIDERS
     setting :base_url, default: 'https://query1.finance.yahoo.com'
   end
 

@@ -6,7 +6,7 @@ class InstrumentResolver
   option :symbol
   option :mic, default: -> {}
   option :currency, default: -> {}
-  option :client, default: -> { MarketData::YahooClient.new }
+  option :client, default: -> { MarketData.gateway }
 
   def call
     Instrument[symbol: symbol] || create

@@ -7,7 +7,7 @@ class BackfillService
   extend Callable
   extend Dry::Initializer
 
-  option :client, default: -> { MarketData::YahooClient.new }
+  option :client, default: -> { MarketData.gateway }
 
   def call
     @instruments = Instrument.all

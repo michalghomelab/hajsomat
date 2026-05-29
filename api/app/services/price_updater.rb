@@ -5,7 +5,7 @@ class PriceUpdater
   extend Dry::Initializer
 
   param :instruments
-  option :client, default: -> { MarketData::YahooClient.new }
+  option :client, default: -> { MarketData.gateway }
 
   def call
     return 0 if instruments.empty?

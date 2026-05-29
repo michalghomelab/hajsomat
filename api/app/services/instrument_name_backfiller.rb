@@ -7,7 +7,7 @@ class InstrumentNameBackfiller
   extend Dry::Initializer
 
   param :instruments
-  option :client, default: -> { MarketData::YahooClient.new }
+  option :client, default: -> { MarketData.gateway }
 
   def call
     instruments.select { |i| i.name.to_s.strip.empty? }.filter_map { |i| backfill(i) }.size
