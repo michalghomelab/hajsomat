@@ -1,22 +1,9 @@
-class SettingsController < RageController::API
+class SettingsController < ApplicationController
   def show
-    render json: payload
+    render json: { refresh_interval_minutes: AppSettings.refresh_interval_minutes }
   end
 
   def update
-    raw = params[:refresh_interval_minutes]
-    minutes = raw.to_i
-    unless raw && AppSettings::ALLOWED_REFRESH_INTERVALS.include?(minutes)
-      return render json: { error: 'invalid refresh_interval_minutes' }, status: 422
-    end
-
-    AppSettings.refresh_interval_minutes = minutes
-    render json: payload
-  end
-
-  private
-
-  def payload
-    { refresh_interval_minutes: AppSettings.refresh_interval_minutes }
+    render_result(UpdateRefreshInterval.call(params[:refresh_interval_minutes]))
   end
 end
