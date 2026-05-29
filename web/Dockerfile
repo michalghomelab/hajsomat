@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:26-slim
 RUN npm install -g npm@latest
 WORKDIR /app
 COPY package.json package-lock.json* ./
