@@ -1,6 +1,5 @@
-class PortfolioSnapshotsController < RageController::API
+class PortfolioSnapshotsController < ApplicationController
   def index
-    rows = PortfolioSnapshot.where(portfolio_id: params[:id].to_i).order(:date).all
-    render json: SnapshotPresenter.call(rows)
+    render json: SnapshotPresenter.call(PortfolioSnapshot.for_portfolio(params[:id].to_i).all)
   end
 end
