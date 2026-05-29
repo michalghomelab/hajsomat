@@ -3,6 +3,7 @@
 
 # 1. Build the frontend
 FROM node:22-slim AS web
+RUN npm install -g npm@latest
 WORKDIR /web
 COPY web/package.json web/package-lock.json* ./
 RUN npm ci
@@ -10,7 +11,7 @@ COPY web/ ./
 RUN npm run build
 
 # 2. Install gems (with build tools)
-FROM ruby:3.3-slim AS gems
+FROM ruby:3.4-slim AS gems
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
       build-essential libsqlite3-dev libyaml-dev git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
@@ -20,7 +21,7 @@ RUN gem install bundler && \
     bundle install --jobs 4 --retry 3
 
 # 3. Runtime: ruby-slim + nginx
-FROM ruby:3.3-slim
+FROM ruby:3.4-slim
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
       nginx libsqlite3-0 libyaml-0-2 tzdata && \
     rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/default
