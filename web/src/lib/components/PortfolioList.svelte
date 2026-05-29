@@ -10,6 +10,7 @@
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
+  import Settings from "@lucide/svelte/icons/settings";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -55,10 +56,12 @@
 
 <div class="p-6 max-w-4xl mx-auto">
   <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
-  <div class="flex gap-2 mb-6 items-center">
+  <div class="flex flex-wrap gap-2 mb-2 items-center">
     <button class="btn btn-primary" onclick={() => (showCreate = true)}>+ Nowy portfel</button>
     <div class="dropdown">
-      <div tabindex="0" role="button" class="btn btn-outline">Akcje ▾</div>
+      <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
+        <Settings size={20} />
+      </div>
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
         <li>
           <button onclick={refreshPrices} disabled={refreshing || !market.open}
@@ -73,10 +76,10 @@
         </li>
       </ul>
     </div>
-    <div class="ml-auto flex items-center gap-3">
-      <RefreshIntervalSelect />
-      <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
-    </div>
+  </div>
+  <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 mb-6">
+    <RefreshIntervalSelect />
+    <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
   </div>
   {#if showCreate}
     <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
@@ -103,10 +106,9 @@
         <li class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick={() => onSelect(p.id)}>
           <div class="card-body flex-row justify-between items-center py-4">
             <span class="font-medium text-base-content">{p.name}</span>
-            <span class={pnlClass(p.pnl_pln)}>
-              <RollingNumber value={p.market_value_pln} text={money(p.market_value_pln)} />
-              (<RollingNumber value={p.pnl_pln} text={money(p.pnl_pln)} /> ·
-              <RollingNumber value={p.pnl_pln} text={percent(p.pnl_pln, p.cost_pln)} />){#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen"> *</span>{/if}
+            <span class="text-right {pnlClass(p.pnl_pln)}">
+              <span class="whitespace-nowrap"><RollingNumber value={p.market_value_pln} text={money(p.market_value_pln)} /></span>
+              <span class="whitespace-nowrap">(<RollingNumber value={p.pnl_pln} text={money(p.pnl_pln)} /> · <RollingNumber value={p.pnl_pln} text={percent(p.pnl_pln, p.cost_pln)} />){#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen"> *</span>{/if}</span>
             </span>
           </div>
         </li>
@@ -120,10 +122,9 @@
           <div class="card-body py-4 gap-1">
             <div class="flex justify-between items-center">
               <span class="font-medium text-base-content">Razem</span>
-              <span>
-                <RollingNumber value={totals.value} text={money(totals.value)} />
-                (<span class={pnlClass(totals.pnl)}><RollingNumber value={totals.pnl} text={money(totals.pnl)} /> ·
-                <RollingNumber value={totals.pnl} text={percent(totals.pnl, totals.cost)} /></span>)
+              <span class="text-right">
+                <span class="whitespace-nowrap"><RollingNumber value={totals.value} text={money(totals.value)} /></span>
+                <span class="whitespace-nowrap {pnlClass(totals.pnl)}">(<RollingNumber value={totals.pnl} text={money(totals.pnl)} /> · <RollingNumber value={totals.pnl} text={percent(totals.pnl, totals.cost)} />)</span>
               </span>
             </div>
             <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(lastUpdated)}</p>

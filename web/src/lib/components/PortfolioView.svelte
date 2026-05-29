@@ -11,6 +11,7 @@
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
+  import Settings from "@lucide/svelte/icons/settings";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -90,7 +91,9 @@
   <div class="flex justify-between items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
     <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-outline btn-sm">Akcje ▾</div>
+      <div tabindex="0" role="button" class="btn btn-outline btn-sm btn-square" aria-label="Akcje" title="Akcje">
+        <Settings size={20} />
+      </div>
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
         <li>
           <button onclick={refresh} disabled={refreshing || !market.open}
@@ -107,7 +110,7 @@
       </ul>
     </div>
   </div>
-  <div class="flex items-center justify-end gap-3">
+  <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
     <RefreshIntervalSelect />
     <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
   </div>
@@ -116,9 +119,9 @@
 
   <div class="card bg-base-100 shadow-sm">
     <div class="card-body py-4">
-      <p class="text-lg">
-        Wartość: <strong><RollingNumber value={data.totals.market_value_pln} text={money(data.totals.market_value_pln)} /></strong>
-        · <span class={pnlClass(data.totals.pnl_pln)}>P/L <RollingNumber value={data.totals.pnl_pln} text={money(data.totals.pnl_pln)} />
+      <p class="text-lg flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span class="whitespace-nowrap">Wartość: <strong><RollingNumber value={data.totals.market_value_pln} text={money(data.totals.market_value_pln)} /></strong></span>
+        <span class="whitespace-nowrap {pnlClass(data.totals.pnl_pln)}">P/L <RollingNumber value={data.totals.pnl_pln} text={money(data.totals.pnl_pln)} />
         (<RollingNumber value={data.totals.pnl_pln} text={percent(data.totals.pnl_pln, data.totals.cost_pln)} />)</span>
       </p>
       <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(data.last_updated)}</p>
