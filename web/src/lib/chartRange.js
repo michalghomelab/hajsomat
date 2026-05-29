@@ -5,6 +5,7 @@ export const RELATIVE = [
   { id: "1m", label: "1M", months: 1 },
   { id: "3m", label: "3M", months: 3 },
   { id: "6m", label: "6M", months: 6 },
+  { id: "ytd", label: "YTD" }, // od początku roku — handled specially in filterSnapshots
 ];
 
 export function availableYears(snapshots) {
@@ -34,6 +35,10 @@ export function filterSnapshots(snapshots, range) {
   if (range.startsWith("year:")) {
     const year = range.slice(5);
     return all.filter((s) => String(s.date).slice(0, 4) === year);
+  }
+  if (range === "ytd") {
+    const cutoff = `${new Date().getFullYear()}-01-01`;
+    return all.filter((s) => s.date >= cutoff);
   }
   const rel = RELATIVE.find((r) => r.id === range);
   if (!rel) return all;
