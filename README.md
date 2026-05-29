@@ -55,12 +55,18 @@ Dla pozycji w PLN kursu i spreadu nie stosujemy. Kurs NBP z dnia zakupu jest zap
 
 ## Testy
 
+Testy odpalaj przez Docker Compose. Nie uruchamiaj lokalnego Ruby/Node/asdf dla tego projektu — wersje runtime są zamknięte w obrazach.
+
 ```bash
 # backend
-docker run --rm -v "$PWD/api":/app -w /app portfolio-api bundle exec rspec
-docker run --rm -v "$PWD/api":/app -w /app portfolio-api bundle exec rubocop
+docker compose run --rm api bundle exec rspec
+docker compose run --rm api bundle exec rspec spec/services/backfill_service_spec.rb   # pojedynczy plik
+docker compose run --rm api bundle exec rspec spec/services/backfill_service_spec.rb:42 # pojedynczy przykład
+docker compose run --rm api bundle exec rubocop
+
 # frontend
-docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vitest run"
+docker compose run --rm web npm test
+docker compose run --rm web npx vitest run src/lib/format.test.js # pojedynczy plik
 ```
 
 CI (GitHub Actions) odpala rspec + vitest przed buildem — obraz powstaje tylko, gdy testy są zielone.

@@ -16,8 +16,11 @@ class SnapshotService
     instruments_by_id = InstrumentPriceMap.call
 
     DB.transaction do
-      Portfolio.all.each do |portfolio|
-        txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
+      portfolios = Portfolio.all
+      txns_by_portfolio = Transaction.buys_by_portfolio(portfolios.map(&:id))
+
+      portfolios.each do |portfolio|
+        txns = txns_by_portfolio.fetch(portfolio.id, [])
         positions = ValuationService.positions(transactions: txns, instruments_by_id: instruments_by_id,
                                                fx_to_pln: fx, **AppConfig.valuation_settings)
         PortfolioSnapshot.upsert_snapshot(portfolio.id, date, ValuationService.totals(positions))

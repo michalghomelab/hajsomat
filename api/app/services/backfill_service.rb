@@ -30,8 +30,11 @@ class BackfillService
   end
 
   def write_all(dates)
-    Portfolio.all.sum do |portfolio|
-      txns = Transaction.where(portfolio_id: portfolio.id, kind: 'buy').all
+    portfolios = Portfolio.all
+    txns_by_portfolio = Transaction.buys_by_portfolio(portfolios.map(&:id))
+
+    portfolios.sum do |portfolio|
+      txns = txns_by_portfolio.fetch(portfolio.id, [])
       dates.each { |date| write_snapshot(portfolio, date, txns) }
       dates.size
     end

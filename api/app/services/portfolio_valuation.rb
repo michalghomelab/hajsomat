@@ -10,7 +10,10 @@ class PortfolioValuation
   def self.detail(id) = new.detail(id)
 
   def summary
-    Success(Portfolio.all.map { |p| present(p, buys(p)) })
+    portfolios = Portfolio.all
+    txns_by_portfolio = Transaction.buys_by_portfolio(portfolios.map(&:id))
+
+    Success(portfolios.map { |p| present(p, txns_by_portfolio.fetch(p.id, [])) })
   end
 
   def detail(id)

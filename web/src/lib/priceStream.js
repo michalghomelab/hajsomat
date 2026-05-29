@@ -59,6 +59,7 @@ function ensureConnected() {
 // one fires reliably everywhere: visibilitychange (tab switch), pageshow (mobile
 // bfcache restore — common for installed PWAs), and focus (desktop).
 let lastResume = 0;
+let resumeArmed = false;
 function resume() {
   if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
   const now = Date.now();
@@ -68,9 +69,22 @@ function resume() {
   listeners.forEach((fn) => fn());
 }
 if (typeof window !== "undefined") {
-  document.addEventListener("visibilitychange", resume);
-  window.addEventListener("pageshow", resume);
-  window.addEventListener("focus", resume);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      resumeArmed = true;
+    } else if (resumeArmed) {
+      resume();
+    }
+  });
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) resume();
+  });
+  window.addEventListener("blur", () => {
+    resumeArmed = true;
+  });
+  window.addEventListener("focus", () => {
+    if (resumeArmed) resume();
+  });
 }
 
 export function onPriceRefresh(fn) {

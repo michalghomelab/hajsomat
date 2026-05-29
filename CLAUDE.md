@@ -12,18 +12,19 @@ Everything runs in Docker — nothing is installed natively.
 docker compose up --build          # dev: API :3000, scheduler, web :5173 (use http://lvh.me:5173)
 ```
 
-Tests / lint (CI runs rspec + vitest before building the prod image):
+Tests / lint (CI runs rspec + vitest before building the prod image). Run them through
+Docker Compose; do not try local Ruby/Node/asdf for this project:
 
 ```bash
-# backend (Rage image must be built first via `docker compose build api`)
-docker run --rm -v "$PWD/api":/app -w /app portfolio-api bundle exec rspec
-docker run --rm -v "$PWD/api":/app -w /app portfolio-api bundle exec rspec spec/services/backfill_service_spec.rb   # single file
-docker run --rm -v "$PWD/api":/app -w /app portfolio-api bundle exec rspec spec/services/backfill_service_spec.rb:42 # single example
-docker run --rm -v "$PWD/api":/app -w /app portfolio-api bundle exec rubocop
+# backend
+docker compose run --rm api bundle exec rspec
+docker compose run --rm api bundle exec rspec spec/services/backfill_service_spec.rb   # single file
+docker compose run --rm api bundle exec rspec spec/services/backfill_service_spec.rb:42 # single example
+docker compose run --rm api bundle exec rubocop
 
 # frontend
-docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vitest run"
-docker run --rm -v "$PWD/web":/app -w /app node:22-slim sh -lc "npm ci && npx vitest run src/lib/format.test.js"  # single file
+docker compose run --rm web npm test
+docker compose run --rm web npx vitest run src/lib/format.test.js  # single file
 ```
 
 RuboCop must stay green (config in `api/.rubocop.yml`: line length 120, MethodLength 25, AbcSize 25). Prefer BigDecimal for money, dry-validation contracts, dry-configurable, dry-struct value objects, dry-initializer for service dependencies, and dry-monads `Result` for services that can fail; rely on Zeitwerk autoload (no manual `require` for app classes — gems load via `Bundler.require`).
