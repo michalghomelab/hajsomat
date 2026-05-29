@@ -2,15 +2,14 @@ require 'date'
 require 'et-orbi'
 
 # Runs once on scheduler startup to fill snapshots missed while the process was
-# down — e.g. a deploy/restart straddling the nightly 22:30 window. Past weekdays
-# are reconstructed from Yahoo history (BackfillService); today is captured from
-# current prices only once its 22:30 window has passed. No-op (no Yahoo calls)
-# when snapshots are already up to date.
+# down — e.g. a deploy/restart that spanned a whole session. Past weekdays are
+# reconstructed from Yahoo history (BackfillService); today is captured from
+# current prices once its session has started. No-op (no Yahoo calls) when
+# snapshots are already up to date.
 class SnapshotCatchup
   extend Callable
 
-  SNAPSHOT_HOUR = 22
-  SNAPSHOT_MIN = 30
+  SESSION_START_HOUR = 9 # snapshots run hourly from this hour (Europe/Warsaw)
 
   def initialize(now: EtOrbi.now('Europe/Warsaw'))
     @now = now
@@ -35,14 +34,10 @@ class SnapshotCatchup
     max && Date.parse(max.to_s)
   end
 
-  # Most recent weekday whose 22:30 snapshot window has already passed.
+  # Most recent weekday whose session (and thus first snapshot) has started.
   def last_expected_day
-    day = past_snapshot_time? ? today : today - 1
+    day = @now.hour >= SESSION_START_HOUR ? today : today - 1
     day -= 1 while day.saturday? || day.sunday?
     day
-  end
-
-  def past_snapshot_time?
-    @now.hour > SNAPSHOT_HOUR || (@now.hour == SNAPSHOT_HOUR && @now.min >= SNAPSHOT_MIN)
   end
 end

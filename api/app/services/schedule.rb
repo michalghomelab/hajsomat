@@ -5,8 +5,6 @@ require 'fugit'
 module Schedule
   module_function
 
-  def next_snapshot_at = next_at(AppConfig.config.snapshot_cron)
-
   def next_at(cron) = Fugit.parse_cron(cron).next_time.to_t
 
   # Clock-aligned refresh cron derived from the app-wide interval: the minute

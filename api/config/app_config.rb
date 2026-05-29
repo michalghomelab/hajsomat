@@ -12,10 +12,11 @@ class AppConfig
     setting :base_url, default: 'https://query1.finance.yahoo.com'
   end
 
-  # rufus cron (min hour day month weekday tz). Hourly on weekdays during market
-  # hours (GPW/Xetra/US session window); daily snapshot after US close.
+  # rufus cron (min hour day month weekday tz): the market session window
+  # (GPW/Xetra/US) prices refresh within. A snapshot is written right after each
+  # refresh (keyed by date + upserted), so snapshots ride this same window — the
+  # last run (~22:00, US close) finalizes today's point.
   setting :refresh_cron, default: '0 9-22 * * 1-5 Europe/Warsaw'
-  setting :snapshot_cron, default: '30 22 * * 1-5 Europe/Warsaw'
 
   # Where the scheduler reaches the web process to push WS notifications
   # (dev: the api service; prod: same container on localhost).

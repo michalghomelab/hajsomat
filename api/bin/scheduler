@@ -16,8 +16,8 @@ end
 
 scheduler = Rufus::Scheduler.new
 
-# Fill any snapshots missed while we were down (e.g. a deploy across the 22:30
-# window), so a restart at any hour never costs a data point.
+# Fill any snapshots missed while we were down (e.g. a deploy across a whole
+# session), so a restart at any hour never costs a data point.
 begin
   SnapshotCatchup.call
 rescue StandardError => e
@@ -39,6 +39,11 @@ scheduler.every('30s', first: :now) do
     # later; plain `cron` returns the job id string.
     refresh[:job] = scheduler.schedule_cron(desired) do
       RefreshService.call
+      # Once an hour (the top-of-hour tick, whatever the refresh interval) write a
+      # snapshot from the prices we just fetched — fresh data, no extra network
+      # call, at most one DB write/hour. Keyed by date + upserted, so each run
+      # updates today's point and the last (~22:00, US close) finalizes it.
+      SnapshotService.call if Time.now.min.zero?
       notify_web
     rescue StandardError => e
       Rage.logger.error("scheduled refresh failed: #{e.message}")
@@ -50,12 +55,5 @@ rescue StandardError => e
   Rage.logger.error("refresh scheduler watcher failed: #{e.message}")
 end
 
-scheduler.cron(AppConfig.config.snapshot_cron) do
-  SnapshotService.call
-rescue StandardError => e
-  Rage.logger.error("scheduled snapshot failed: #{e.message}")
-end
-
-Rage.logger.info('scheduler up — refresh: clock-aligned from AppSettings interval, ' \
-                 "snapshot: #{AppConfig.config.snapshot_cron}")
+Rage.logger.info('scheduler up — refresh + snapshot run together, clock-aligned from the AppSettings interval')
 scheduler.join

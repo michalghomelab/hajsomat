@@ -15,7 +15,7 @@ RSpec.describe SnapshotCatchup do
 
   # 2026-05-29 is a Friday; 2026-05-28 Thursday; the weekend is 30–31.
   it 'does nothing when the latest snapshot already covers the last expected weekday' do
-    snapshot_on(Date.new(2026, 5, 28)) # Thu — the expected day at Fri 09:00
+    snapshot_on(Date.new(2026, 5, 29)) # today (Fri), session started at 09:00
 
     described_class.call(now: Time.utc(2026, 5, 29, 9, 0))
 
@@ -23,19 +23,19 @@ RSpec.describe SnapshotCatchup do
     expect(SnapshotService).not_to have_received(:call)
   end
 
-  it 'backfills past days when a weekday snapshot is missing, without snapshotting today before 22:30' do
-    snapshot_on(Date.new(2026, 5, 26)) # gap: Wed 27 and Thu 28 missing
+  it 'before the session starts, expects the previous weekday and only backfills the gap' do
+    snapshot_on(Date.new(2026, 5, 26)) # Wed — Thu 28 missing
 
-    described_class.call(now: Time.utc(2026, 5, 29, 9, 0)) # Fri, before the window
+    described_class.call(now: Time.utc(2026, 5, 29, 6, 0)) # Fri, pre-session → expects Thu
 
     expect(BackfillService).to have_received(:call)
-    expect(SnapshotService).not_to have_received(:call)
+    expect(SnapshotService).not_to have_received(:call) # today (Fri) not expected yet
   end
 
-  it "also snapshots today once today's 22:30 window has passed" do
-    snapshot_on(Date.new(2026, 5, 28))
+  it 'captures today and backfills the gap once the session has started' do
+    snapshot_on(Date.new(2026, 5, 27))
 
-    described_class.call(now: Time.utc(2026, 5, 29, 23, 0)) # Fri, after the window
+    described_class.call(now: Time.utc(2026, 5, 29, 9, 0))
 
     expect(BackfillService).to have_received(:call)
     expect(SnapshotService).to have_received(:call)
