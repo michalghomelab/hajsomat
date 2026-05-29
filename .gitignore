@@ -5,6 +5,7 @@ api/vendor/bundle/
 # DB
 db/*.sqlite3
 api/db/*.sqlite3
+*.sqlite3
 # Logs
 api/log/
 log/
@@ -15,3 +16,5 @@ web/dist/
 .env
 # OS
 .DS_Store
+# IDE
+.idea/
