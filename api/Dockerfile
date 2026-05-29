@@ -1,4 +1,4 @@
-FROM ruby:3.4-slim
+FROM ruby:4.0-slim
 RUN apt-get update -qq && apt-get install -y build-essential libsqlite3-dev libyaml-dev git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY Gemfile Gemfile.lock* ./
