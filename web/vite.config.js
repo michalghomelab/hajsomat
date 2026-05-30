@@ -56,5 +56,8 @@ export default defineConfig({
     // Docker bind mounts on macOS drop fs events; poll so edits are reliably picked up.
     watch: { usePolling: true, interval: 300 },
   },
+  build: {
+    chunkSizeWarningLimit: 550,
+  },
   test: { environment: "jsdom", globals: true },
 });

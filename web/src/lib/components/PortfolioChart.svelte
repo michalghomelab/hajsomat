@@ -1,5 +1,7 @@
 <script>
-  import ApexCharts from "apexcharts";
+  import ApexCharts from "apexcharts/area";
+  import "apexcharts/column";
+  import "apexcharts/features/legend";
   import { untrack } from "svelte";
   import { attachWheelZoom } from "../chartZoom.js";
   import { loadHiddenSeries, saveHiddenSeries } from "../chartRange.js";

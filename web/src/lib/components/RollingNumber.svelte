@@ -6,11 +6,16 @@
   // currency, sign) render as plain text. `text` is the formatted string.
   let { value, text } = $props();
   let dir = $state(1);
-  let prev = Number(value);
+  let prev = $state(null);
 
   $effect(() => {
     const n = Number(value);
-    if (!Number.isNaN(n) && n !== prev) {
+    if (Number.isNaN(n)) return;
+    if (prev == null) {
+      prev = n;
+      return;
+    }
+    if (n !== prev) {
       dir = n > prev ? 1 : -1;
       prev = n;
     }

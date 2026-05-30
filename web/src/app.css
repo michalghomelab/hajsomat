@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark;
+  include: rootscrolllock, rootcolor, rootscrollgutter, svg, scrollbar, properties,
+    alert, button, card, dropdown, fileinput, input, link, menu, select, skeleton, table,
+    radius;
 }
 
 @layer base {

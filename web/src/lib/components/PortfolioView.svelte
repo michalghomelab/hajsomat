@@ -98,7 +98,7 @@
       <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
         <Settings size={20} />
       </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
+      <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
         <li>
           <button class="disabled:opacity-50" onclick={refresh} disabled={refreshing || !market.open}
                   title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
@@ -214,10 +214,61 @@
 </div>
 {:else if loading}
   <div class="p-6 max-w-4xl mx-auto space-y-6">
-    <div class="skeleton h-8 w-32"></div>
-    <div class="skeleton h-12 w-full"></div>
-    <div class="skeleton h-24 w-full"></div>
-    <div class="skeleton h-64 w-full"></div>
-    <div class="skeleton h-80 w-full"></div>
+    <div class="skeleton h-8 w-28"></div>
+    <div class="skeleton h-8 w-48"></div>
+    <div class="flex items-center gap-2 border-y border-base-300 py-2">
+      <div class="skeleton h-12 w-40"></div>
+      <div class="skeleton h-12 w-12"></div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <div class="skeleton h-8 w-28"></div>
+      <div class="skeleton h-4 w-44"></div>
+    </div>
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body gap-2 py-4">
+        <div class="flex flex-wrap items-baseline gap-2">
+          <div class="skeleton h-6 w-44"></div>
+          <div class="skeleton h-6 w-48"></div>
+        </div>
+        <div class="skeleton h-3 w-48"></div>
+      </div>
+    </div>
+    <div class="overflow-x-auto card bg-base-100 shadow-sm">
+      <table class="table text-sm">
+        <thead>
+          <tr>
+            {#each Array(6) as _}
+              <th><div class="skeleton h-4 w-full min-w-16"></div></th>
+            {/each}
+          </tr>
+        </thead>
+        <tbody>
+          {#each Array(4) as _}
+            <tr>
+              <td><div class="skeleton h-4 w-24"></div></td>
+              <td><div class="skeleton h-4 w-16 ml-auto"></div></td>
+              <td><div class="skeleton h-4 w-20 ml-auto"></div></td>
+              <td><div class="skeleton h-4 w-20 ml-auto"></div></td>
+              <td><div class="skeleton h-4 w-24 ml-auto"></div></td>
+              <td><div class="skeleton h-4 w-24 ml-auto"></div></td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+    <div class="space-y-2">
+      <div class="flex justify-end gap-1">
+        <div class="skeleton h-6 w-12"></div>
+        <div class="skeleton h-6 w-12"></div>
+        <div class="skeleton h-6 w-16"></div>
+        <div class="skeleton h-6 w-16"></div>
+      </div>
+      <div class="flex justify-end gap-1">
+        <div class="skeleton h-6 w-12"></div>
+        <div class="skeleton h-6 w-12"></div>
+        <div class="skeleton h-6 w-12"></div>
+      </div>
+      <div class="skeleton h-80 w-full"></div>
+    </div>
   </div>
 {/if}

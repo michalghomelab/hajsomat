@@ -29,7 +29,11 @@
     {#if results.length}
       <ul class="absolute z-10 bg-base-100 border border-base-300 rounded w-full mt-1 max-h-48 overflow-auto">
         {#each results as r}
-          <li class="px-3 py-2 hover:bg-base-200 cursor-pointer" onclick={() => pick(r)}>{r.symbol} — {r.name}{r.currency ? ` (${r.currency})` : r.exchange ? ` · ${r.exchange}` : ""}</li>
+          <li>
+            <button type="button" class="w-full px-3 py-2 text-left hover:bg-base-200" onclick={() => pick(r)}>
+              {r.symbol} — {r.name}{r.currency ? ` (${r.currency})` : r.exchange ? ` · ${r.exchange}` : ""}
+            </button>
+          </li>
         {/each}
       </ul>
     {/if}

@@ -65,7 +65,7 @@
       <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
         <Settings size={20} />
       </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
+      <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
         <li>
           <button class="disabled:opacity-50" onclick={refreshPrices} disabled={refreshing || !market.open}
                   title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
@@ -94,26 +94,63 @@
   {/if}
   {#if loading}
     <div class="space-y-2">
-      <div class="skeleton h-16 w-full"></div>
-      <div class="skeleton h-16 w-full"></div>
-      <div class="skeleton h-16 w-full"></div>
+      {#each Array(3) as _}
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body gap-2 py-4">
+            <div class="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:items-center">
+              <div class="skeleton h-5 w-32"></div>
+              <div class="space-y-1 sm:text-right">
+                <div class="skeleton h-5 w-36"></div>
+                <div class="skeleton h-4 w-44"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/each}
     </div>
     <div class="mt-8 space-y-6">
-      <div class="skeleton h-16 w-full"></div>
-      <div class="skeleton h-80 w-full"></div>
-      <div class="skeleton h-80 w-full"></div>
+      <div class="skeleton h-6 w-64"></div>
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body gap-2 py-4">
+          <div class="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:items-center">
+            <div class="skeleton h-5 w-24"></div>
+            <div class="space-y-1 sm:text-right">
+              <div class="skeleton h-5 w-40"></div>
+              <div class="skeleton h-4 w-44"></div>
+            </div>
+          </div>
+          <div class="skeleton h-3 w-48"></div>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <div class="flex justify-end gap-1">
+          <div class="skeleton h-6 w-12"></div>
+          <div class="skeleton h-6 w-12"></div>
+          <div class="skeleton h-6 w-16"></div>
+          <div class="skeleton h-6 w-16"></div>
+        </div>
+        <div class="flex justify-end gap-1">
+          <div class="skeleton h-6 w-12"></div>
+          <div class="skeleton h-6 w-12"></div>
+          <div class="skeleton h-6 w-12"></div>
+        </div>
+        <div class="skeleton h-80 w-full"></div>
+      </div>
     </div>
   {:else}
     <ul class="space-y-2">
       {#each portfolios as p (p.id)}
-        <li class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick={() => onSelect(p.id)}>
-          <div class="card-body items-start gap-1 sm:flex-row sm:justify-between sm:items-center py-4">
+        <li>
+          <button type="button" class="card w-full bg-base-100 shadow-sm hover:shadow-md transition-shadow text-left"
+                  onclick={() => onSelect(p.id)}>
+          <div class="card-body items-start gap-1 sm:flex-row sm:justify-between sm:items-center py-4 w-full">
             <span class="font-medium text-base-content">{p.name}</span>
             <span class="text-right {pnlClass(p.pnl_pln)}">
               <span class="whitespace-nowrap"><RollingNumber value={p.market_value_pln} text={money(p.market_value_pln)} /></span>
               <span class="whitespace-nowrap">(<RollingNumber value={p.pnl_pln} text={money(p.pnl_pln)} /> · <RollingNumber value={p.pnl_pln} text={percent(p.pnl_pln, p.cost_pln)} />){#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen"> *</span>{/if}</span>
             </span>
           </div>
+          </button>
         </li>
       {/each}
     </ul>
