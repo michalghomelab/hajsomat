@@ -13,9 +13,9 @@ RSpec.describe SnapshotCatchup do
                              total_value_pln: 1, total_cost_pln: 1, pnl_pln: 0)
   end
 
-  # 2026-05-29 is a Friday; 2026-05-28 Thursday; the weekend is 30–31.
-  it 'does nothing when the latest snapshot already covers the last expected weekday' do
-    snapshot_on(Date.new(2026, 5, 29)) # today (Fri), session started at 09:00
+  # 2026-05-29 is a Friday; the weekend is 30–31.
+  it 'does nothing when the latest snapshot already covers today' do
+    snapshot_on(Date.new(2026, 5, 29))
 
     described_class.call(now: Time.utc(2026, 5, 29, 9, 0))
 
@@ -23,16 +23,16 @@ RSpec.describe SnapshotCatchup do
     expect(SnapshotService).not_to have_received(:call)
   end
 
-  it 'before the session starts, expects the previous weekday and only backfills the gap' do
+  it 'expects today even before the market session starts' do
     snapshot_on(Date.new(2026, 5, 26)) # Wed — Thu 28 missing
 
-    described_class.call(now: Time.utc(2026, 5, 29, 6, 0)) # Fri, pre-session → expects Thu
+    described_class.call(now: Time.utc(2026, 5, 29, 6, 0))
 
     expect(BackfillService).to have_received(:call)
-    expect(SnapshotService).not_to have_received(:call) # today (Fri) not expected yet
+    expect(SnapshotService).to have_received(:call)
   end
 
-  it 'captures today and backfills the gap once the session has started' do
+  it 'captures today and backfills the gap' do
     snapshot_on(Date.new(2026, 5, 27))
 
     described_class.call(now: Time.utc(2026, 5, 29, 9, 0))
@@ -41,12 +41,13 @@ RSpec.describe SnapshotCatchup do
     expect(SnapshotService).to have_received(:call)
   end
 
-  it 'skips the weekend: Saturday expects Friday' do
+  it 'captures weekend days too' do
     snapshot_on(Date.new(2026, 5, 29)) # Fri present
 
     described_class.call(now: Time.utc(2026, 5, 30, 12, 0)) # Sat
 
-    expect(BackfillService).not_to have_received(:call)
+    expect(BackfillService).to have_received(:call)
+    expect(SnapshotService).to have_received(:call)
   end
 
   it 'runs catch-up on first boot when there are no snapshots yet' do

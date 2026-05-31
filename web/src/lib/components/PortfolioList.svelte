@@ -7,11 +7,16 @@
   import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
   import RollingNumber from "./RollingNumber.svelte";
   import Modal from "./Modal.svelte";
+  import MobileNav from "./MobileNav.svelte";
+  import { INTERVALS, refreshEvery } from "../refreshInterval.svelte.js";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
   import Settings from "@lucide/svelte/icons/settings";
   import Wallet from "@lucide/svelte/icons/wallet";
+  import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+  import Camera from "@lucide/svelte/icons/camera";
+  import Clock from "@lucide/svelte/icons/clock";
   let { onSelect } = $props();
   let portfolios = $state([]);
   let snapshots = $state([]);
@@ -55,9 +60,9 @@
   });
 </script>
 
-<div class="p-6 max-w-4xl mx-auto">
-  <h1 class="text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
-  <div class="flex flex-wrap gap-2 mb-2 items-center">
+<div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto">
+  <h1 class="hidden sm:block text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
+  <div class="hidden sm:flex flex-wrap gap-2 mb-2 items-center">
     <button class="btn btn-primary gap-1" onclick={() => (showCreate = true)}>
       <Wallet size={18} /> Nowy portfel
     </button>
@@ -81,7 +86,7 @@
     </div>
   </div>
   <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 mb-6">
-    <RefreshIntervalSelect />
+    <span class="hidden sm:inline-flex"><RefreshIntervalSelect /></span>
     <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
   </div>
   {#if showCreate}
@@ -156,7 +161,7 @@
     </ul>
 
     <div class="mt-8 space-y-6">
-      <h2 class="text-lg font-semibold text-base-content">Łącznie — wszystkie portfele</h2>
+      <h2 class="hidden sm:block text-lg font-semibold text-base-content">Łącznie — wszystkie portfele</h2>
       {#if portfolios.length}
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body py-4 gap-1">
@@ -175,3 +180,26 @@
     </div>
   {/if}
 </div>
+
+<MobileNav items={[
+  { label: "Nowy", icon: Wallet, onclick: () => (showCreate = true) },
+  {
+    label: refreshing ? "Trwa..." : "Ceny",
+    icon: RefreshCw,
+    onclick: refreshPrices,
+    disabled: refreshing || !market.open,
+    title: market.open ? "Odśwież ceny" : "Poza sesją"
+  },
+  {
+    label: "Auto",
+    icon: Clock,
+    submenu: INTERVALS.map((interval) => ({
+      label: interval.label,
+      meta: refreshEvery.minutes === interval.minutes ? "wybrane" : "",
+      active: refreshEvery.minutes === interval.minutes,
+      keepOpen: true,
+      onclick: () => refreshEvery.set(interval.minutes)
+    }))
+  },
+  { label: snapshotting ? "Trwa..." : "Snapshot", icon: Camera, onclick: generateSnapshot, disabled: snapshotting }
+]} />

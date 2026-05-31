@@ -8,7 +8,7 @@
        role="dialog" aria-modal="true" aria-label={title}>
     <div class="flex justify-between items-center mb-4">
       <h3 class="font-semibold text-lg">{title}</h3>
-      <button class="btn btn-sm btn-circle btn-ghost" onclick={onClose} aria-label="Zamknij">✕</button>
+      <button class="btn btn-circle btn-ghost min-h-11 h-11 w-11 text-xl sm:btn-sm sm:min-h-8 sm:h-8 sm:w-8 sm:text-base" onclick={onClose} aria-label="Zamknij">✕</button>
     </div>
     {@render children?.()}
   </div>

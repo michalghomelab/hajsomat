@@ -8,12 +8,19 @@
   import Countdown from "./Countdown.svelte";
   import RollingNumber from "./RollingNumber.svelte";
   import Modal from "./Modal.svelte";
+  import MobileNav from "./MobileNav.svelte";
+  import { INTERVALS, refreshEvery } from "../refreshInterval.svelte.js";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
   import Settings from "@lucide/svelte/icons/settings";
   import Pencil from "@lucide/svelte/icons/pencil";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import Plus from "@lucide/svelte/icons/plus";
+  import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+  import MoreHorizontal from "@lucide/svelte/icons/more-horizontal";
+  import Wallet from "@lucide/svelte/icons/wallet";
+  import Clock from "@lucide/svelte/icons/clock";
   let { id, onBack } = $props();
   let data = $state(null); let snapshots = $state([]); let loading = $state(true);
   let refreshError = $state(""); let refreshing = $state(false); let backfilling = $state(false);
@@ -73,8 +80,8 @@
 </script>
 
 {#if data}
-<div class="p-6 max-w-4xl mx-auto space-y-6">
-  <button class="btn btn-outline btn-sm gap-1 pl-2" onclick={onBack} aria-label="Wróć do listy portfeli">
+<div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
+  <button class="btn btn-outline btn-sm gap-1 pl-2 hidden sm:inline-flex" onclick={onBack} aria-label="Wróć do listy portfeli">
     <ChevronLeft size={18} /> Portfele
   </button>
   <div class="flex justify-between items-center gap-2">
@@ -92,7 +99,7 @@
     {/if}
   </div>
 
-  <div class="flex items-center gap-2 border-y border-base-300 py-2">
+  <div class="hidden sm:flex items-center gap-2 border-y border-base-300 py-2">
     <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
     <div class="dropdown dropdown-end">
       <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
@@ -115,7 +122,7 @@
     </div>
   </div>
   <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
-    <RefreshIntervalSelect />
+    <span class="hidden sm:inline-flex"><RefreshIntervalSelect /></span>
     <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
   </div>
   {#if nameError}<p class="text-error text-sm">{nameError}</p>{/if}
@@ -213,7 +220,7 @@
   {/if}
 </div>
 {:else if loading}
-  <div class="p-6 max-w-4xl mx-auto space-y-6">
+  <div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
     <div class="skeleton h-8 w-28"></div>
     <div class="skeleton h-8 w-48"></div>
     <div class="flex items-center gap-2 border-y border-base-300 py-2">
@@ -272,3 +279,36 @@
     </div>
   </div>
 {/if}
+
+<MobileNav items={[
+  { label: "Portfele", icon: Wallet, onclick: onBack },
+  { label: "Dodaj", icon: Plus, onclick: () => (showAdd = true), disabled: !data },
+  {
+    label: refreshing ? "Trwa..." : "Ceny",
+    icon: RefreshCw,
+    onclick: refresh,
+    disabled: !data || refreshing || !market.open,
+    title: market.open ? "Odśwież ceny" : "Poza sesją"
+  },
+  {
+    label: "Auto",
+    icon: Clock,
+    disabled: !data,
+    submenu: INTERVALS.map((interval) => ({
+      label: interval.label,
+      meta: refreshEvery.minutes === interval.minutes ? "wybrane" : "",
+      active: refreshEvery.minutes === interval.minutes,
+      keepOpen: true,
+      onclick: () => refreshEvery.set(interval.minutes)
+    }))
+  },
+  {
+    label: "Więcej",
+    icon: MoreHorizontal,
+    disabled: !data,
+    submenu: [
+      { label: backfilling ? "Uzupełnianie..." : "Uzupełnij historię", onclick: backfill, disabled: backfilling },
+      { label: "Importuj raport XTB", onclick: () => (showImport = true) }
+    ]
+  }
+]} />

@@ -47,7 +47,7 @@ class BackfillService
   end
 
   def snapshot_dates
-    @price_hist.values.flat_map(&:dates).uniq.select { |d| d >= @from && d < Date.today }.sort
+    (@from...Date.today).to_a
   end
 
   def write_snapshot(portfolio, date, txns)
