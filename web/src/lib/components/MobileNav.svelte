@@ -32,14 +32,10 @@
   }
 </script>
 
-<nav class="fixed bottom-3 left-3 z-40 sm:hidden"
+<nav class="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 z-40 sm:hidden"
      aria-label="Nawigacja mobilna">
   {#if expanded}
-    <button type="button"
-            class="fixed inset-0 -z-10 cursor-default"
-            onclick={toggleExpanded}
-            aria-label="Zamknij menu"></button>
-    <div class="fixed inset-x-3 bottom-3 rounded-3xl border border-white/35 bg-white/25 shadow-[0_18px_60px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
+    <div class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] rounded-3xl border border-white/35 bg-white/25 shadow-[0_18px_60px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
          transition:fly={{ y: 18, duration: 180, easing: cubicOut }}>
       {#if openIndex != null && items[openIndex]?.submenu?.length}
         <div class="absolute right-0 bottom-[calc(100%+0.5rem)] w-60 origin-bottom-right rounded-3xl border border-base-300/80 bg-base-100/95 p-2 shadow-[0_12px_36px_rgba(0,0,0,0.16)] backdrop-blur-md supports-[backdrop-filter]:bg-base-100/90"
@@ -57,7 +53,7 @@
         </div>
       {/if}
 
-      <div class="grid px-2 pt-2" style={`grid-template-columns: repeat(${items.length}, minmax(0, 1fr)); padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));`}>
+      <div class="grid p-2" style={`grid-template-columns: repeat(${items.length}, minmax(0, 1fr));`}>
         {#each items as item, index}
           {@const Icon = item.icon}
           <button type="button"
@@ -75,7 +71,7 @@
     </div>
   {:else}
     <button type="button"
-            class="mb-[env(safe-area-inset-bottom)] flex h-16 w-16 items-center justify-center rounded-full border border-white/35 bg-white/25 shadow-[0_18px_50px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
+            class="flex h-16 w-16 items-center justify-center rounded-full border border-white/35 bg-white/25 shadow-[0_18px_50px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
             transition:scale={{ start: 0.9, duration: 150, easing: cubicOut }}
             onclick={toggleExpanded}
             aria-label="Pokaż menu"
