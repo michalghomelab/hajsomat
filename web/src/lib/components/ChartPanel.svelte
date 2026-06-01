@@ -26,8 +26,9 @@
     resolution = id;
     saveResolution(id);
   }
-  const rangeCls = (id) => `btn btn-xs ${effectiveRange === id ? "btn-primary" : "btn-ghost"}`;
-  const resCls = (id) => `btn btn-xs ${resolution === id ? "btn-primary" : "btn-ghost"}`;
+  const chartButtonBase = "btn btn-sm sm:btn-xs";
+  const rangeCls = (id) => `${chartButtonBase} ${effectiveRange === id ? "btn-primary" : "btn-ghost"}`;
+  const resCls = (id) => `${chartButtonBase} ${resolution === id ? "btn-primary" : "btn-ghost"}`;
 </script>
 
 <div class="space-y-2">
@@ -38,7 +39,7 @@
         <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
       {/each}
       {#if years.length}
-        <select class="select select-xs min-h-0 h-6 w-[4.75rem] px-2 {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! border-primary!' : 'select-ghost text-base-content/70'}"
+        <select class="select select-sm sm:select-xs min-h-0 h-8 sm:h-6 w-[5.25rem] sm:w-[4.75rem] px-2 {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! border-primary!' : 'select-ghost text-base-content/70'}"
                 onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
           <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
           {#each years as y}
