@@ -9,6 +9,8 @@
   let el = $state(null);
   let chart = null;
   let detachZoom = null;
+  let resizeObserver = null;
+  let chartWidth = 0;
   const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
   // Split each day's value change into the deposit part (Δ cost basis = money
@@ -111,7 +113,17 @@
     instance.render();
     chart = instance;
     detachZoom = attachWheelZoom(instance, el);
+    resizeObserver = new ResizeObserver(([entry]) => {
+      if (!chart) return;
+      const nextWidth = Math.round(entry.contentRect.width);
+      if (!nextWidth || nextWidth === chartWidth) return;
+      chartWidth = nextWidth;
+      chart.updateOptions({ series: series(snapshots ?? []) }, true, false);
+    });
+    resizeObserver.observe(el);
     return () => {
+      resizeObserver?.disconnect();
+      resizeObserver = null;
       detachZoom?.();
       detachZoom = null;
       instance.destroy();

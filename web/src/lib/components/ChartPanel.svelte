@@ -16,6 +16,7 @@
     range.startsWith("year:") && !years.includes(range.slice(5)) ? "all" : range
   );
   let view = $derived(resample(filterSnapshots(snapshots, effectiveRange), resolution));
+  let chartKey = $derived(`${effectiveRange}:${resolution}`);
 
   function selectRange(id) {
     range = id;
@@ -54,5 +55,7 @@
       {/each}
     </div>
   {/if}
-  <PortfolioChart snapshots={view} />
+  {#key chartKey}
+    <PortfolioChart snapshots={view} />
+  {/key}
 </div>
