@@ -33,27 +33,31 @@
 
 <div class="space-y-2">
   {#if snapshots.length}
-    <div class="flex flex-wrap gap-1 items-center">
-      <span class="text-xs text-base-content/50 mr-auto">Zakres</span>
-      {#each RELATIVE as r}
-        <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
-      {/each}
-      {#if years.length}
-        <select class="select select-sm sm:select-xs min-h-0 h-8 sm:h-6 w-[5.25rem] sm:w-[4.75rem] px-2 {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! border-primary!' : 'select-ghost text-base-content/70'}"
-                onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
-          <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
-          {#each years as y}
-            <option value={y} selected={effectiveRange === `year:${y}`}>{y}</option>
-          {/each}
-        </select>
-      {/if}
-      <button class={rangeCls("all")} onclick={() => selectRange("all")}>Całość</button>
+    <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">
+      <span class="text-xs text-base-content/50 sm:mr-auto">Zakres</span>
+      <div class="flex flex-wrap justify-end gap-1">
+        {#each RELATIVE as r}
+          <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
+        {/each}
+        {#if years.length}
+          <select class="select select-sm sm:select-xs min-h-0 h-8 sm:h-6 w-[5.25rem] sm:w-[4.75rem] px-2 {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! border-primary!' : 'select-ghost text-base-content/70'}"
+                  onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
+            <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
+            {#each years as y}
+              <option value={y} selected={effectiveRange === `year:${y}`}>{y}</option>
+            {/each}
+          </select>
+        {/if}
+        <button class={rangeCls("all")} onclick={() => selectRange("all")}>Całość</button>
+      </div>
     </div>
-    <div class="flex flex-wrap gap-1 items-center">
-      <span class="text-xs text-base-content/50 mr-auto">Rozdzielczość</span>
-      {#each RESOLUTIONS as r}
-        <button class={resCls(r.id)} onclick={() => selectResolution(r.id)}>{r.label}</button>
-      {/each}
+    <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">
+      <span class="text-xs text-base-content/50 sm:mr-auto">Rozdzielczość</span>
+      <div class="flex flex-wrap justify-end gap-1">
+        {#each RESOLUTIONS as r}
+          <button class={resCls(r.id)} onclick={() => selectResolution(r.id)}>{r.label}</button>
+        {/each}
+      </div>
     </div>
   {/if}
   {#key chartKey}

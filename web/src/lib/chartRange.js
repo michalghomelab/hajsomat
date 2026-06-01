@@ -52,11 +52,11 @@ export function filterSnapshots(snapshots, range) {
 const RES_KEY = "hajsomat:chartResolution";
 
 export const RESOLUTIONS = [
-  { id: "day", label: "D" },
-  { id: "week", label: "W" },
-  { id: "month", label: "M" },
-  { id: "quarter", label: "Q" },
-  { id: "year", label: "Y" },
+  { id: "day", label: "Dzień" },
+  { id: "week", label: "Tydzień" },
+  { id: "month", label: "Miesiąc" },
+  { id: "quarter", label: "Kwartał" },
+  { id: "year", label: "Rok" },
 ];
 
 export function loadResolution() {
