@@ -9,7 +9,6 @@
   import RollingNumber from "./RollingNumber.svelte";
   import Modal from "./Modal.svelte";
   import MobileNav from "./MobileNav.svelte";
-  import PullToRefresh from "./PullToRefresh.svelte";
   import { INTERVALS, refreshEvery } from "../refreshInterval.svelte.js";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
@@ -60,11 +59,6 @@
     catch (e) { refreshError = e.message || "Uzupełnianie historii nie powiodło się"; }
     finally { backfilling = false; }
   }
-  async function pullRefresh() {
-    if (refreshing) return;
-    if (market.open) await refresh();
-    else await load(true);
-  }
   let expanded = $state({});
   function toggle(sym) { expanded[sym] = !expanded[sym]; }
   async function deleteTxn(txnId) {
@@ -85,7 +79,6 @@
   });
 </script>
 
-<PullToRefresh onRefresh={pullRefresh} disabled={loading || showAdd || showImport}>
 {#if data}
 <div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
   <button class="btn btn-outline btn-sm gap-1 pl-2 hidden sm:inline-flex" onclick={onBack} aria-label="Wróć do listy portfeli">
@@ -325,7 +318,6 @@
     </div>
   </div>
 {/if}
-</PullToRefresh>
 
 <MobileNav items={[
   { label: "Portfele", icon: Wallet, onclick: onBack },
