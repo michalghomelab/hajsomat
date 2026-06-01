@@ -9,8 +9,6 @@
   let el = $state(null);
   let chart = null;
   let detachZoom = null;
-  let resizeObserver = null;
-  let chartWidth = 0;
   const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
   // Split each day's value change into the deposit part (Δ cost basis = money
@@ -20,7 +18,7 @@
     for (let i = 1; i < snaps.length; i++) {
       const dValue = Number(snaps[i].total_value_pln) - Number(snaps[i - 1].total_value_pln);
       const dCost = Number(snaps[i].total_cost_pln) - Number(snaps[i - 1].total_cost_pln);
-      out.push({ date: snaps[i].date, deposit: dCost, market: dValue - dCost });
+      out.push({ index: i, date: snaps[i].date, deposit: dCost, market: dValue - dCost });
     }
     return out;
   }
@@ -34,20 +32,50 @@
     // All series use the same { x, y } object format — mixing object and tuple
     // formats in one chart makes ApexCharts misparse the y-values of some series.
     return [
-      { name: "Wartość", type: "area", data: snaps.map((s) => ({ x: s.date, y: Number(s.total_value_pln) })) },
-      { name: "Wpłaty", type: "area", data: snaps.map((s) => ({ x: s.date, y: Number(s.total_cost_pln) })) },
-      { name: "Zysk", type: "area", data: snaps.map((s) => ({ x: s.date, y: Number(s.pnl_pln) })) },
+      { name: "Wartość", type: "area", data: snaps.map((s, i) => ({ x: i, y: Number(s.total_value_pln) })) },
+      { name: "Wpłaty", type: "area", data: snaps.map((s, i) => ({ x: i, y: Number(s.total_cost_pln) })) },
+      { name: "Zysk", type: "area", data: snaps.map((s, i) => ({ x: i, y: Number(s.pnl_pln) })) },
       {
         name: "Zmiana rynkowa", type: "column",
-        data: d.map((x) => ({ x: x.date, y: Number(x.market.toFixed(2)),
+        data: d.map((x) => ({ x: x.index, y: Number(x.market.toFixed(2)),
           fillColor: x.market >= 0 ? "#16a34a" : "#dc2626" })),
       },
-      { name: "Wpłata (dzienna)", type: "column", data: d.map((x) => ({ x: x.date, y: Number(x.deposit.toFixed(2)) })) },
+      { name: "Wpłata (dzienna)", type: "column", data: d.map((x) => ({ x: x.index, y: Number(x.deposit.toFixed(2)) })) },
     ];
   };
 
   const money = (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
   const plnAxis = (v) => Math.round(v).toLocaleString("pl-PL");
+  const formatDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  const dateAt = (snaps, value) => {
+    const index = Math.round(Number(value));
+    return Number.isInteger(index) && snaps[index]?.date ? snaps[index].date : null;
+  };
+  const xaxis = (snaps) => ({
+    type: "numeric",
+    min: 0,
+    max: Math.max(0, snaps.length - 1),
+    tickAmount: Math.min(6, Math.max(1, snaps.length - 1)),
+    labels: {
+      formatter: (value) => {
+        const date = dateAt(snaps, value);
+        return date ? formatDate(date) : "";
+      },
+    },
+  });
+  const tooltip = (snaps) => ({
+    shared: true,
+    intersect: false,
+    x: { formatter: (value) => {
+      const date = dateAt(snaps, value);
+      return date ? formatDate(date) : "";
+    } },
+    y: { formatter: tooltipY },
+  });
 
   // Wartość (0) and Zysk (2) append the % change vs the previous visible point,
   // coloured green/red; the other series just show the money value.
@@ -94,7 +122,7 @@
     plotOptions: { bar: { columnWidth: "70%", borderRadius: 2 } },
     dataLabels: { enabled: false },
     legend: { position: "top" },
-    xaxis: { type: "datetime" },
+    xaxis: xaxis(snaps),
     // Two axes, each binding all of its series by name: cumulative figures share
     // the left axis, the daily bars share the right one (~100x smaller scale).
     yaxis: [
@@ -103,7 +131,7 @@
         title: { text: "zł / dzień" } },
     ],
     grid: { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", strokeDashArray: 4 },
-    tooltip: { shared: true, intersect: false, x: { format: "dd.MM.yyyy" }, y: { formatter: tooltipY } },
+    tooltip: tooltip(snaps),
   });
 
   // Build the chart once when the element mounts; reused across data changes.
@@ -113,17 +141,7 @@
     instance.render();
     chart = instance;
     detachZoom = attachWheelZoom(instance, el);
-    resizeObserver = new ResizeObserver(([entry]) => {
-      if (!chart) return;
-      const nextWidth = Math.round(entry.contentRect.width);
-      if (!nextWidth || nextWidth === chartWidth) return;
-      chartWidth = nextWidth;
-      chart.updateOptions({ series: series(snapshots ?? []) }, true, false);
-    });
-    resizeObserver.observe(el);
     return () => {
-      resizeObserver?.disconnect();
-      resizeObserver = null;
       detachZoom?.();
       detachZoom = null;
       instance.destroy();
@@ -137,7 +155,7 @@
   $effect(() => {
     const data = snapshots ?? [];
     if (!chart) return;
-    chart.updateOptions({ series: series(data) }, false, true);
+    chart.updateOptions({ series: series(data), xaxis: xaxis(data), tooltip: tooltip(data) }, false, true);
     detachZoom?.();
     detachZoom = attachWheelZoom(chart, el);
   });
