@@ -5,6 +5,7 @@
     loadRange, saveRange, loadResolution, saveResolution,
     filterSnapshots, resample,
   } from "../chartRange.js";
+  import MoveHorizontal from "@lucide/svelte/icons/move-horizontal";
 
   let { snapshots = [] } = $props();
   let range = $state(loadRange());
@@ -48,7 +49,9 @@
             {/each}
           </select>
         {/if}
-        <button class={rangeCls("all")} onclick={() => selectRange("all")}>Całość</button>
+        <button class={`${rangeCls("all")} btn-square`} onclick={() => selectRange("all")} aria-label="Cały zakres" title="Cały zakres">
+          <MoveHorizontal size={16} />
+        </button>
       </div>
     </div>
     <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">

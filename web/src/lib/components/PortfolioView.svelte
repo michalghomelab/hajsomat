@@ -193,11 +193,32 @@
                   </div>
                   <div class="space-y-1.5">
                     {#each pos.transactions as t (t.id)}
-                      <div class="flex items-center gap-3 rounded-lg bg-base-100 px-3 py-2 text-sm">
-                        <span class="text-base-content/60 w-24 shrink-0">{t.executed_at.slice(0, 10)}</span>
-                        <span class="flex-1 text-right tabular-nums">{t.quantity} × {money(t.price, t.currency)}</span>
-                        <span class="w-32 text-right font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</span>
-                        <button class="btn btn-ghost btn-xs btn-circle text-error" onclick={() => deleteTxn(t.id)} aria-label="Usuń">✕</button>
+                      <div class="rounded-lg bg-base-100 px-3 py-2 text-sm">
+                        <div class="relative grid grid-cols-2 gap-2 pr-8 sm:hidden">
+                          <button class="btn btn-ghost btn-xs btn-circle text-error absolute right-0 top-0" onclick={() => deleteTxn(t.id)} aria-label="Usuń">✕</button>
+                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
+                            <div class="text-xs text-base-content/50">Data</div>
+                            <div class="font-medium tabular-nums">{t.executed_at.slice(0, 10)}</div>
+                          </div>
+                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
+                            <div class="text-xs text-base-content/50">Ilość</div>
+                            <div class="font-medium tabular-nums">{t.quantity}</div>
+                          </div>
+                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
+                            <div class="text-xs text-base-content/50">Cena</div>
+                            <div class="font-medium tabular-nums">{money(t.price, t.currency)}</div>
+                          </div>
+                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
+                            <div class="text-xs text-base-content/50">Suma</div>
+                            <div class="font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</div>
+                          </div>
+                        </div>
+                        <div class="hidden items-center gap-3 sm:flex">
+                          <span class="text-base-content/60 sm:w-24 sm:shrink-0">{t.executed_at.slice(0, 10)}</span>
+                          <span class="flex-1 text-right tabular-nums">{t.quantity} × {money(t.price, t.currency)}</span>
+                          <span class="w-32 text-right font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</span>
+                          <button class="btn btn-ghost btn-xs btn-circle text-error hidden sm:inline-flex" onclick={() => deleteTxn(t.id)} aria-label="Usuń">✕</button>
+                        </div>
                       </div>
                     {/each}
                   </div>
