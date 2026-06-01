@@ -9,6 +9,7 @@
   let armed = $state(false);
   let tracking = false;
   let startY = 0;
+  let audioContext = null;
 
   const THRESHOLD = 94;
   const MAX_DISTANCE = 122;
@@ -24,6 +25,28 @@
 
   function vibrate(pattern) {
     navigator.vibrate?.(pattern);
+  }
+
+  function clickSound(frequency = 1200) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    audioContext ||= new AudioCtx();
+    const ctx = audioContext;
+    ctx.resume?.();
+
+    const now = ctx.currentTime;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(frequency, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.035, now + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.05);
   }
 
   $effect(() => {
@@ -55,6 +78,7 @@
       if (!armed && distance >= THRESHOLD) {
         armed = true;
         vibrate(20);
+        clickSound(1150);
       } else if (armed && distance < THRESHOLD - 12) {
         armed = false;
       }
@@ -74,6 +98,7 @@
 
       refreshing = true;
       vibrate([18, 25, 28]);
+      clickSound(1500);
       distance = 72;
       try {
         await onRefresh();
