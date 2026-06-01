@@ -146,7 +146,7 @@
     <ul class="space-y-2">
       {#each portfolios as p (p.id)}
         <li>
-          <button type="button" class="card w-full bg-base-100 shadow-sm hover:shadow-md transition-shadow text-left"
+          <button type="button" class="card w-full cursor-pointer bg-base-100 shadow-sm hover:shadow-md transition-shadow text-left"
                   onclick={() => onSelect(p.id)}>
           <div class="card-body items-start gap-1 sm:flex-row sm:justify-between sm:items-center py-4 w-full">
             <span class="font-medium text-base-content">{p.name}</span>

@@ -5,6 +5,7 @@
   let { items = [] } = $props();
   let expanded = $state(false);
   let openIndex = $state(null);
+  let navEl = $state(null);
 
   function activate(item, index) {
     if (item.submenu?.length) {
@@ -30,9 +31,21 @@
     expanded = !expanded;
     if (!expanded) openIndex = null;
   }
+
+  $effect(() => {
+    if (!expanded) return;
+    const closeOnOutsidePointer = (event) => {
+      if (navEl?.contains(event.target)) return;
+      expanded = false;
+      openIndex = null;
+    };
+    document.addEventListener("pointerdown", closeOnOutsidePointer, true);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer, true);
+  });
 </script>
 
 <nav class="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 z-40 sm:hidden"
+     bind:this={navEl}
      aria-label="Nawigacja mobilna">
   {#if expanded}
     <div class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] rounded-3xl border border-white/35 bg-white/25 shadow-[0_18px_60px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"

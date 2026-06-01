@@ -145,9 +145,9 @@
   <div class="overflow-x-auto card bg-base-100 shadow-sm">
     <table class="table text-sm">
       <thead><tr>
-        <th class="text-left">Symbol</th><th class="text-right">Ilość</th>
-        <th class="text-right">Śr. cena</th><th class="text-right">Cena</th>
-        <th class="text-right">Wartość (PLN)</th><th class="text-right">P/L (PLN)</th>
+        <th class="text-left">Symbol</th><th class="hidden text-right sm:table-cell">Ilość</th>
+        <th class="hidden text-right sm:table-cell">Śr. cena</th><th class="hidden text-right sm:table-cell">Cena</th>
+        <th class="hidden text-right sm:table-cell">Wartość (PLN)</th><th class="text-right">P/L (PLN)</th>
       </tr></thead>
       <tbody>
         {#each data.positions as pos (pos.symbol)}
@@ -157,10 +157,10 @@
               <a href={`https://finance.yahoo.com/quote/${pos.symbol}`} target="_blank" rel="noopener"
                  class="link link-primary ml-1 text-xs" title="Wykres na Yahoo" onclick={(e) => e.stopPropagation()}>↗</a>
             </td>
-            <td class="text-right">{pos.quantity}</td>
-            <td class="text-right">{money(pos.avg_price, pos.currency)}</td>
-            <td class="text-right">{money(pos.last_price, pos.currency)}</td>
-            <td class="text-right"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
+            <td class="hidden text-right sm:table-cell">{pos.quantity}</td>
+            <td class="hidden text-right sm:table-cell">{money(pos.avg_price, pos.currency)}</td>
+            <td class="hidden text-right sm:table-cell">{money(pos.last_price, pos.currency)}</td>
+            <td class="hidden text-right sm:table-cell"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
             <td class="text-right {pnlClass(pos.pnl_pln)}"><RollingNumber value={pos.pnl_pln} text={money(pos.pnl_pln)} /></td>
           </tr>
           {#if expanded[pos.symbol]}
@@ -170,6 +170,24 @@
                   {#if pos.name}
                     <div class="text-xs font-light text-base-content/50 mb-2">{pos.name} ({pos.symbol})</div>
                   {/if}
+                  <div class="mb-4 grid grid-cols-2 gap-2 text-sm sm:hidden">
+                    <div class="rounded-lg bg-base-100 px-3 py-2">
+                      <div class="text-xs text-base-content/50">Ilość</div>
+                      <div class="font-medium tabular-nums">{pos.quantity}</div>
+                    </div>
+                    <div class="rounded-lg bg-base-100 px-3 py-2">
+                      <div class="text-xs text-base-content/50">Wartość</div>
+                      <div class="font-medium tabular-nums"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></div>
+                    </div>
+                    <div class="rounded-lg bg-base-100 px-3 py-2">
+                      <div class="text-xs text-base-content/50">Śr. cena</div>
+                      <div class="font-medium tabular-nums">{money(pos.avg_price, pos.currency)}</div>
+                    </div>
+                    <div class="rounded-lg bg-base-100 px-3 py-2">
+                      <div class="text-xs text-base-content/50">Cena</div>
+                      <div class="font-medium tabular-nums">{money(pos.last_price, pos.currency)}</div>
+                    </div>
+                  </div>
                   <div class="text-xs font-semibold uppercase tracking-wide text-base-content/60 mb-2">
                     Zakupy ({pos.transactions.length})
                   </div>
