@@ -6,11 +6,13 @@
   let distance = $state(0);
   let pulling = $state(false);
   let refreshing = $state(false);
+  let armed = $state(false);
   let tracking = false;
   let startY = 0;
 
-  const THRESHOLD = 76;
-  const MAX_DISTANCE = 108;
+  const THRESHOLD = 94;
+  const MAX_DISTANCE = 122;
+  const RESISTANCE = 0.42;
 
   function coarsePointer() {
     return window.matchMedia?.("(pointer: coarse)").matches;
@@ -20,6 +22,10 @@
     return !disabled && !refreshing && coarsePointer() && window.scrollY <= 0 && event.touches.length === 1;
   }
 
+  function vibrate(pattern) {
+    navigator.vibrate?.(pattern);
+  }
+
   $effect(() => {
     if (!host) return;
 
@@ -27,6 +33,7 @@
       if (!canStart(event)) return;
       tracking = true;
       pulling = false;
+      armed = false;
       distance = 0;
       startY = event.touches[0].clientY;
     };
@@ -37,13 +44,20 @@
       if (delta <= 0 || window.scrollY > 0) {
         tracking = false;
         pulling = false;
+        armed = false;
         distance = 0;
         return;
       }
 
       event.preventDefault();
       pulling = true;
-      distance = Math.min(MAX_DISTANCE, delta * 0.55);
+      distance = Math.min(MAX_DISTANCE, delta * RESISTANCE);
+      if (!armed && distance >= THRESHOLD) {
+        armed = true;
+        vibrate(20);
+      } else if (armed && distance < THRESHOLD - 12) {
+        armed = false;
+      }
     };
 
     const onTouchEnd = async () => {
@@ -53,17 +67,20 @@
 
       if (!shouldRefresh || !onRefresh) {
         pulling = false;
+        armed = false;
         distance = 0;
         return;
       }
 
       refreshing = true;
-      distance = 58;
+      vibrate([18, 25, 28]);
+      distance = 72;
       try {
         await onRefresh();
       } finally {
         refreshing = false;
         pulling = false;
+        armed = false;
         distance = 0;
       }
     };
@@ -82,11 +99,11 @@
 </script>
 
 <div bind:this={host} class="relative">
-  <div class="pointer-events-none fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-50 flex h-11 w-11 items-center justify-center rounded-full border border-base-300/70 bg-base-100/90 text-primary shadow-lg backdrop-blur-md transition-opacity sm:hidden"
+  <div class={`pointer-events-none fixed left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-50 flex h-14 w-14 items-center justify-center rounded-full border-2 border-primary/45 bg-base-100 text-primary shadow-[0_16px_48px_rgba(0,0,0,0.28)] ring-4 backdrop-blur-md transition-opacity sm:hidden ${armed || refreshing ? "ring-primary/25" : "ring-primary/10"}`}
        class:opacity-100={pulling || refreshing}
        class:opacity-0={!pulling && !refreshing}
-       style={`transform: translate(-50%, ${distance - 58}px);`}>
-    <RefreshCw size={20}
+       style={`transform: translate(-50%, ${distance - 72}px) scale(${armed || refreshing ? 1.08 : 1});`}>
+    <RefreshCw size={24}
                class={refreshing ? "animate-spin" : ""}
                style={refreshing ? "" : `transform: rotate(${Math.min(180, (distance / THRESHOLD) * 180)}deg);`} />
   </div>
