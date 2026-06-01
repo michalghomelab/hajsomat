@@ -15,6 +15,7 @@ rescue StandardError => e
 end
 
 scheduler = Rufus::Scheduler.new
+market_data_lock = Mutex.new
 
 # Fill any snapshots missed while we were down (e.g. a deploy across a whole
 # session), so a restart at any hour never costs a data point.
@@ -38,8 +39,14 @@ scheduler.every('30s', first: :now) do
     # schedule_cron (not cron) returns the Job object, so we can unschedule it
     # later; plain `cron` returns the job id string.
     refresh[:job] = scheduler.schedule_cron(desired) do
-      RefreshService.call
-      notify_web
+      market_data_lock.synchronize do
+        RefreshService.call
+        # Keep today's point fresh while prices move. Whatever refresh interval is
+        # configured, write at most once per hour; PortfolioSnapshot upserts by
+        # date, so every hourly write updates the same calendar point.
+        SnapshotService.call if Time.now.min.zero?
+        notify_web
+      end
     rescue StandardError => e
       Rage.logger.error("scheduled refresh failed: #{e.message}")
     end
@@ -53,10 +60,12 @@ end
 # Daily snapshot: one point per calendar day. On weekends/holidays this writes
 # the same last-known prices, preserving a continuous calendar chart.
 scheduler.schedule_cron(AppConfig.config.snapshot_cron) do
-  SnapshotService.call
+  market_data_lock.synchronize do
+    SnapshotService.call
+  end
 rescue StandardError => e
   Rage.logger.error("scheduled snapshot failed: #{e.message}")
 end
 
-Rage.logger.info('scheduler up — refresh clock-aligned from AppSettings, snapshots daily')
+Rage.logger.info('scheduler up — refresh clock-aligned from AppSettings, snapshots hourly + daily')
 scheduler.join

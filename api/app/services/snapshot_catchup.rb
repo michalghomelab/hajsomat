@@ -12,23 +12,41 @@ class SnapshotCatchup
   option :now, default: -> { EtOrbi.now('Europe/Warsaw') }
 
   def call
-    expected = last_expected_day
-    latest = latest_snapshot_date
-    return if latest && latest >= expected
+    return if portfolio_ids.empty?
 
-    BackfillService.call
-    SnapshotService.call if expected == today
-    Rage.logger.info("snapshot catch-up: filled up to #{expected} (latest was #{latest || 'none'})")
+    historical_missing = snapshots_missing?(historical_dates)
+    today_missing = snapshots_missing?([today])
+    return unless historical_missing || today_missing
+
+    BackfillService.call if historical_missing
+    SnapshotService.call if today_missing
+    Rage.logger.info("snapshot catch-up: filled missing snapshots through #{today}")
   end
 
   private
 
   def today = Date.parse(now.strftime('%Y-%m-%d'))
 
-  def latest_snapshot_date
-    max = PortfolioSnapshot.max(:date)
-    max && Date.parse(max.to_s)
+  def portfolio_ids
+    @portfolio_ids ||= Portfolio.select_map(:id)
   end
 
-  def last_expected_day = today
+  def historical_dates
+    return [] unless first_snapshot_day
+
+    (first_snapshot_day...today).to_a
+  end
+
+  def first_snapshot_day
+    ts = Transaction.min(:executed_at)
+    ts && Date.parse(ts.to_s)
+  end
+
+  def snapshots_missing?(dates)
+    return false if dates.empty?
+
+    expected = portfolio_ids.size * dates.size
+    actual = PortfolioSnapshot.where(portfolio_id: portfolio_ids, date: dates).count
+    actual < expected
+  end
 end
