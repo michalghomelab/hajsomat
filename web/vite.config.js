@@ -1,8 +1,18 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { VitePWA } from "vite-plugin-pwa";
+import { execSync } from "node:child_process";
+
+const buildId = process.env.VITE_BUILD_ID || (() => {
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return "dev";
+  }
+})();
 
 export default defineConfig({
+  define: { __BUILD_ID__: JSON.stringify(buildId) },
   plugins: [
     svelte(),
     VitePWA({

@@ -2,6 +2,8 @@
   import PortfolioList from "./lib/components/PortfolioList.svelte";
   import PortfolioView from "./lib/components/PortfolioView.svelte";
 
+  const buildId = __BUILD_ID__;
+
   function parseHash() {
     const m = location.hash.match(/^#\/portfolio\/(\d+)/);
     return m ? Number(m[1]) : null;
@@ -26,3 +28,7 @@
 {:else}
   <PortfolioList onSelect={open} />
 {/if}
+
+<footer class="px-6 pb-28 pt-2 text-center text-[11px] text-base-content/35 sm:pb-4">
+  build {buildId}
+</footer>

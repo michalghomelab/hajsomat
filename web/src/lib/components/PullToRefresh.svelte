@@ -27,7 +27,7 @@
     navigator.vibrate?.(pattern);
   }
 
-  function clickSound(frequency = 1200) {
+  function clickSound(frequency = 560) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
 
@@ -38,15 +38,15 @@
     const now = ctx.currentTime;
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
-    oscillator.type = "square";
+    oscillator.type = "triangle";
     oscillator.frequency.setValueAtTime(frequency, now);
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.035, now + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+    gain.gain.exponentialRampToValueAtTime(0.018, now + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
     oscillator.connect(gain);
     gain.connect(ctx.destination);
     oscillator.start(now);
-    oscillator.stop(now + 0.05);
+    oscillator.stop(now + 0.06);
   }
 
   $effect(() => {
@@ -78,7 +78,7 @@
       if (!armed && distance >= THRESHOLD) {
         armed = true;
         vibrate(20);
-        clickSound(1150);
+        clickSound(520);
       } else if (armed && distance < THRESHOLD - 12) {
         armed = false;
       }
@@ -98,7 +98,7 @@
 
       refreshing = true;
       vibrate([18, 25, 28]);
-      clickSound(1500);
+      clickSound(680);
       distance = 72;
       try {
         await onRefresh();
