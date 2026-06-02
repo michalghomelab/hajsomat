@@ -32,17 +32,30 @@
     if (!AudioCtx) return null;
 
     audioContext ||= new AudioCtx();
-    audioContext.resume?.();
     return audioContext;
   }
 
   function unlockAudio() {
-    audioCtx();
+    const ctx = audioCtx();
+    if (!ctx) return;
+    ctx.resume?.();
+
+    const now = ctx.currentTime;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(440, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.025);
   }
 
   function clickSound(frequency = 560) {
     const ctx = audioCtx();
     if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume?.();
 
     const now = ctx.currentTime;
     const oscillator = ctx.createOscillator();

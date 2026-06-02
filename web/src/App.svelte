@@ -21,14 +21,16 @@
   });
 </script>
 
-{#if selectedId}
-  {#key selectedId}
-    <PortfolioView id={selectedId} onBack={back} />
-  {/key}
-{:else}
-  <PortfolioList onSelect={open} />
-{/if}
+<div class="min-h-screen">
+  {#if selectedId}
+    {#key selectedId}
+      <PortfolioView id={selectedId} onBack={back} />
+    {/key}
+  {:else}
+    <PortfolioList onSelect={open} />
+  {/if}
 
-<footer class="pointer-events-none fixed bottom-1 right-2 z-10 text-[9px] leading-none text-base-content/25">
-  {buildId}
-</footer>
+  <footer class="-mt-24 px-6 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-center text-[10px] leading-none text-base-content/30 sm:-mt-2">
+    {buildId}
+  </footer>
+</div>
