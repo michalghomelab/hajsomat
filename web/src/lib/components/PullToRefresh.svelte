@@ -1,5 +1,6 @@
 <script>
   import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+  import { clickSound, unlockAudio } from "../audioFeedback.js";
 
   let { onRefresh, disabled = false, children } = $props();
   let host = $state(null);
@@ -9,7 +10,6 @@
   let armed = $state(false);
   let tracking = false;
   let startY = 0;
-  let audioContext = null;
 
   const THRESHOLD = 94;
   const MAX_DISTANCE = 122;
@@ -25,51 +25,6 @@
 
   function vibrate(pattern) {
     navigator.vibrate?.(pattern);
-  }
-
-  function audioCtx() {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return null;
-
-    audioContext ||= new AudioCtx();
-    return audioContext;
-  }
-
-  async function ensureAudio() {
-    const ctx = audioCtx();
-    if (!ctx) return null;
-    if (ctx.state === "suspended") {
-      await ctx.resume?.();
-    }
-    return ctx.state === "running" ? ctx : null;
-  }
-
-  function playTone(ctx, frequency, peak = 0.028, duration = 0.07) {
-    const now = ctx.currentTime + 0.005;
-
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(frequency, now);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(peak, now + 0.006);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start(now);
-    oscillator.stop(now + duration + 0.01);
-  }
-
-  async function unlockAudio() {
-    const ctx = await ensureAudio();
-    if (!ctx) return;
-    playTone(ctx, 360, 0.002, 0.025);
-  }
-
-  async function clickSound(frequency = 560) {
-    const ctx = await ensureAudio();
-    if (!ctx) return;
-    playTone(ctx, frequency);
   }
 
   $effect(() => {
