@@ -35,40 +35,41 @@
     return audioContext;
   }
 
-  function unlockAudio() {
+  async function ensureAudio() {
     const ctx = audioCtx();
-    if (!ctx) return;
-    ctx.resume?.();
-
-    const now = ctx.currentTime;
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(440, now);
-    gain.gain.setValueAtTime(0.0001, now);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.025);
+    if (!ctx) return null;
+    if (ctx.state === "suspended") {
+      await ctx.resume?.();
+    }
+    return ctx.state === "running" ? ctx : null;
   }
 
-  function clickSound(frequency = 560) {
-    const ctx = audioCtx();
-    if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume?.();
+  function playTone(ctx, frequency, peak = 0.028, duration = 0.07) {
+    const now = ctx.currentTime + 0.005;
 
-    const now = ctx.currentTime;
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
     oscillator.type = "triangle";
     oscillator.frequency.setValueAtTime(frequency, now);
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.018, now + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
     oscillator.connect(gain);
     gain.connect(ctx.destination);
     oscillator.start(now);
-    oscillator.stop(now + 0.06);
+    oscillator.stop(now + duration + 0.01);
+  }
+
+  async function unlockAudio() {
+    const ctx = await ensureAudio();
+    if (!ctx) return;
+    playTone(ctx, 360, 0.002, 0.025);
+  }
+
+  async function clickSound(frequency = 560) {
+    const ctx = await ensureAudio();
+    if (!ctx) return;
+    playTone(ctx, frequency);
   }
 
   $effect(() => {
@@ -81,7 +82,7 @@
       armed = false;
       distance = 0;
       startY = event.touches[0].clientY;
-      unlockAudio();
+      void unlockAudio();
     };
 
     const onTouchMove = (event) => {
@@ -101,7 +102,7 @@
       if (!armed && distance >= THRESHOLD) {
         armed = true;
         vibrate(20);
-        clickSound(520);
+        void clickSound(520);
       } else if (armed && distance < THRESHOLD - 12) {
         armed = false;
       }
@@ -121,7 +122,7 @@
 
       refreshing = true;
       vibrate([18, 25, 28]);
-      clickSound(680);
+      void clickSound(680);
       distance = 72;
       try {
         await onRefresh();
