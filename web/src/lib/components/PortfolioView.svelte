@@ -10,7 +10,6 @@
   import Modal from "./Modal.svelte";
   import MobileNav from "./MobileNav.svelte";
   import PullToRefresh from "./PullToRefresh.svelte";
-  import { testSound } from "../audioFeedback.js";
   import { INTERVALS, refreshEvery } from "../refreshInterval.svelte.js";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
@@ -356,8 +355,7 @@
     disabled: !data,
     submenu: [
       { label: backfilling ? "Uzupełnianie..." : "Uzupełnij historię", onclick: backfill, disabled: backfilling },
-      { label: "Importuj raport XTB", onclick: () => (showImport = true) },
-      { label: "Test dźwięku", onclick: () => void testSound() }
+      { label: "Importuj raport XTB", onclick: () => (showImport = true) }
     ]
   }
 ]} />

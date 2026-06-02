@@ -1,6 +1,7 @@
 <script>
   import PortfolioList from "./lib/components/PortfolioList.svelte";
   import PortfolioView from "./lib/components/PortfolioView.svelte";
+  import { unlockAudio } from "./lib/audioFeedback.js";
 
   const buildId = __BUILD_ID__;
 
@@ -18,6 +19,16 @@
     const onHash = () => { selectedId = parseHash(); };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  });
+
+  $effect(() => {
+    const unlock = () => void unlockAudio();
+    window.addEventListener("pointerdown", unlock, { once: true, passive: true });
+    window.addEventListener("touchend", unlock, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("touchend", unlock);
+    };
   });
 </script>
 

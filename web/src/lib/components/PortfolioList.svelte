@@ -9,7 +9,6 @@
   import Modal from "./Modal.svelte";
   import MobileNav from "./MobileNav.svelte";
   import PullToRefresh from "./PullToRefresh.svelte";
-  import { testSound } from "../audioFeedback.js";
   import { INTERVALS, refreshEvery } from "../refreshInterval.svelte.js";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
@@ -210,6 +209,5 @@
       onclick: () => refreshEvery.set(interval.minutes)
     }))
   },
-  { label: "Dźwięk", icon: Settings, onclick: () => void testSound() },
   { label: snapshotting ? "Trwa..." : "Snapshot", icon: Camera, onclick: generateSnapshot, disabled: snapshotting }
 ]} />

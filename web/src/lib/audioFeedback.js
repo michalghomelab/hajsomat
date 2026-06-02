@@ -44,10 +44,3 @@ export async function clickSound(frequency = 560) {
   if (!ctx) return;
   playTone(ctx, frequency);
 }
-
-export async function testSound() {
-  const ctx = await ensureAudio();
-  if (!ctx) return;
-  playTone(ctx, 520, 0.04, 0.08);
-  window.setTimeout(() => playTone(ctx, 680, 0.035, 0.08), 95);
-}
