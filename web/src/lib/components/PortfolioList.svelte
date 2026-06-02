@@ -8,6 +8,7 @@
   import RollingNumber from "./RollingNumber.svelte";
   import Modal from "./Modal.svelte";
   import MobileNav from "./MobileNav.svelte";
+  import PullToRefresh from "./PullToRefresh.svelte";
   import { INTERVALS, refreshEvery } from "../refreshInterval.svelte.js";
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
@@ -54,12 +55,18 @@
     try { await api.generateSnapshot(); await load(true); } // silent — refresh the chart with the new point
     finally { snapshotting = false; }
   }
+  async function pullRefresh() {
+    if (refreshing) return;
+    if (market.open) await refreshPrices();
+    else await load(true);
+  }
   onMount(() => {
     load();
     return onPriceRefresh(() => load(true)); // push from the server when prices refresh
   });
 </script>
 
+<PullToRefresh onRefresh={pullRefresh} disabled={loading || showCreate}>
 <div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto">
   <h1 class="hidden sm:block text-2xl font-bold mb-4 text-base-content">Moje portfele</h1>
   <div class="hidden sm:flex flex-wrap gap-2 mb-2 items-center">
@@ -180,6 +187,7 @@
     </div>
   {/if}
 </div>
+</PullToRefresh>
 
 <MobileNav items={[
   { label: "Nowy", icon: Wallet, onclick: () => (showCreate = true) },
