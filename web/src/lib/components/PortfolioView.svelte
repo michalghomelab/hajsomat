@@ -41,6 +41,28 @@
     showImport = false; importFile = null; importResult = null; importError = "";
   }
 
+  function appleStocksLink(symbol) {
+    return `https://stocks.apple.com/symbol/${encodeURIComponent(symbol)}`;
+  }
+
+  function yahooLink(symbol) {
+    return `https://finance.yahoo.com/quote/${encodeURIComponent(symbol)}`;
+  }
+
+  function opensAppleStocks() {
+    const ua = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function instrumentLink(symbol) {
+    const apple = opensAppleStocks();
+    return {
+      href: apple ? appleStocksLink(symbol) : yahooLink(symbol),
+      title: apple ? "Otwórz w Giełdzie" : "Wykres na Yahoo",
+      target: apple ? null : "_blank",
+    };
+  }
+
   async function load(silent = false) {
     if (!silent) loading = true;
     data = await api.portfolio(id);
@@ -158,11 +180,12 @@
       </tr></thead>
       <tbody>
         {#each data.positions as pos (pos.symbol)}
+          {@const link = instrumentLink(pos.symbol)}
           <tr class="cursor-pointer hover" onclick={() => toggle(pos.symbol)}>
             <td>
               {expanded[pos.symbol] ? "▾" : "▸"} <span title={pos.name}>{pos.symbol}</span>
-              <a href={`https://finance.yahoo.com/quote/${pos.symbol}`} target="_blank" rel="noopener"
-                 class="link link-primary ml-1 text-xs" title="Wykres na Yahoo" onclick={(e) => e.stopPropagation()}>↗</a>
+              <a href={link.href} target={link.target} rel="noopener"
+                 class="link link-primary ml-1 text-xs" title={link.title} onclick={(e) => e.stopPropagation()}>↗</a>
             </td>
             <td class="hidden text-right sm:table-cell">{pos.quantity}</td>
             <td class="hidden text-right sm:table-cell">{money(pos.avg_price, pos.currency)}</td>
