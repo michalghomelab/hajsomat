@@ -155,7 +155,7 @@
   $effect(() => {
     const data = snapshots ?? [];
     if (!chart) return;
-    chart.updateOptions({ series: series(data), xaxis: xaxis(data), tooltip: tooltip(data) }, false, true);
+    chart.updateOptions({ series: series(data), xaxis: xaxis(data), tooltip: tooltip(data) }, true, true);
     detachZoom?.();
     detachZoom = attachWheelZoom(chart, el);
   });

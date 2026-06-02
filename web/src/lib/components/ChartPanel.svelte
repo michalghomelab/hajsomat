@@ -17,22 +17,36 @@
     range.startsWith("year:") && !years.includes(range.slice(5)) ? "all" : range
   );
   let view = $derived(resample(filterSnapshots(snapshots, effectiveRange), resolution));
-  let chartKey = $derived(`${effectiveRange}:${resolution}`);
+  let panelEl = $state(null);
+
+  function keepScrollPosition(fn) {
+    const beforeTop = panelEl?.getBoundingClientRect().top;
+    fn();
+    requestAnimationFrame(() => {
+      if (beforeTop == null || !panelEl) return;
+      const afterTop = panelEl.getBoundingClientRect().top;
+      window.scrollBy(0, afterTop - beforeTop);
+    });
+  }
 
   function selectRange(id) {
-    range = id;
-    saveRange(id);
+    keepScrollPosition(() => {
+      range = id;
+      saveRange(id);
+    });
   }
   function selectResolution(id) {
-    resolution = id;
-    saveResolution(id);
+    keepScrollPosition(() => {
+      resolution = id;
+      saveResolution(id);
+    });
   }
   const chartButtonBase = "btn btn-sm sm:btn-xs";
   const rangeCls = (id) => `${chartButtonBase} ${effectiveRange === id ? "btn-primary" : "btn-ghost"}`;
   const resCls = (id) => `${chartButtonBase} ${resolution === id ? "btn-primary" : "btn-ghost"}`;
 </script>
 
-<div class="space-y-2">
+<div class="space-y-2" bind:this={panelEl}>
   {#if snapshots.length}
     <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">
       <span class="text-xs text-base-content/50 sm:mr-auto">Zakres</span>
@@ -63,7 +77,5 @@
       </div>
     </div>
   {/if}
-  {#key chartKey}
-    <PortfolioChart snapshots={view} />
-  {/key}
+  <PortfolioChart snapshots={view} />
 </div>
