@@ -27,13 +27,22 @@
     navigator.vibrate?.(pattern);
   }
 
-  function clickSound(frequency = 560) {
+  function audioCtx() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
+    if (!AudioCtx) return null;
 
     audioContext ||= new AudioCtx();
-    const ctx = audioContext;
-    ctx.resume?.();
+    audioContext.resume?.();
+    return audioContext;
+  }
+
+  function unlockAudio() {
+    audioCtx();
+  }
+
+  function clickSound(frequency = 560) {
+    const ctx = audioCtx();
+    if (!ctx) return;
 
     const now = ctx.currentTime;
     const oscillator = ctx.createOscillator();
@@ -59,6 +68,7 @@
       armed = false;
       distance = 0;
       startY = event.touches[0].clientY;
+      unlockAudio();
     };
 
     const onTouchMove = (event) => {

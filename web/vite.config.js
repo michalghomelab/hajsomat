@@ -7,7 +7,7 @@ const buildId = process.env.VITE_BUILD_ID || (() => {
   try {
     return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
   } catch {
-    return "dev";
+    return new Date().toISOString().replace(/[-:T]/g, "").slice(2, 12);
   }
 })();
 

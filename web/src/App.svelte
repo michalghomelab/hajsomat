@@ -29,6 +29,6 @@
   <PortfolioList onSelect={open} />
 {/if}
 
-<footer class="px-6 pb-28 pt-2 text-center text-[11px] text-base-content/35 sm:pb-4">
-  build {buildId}
+<footer class="pointer-events-none fixed bottom-1 right-2 z-10 text-[9px] leading-none text-base-content/25">
+  {buildId}
 </footer>
