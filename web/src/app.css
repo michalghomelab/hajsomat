@@ -9,6 +9,7 @@
 @layer base {
   body {
     @apply bg-base-200 text-base-content min-h-screen;
+    font-variant-numeric: tabular-nums;
   }
   button:disabled {
     cursor: not-allowed;

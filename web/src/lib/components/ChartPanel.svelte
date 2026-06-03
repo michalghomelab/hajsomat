@@ -42,21 +42,23 @@
       saveResolution(id);
     });
   }
-  const chartButtonBase = "btn btn-sm sm:btn-xs";
-  const rangeCls = (id) => `${chartButtonBase} ${effectiveRange === id ? "btn-primary" : "btn-ghost"}`;
-  const resCls = (id) => `${chartButtonBase} ${resolution === id ? "btn-primary" : "btn-ghost"}`;
+  const segmentButtonBase = "min-h-9 sm:min-h-8 rounded-lg px-3 sm:px-2.5 text-sm sm:text-xs font-medium transition-all";
+  const rangeCls = (id) =>
+    `${segmentButtonBase} ${effectiveRange === id ? "bg-primary text-primary-content shadow-sm" : "text-base-content/65 hover:bg-base-100 hover:text-base-content"}`;
+  const resCls = (id) =>
+    `${segmentButtonBase} ${resolution === id ? "bg-primary text-primary-content shadow-sm" : "text-base-content/65 hover:bg-base-100 hover:text-base-content"}`;
 </script>
 
-<div class="space-y-2" bind:this={panelEl}>
+<div class="space-y-3" bind:this={panelEl}>
   {#if snapshots.length}
-    <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">
-      <span class="text-xs text-base-content/50 sm:mr-auto">Zakres</span>
-      <div class="flex flex-wrap justify-end gap-1">
+    <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
+      <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Zakres</span>
+      <div class="flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner">
         {#each RELATIVE as r}
           <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
         {/each}
         {#if years.length}
-          <select class="select select-sm sm:select-xs min-h-0 h-8 sm:h-6 w-[5.25rem] sm:w-[4.75rem] px-2 {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! border-primary!' : 'select-ghost text-base-content/70'}"
+          <select class="select select-sm min-h-9 sm:min-h-8 h-9 sm:h-8 w-[5.25rem] rounded-lg border-0 px-2 text-sm sm:text-xs font-medium {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! shadow-sm' : 'bg-transparent text-base-content/65 hover:bg-base-100'}"
                   onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
             <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
             {#each years as y}
@@ -64,14 +66,14 @@
             {/each}
           </select>
         {/if}
-        <button class={`${rangeCls("all")} btn-square`} onclick={() => selectRange("all")} aria-label="Cały zakres" title="Cały zakres">
+        <button class={`${rangeCls("all")} aspect-square px-2.5`} onclick={() => selectRange("all")} aria-label="Cały zakres" title="Cały zakres">
           <MoveHorizontal size={16} />
         </button>
       </div>
     </div>
-    <div class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center">
-      <span class="text-xs text-base-content/50 sm:mr-auto">Rozdzielczość</span>
-      <div class="flex flex-wrap justify-end gap-1">
+    <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
+      <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Rozdzielczość</span>
+      <div class="flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner">
         {#each RESOLUTIONS as r}
           <button class={resCls(r.id)} onclick={() => selectResolution(r.id)}>{r.label}</button>
         {/each}

@@ -17,6 +17,9 @@
   import Settings from "@lucide/svelte/icons/settings";
   import Pencil from "@lucide/svelte/icons/pencil";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import ExternalLink from "@lucide/svelte/icons/external-link";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import Plus from "@lucide/svelte/icons/plus";
   import RefreshCw from "@lucide/svelte/icons/refresh-cw";
   import MoreHorizontal from "@lucide/svelte/icons/more-horizontal";
@@ -113,23 +116,60 @@
   <button class="btn btn-outline btn-sm gap-1 pl-2 hidden sm:inline-flex" onclick={onBack} aria-label="Wróć do listy portfeli">
     <ChevronLeft size={18} /> Portfele
   </button>
-  <div class="flex justify-between items-center gap-2">
-    {#if editingName}
-      <div class="flex gap-2 flex-1">
-        <input class="input input-bordered flex-1 text-xl font-bold" bind:value={nameInput} />
-        <button class="btn btn-primary btn-sm" onclick={saveName}>Zapisz</button>
-        <button class="btn btn-ghost btn-sm" onclick={() => (editingName = false)}>Anuluj</button>
+
+  <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-sm sm:p-5">
+    <div class="space-y-4">
+      <div class="flex items-start gap-3">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Wallet size={21} />
+        </span>
+        {#if editingName}
+          <div class="flex flex-1 flex-col gap-2 sm:flex-row">
+            <input class="input input-bordered flex-1 text-xl font-bold" bind:value={nameInput} />
+            <button class="btn btn-primary btn-sm" onclick={saveName}>Zapisz</button>
+            <button class="btn btn-ghost btn-sm" onclick={() => (editingName = false)}>Anuluj</button>
+          </div>
+        {:else}
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h1 class="truncate text-2xl font-semibold leading-tight text-base-content sm:text-3xl">{data.name}</h1>
+              <button class="btn btn-ghost btn-xs btn-square text-primary" onclick={startRename} aria-label="Zmień nazwę" title="Zmień nazwę">
+                <Pencil size={16} />
+              </button>
+            </div>
+            <p class="mt-1 text-xs text-base-content/55">Ceny zaktualizowane: {dateTime(data.last_updated)}</p>
+          </div>
+        {/if}
       </div>
-    {:else}
-      <h1 class="text-2xl font-bold flex items-center gap-2">
-        {data.name}
-        <button class="btn btn-ghost btn-xs btn-square text-primary" onclick={startRename} aria-label="Zmień nazwę" title="Zmień nazwę"><Pencil size={16} /></button>
-      </h1>
-    {/if}
+
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+          <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Wartość</div>
+          <div class="mt-1 text-xl font-semibold text-base-content">
+            <RollingNumber value={data.totals.market_value_pln} text={money(data.totals.market_value_pln)} />
+          </div>
+        </div>
+        <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+          <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">P/L</div>
+          <div class="mt-1 text-xl font-semibold {pnlClass(data.totals.pnl_pln)}">
+            <RollingNumber value={data.totals.pnl_pln} text={money(data.totals.pnl_pln)} />
+          </div>
+        </div>
+        <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+          <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Stopa zwrotu</div>
+          <div class="mt-1 text-xl font-semibold {pnlClass(data.totals.pnl_pln)}">
+            <RollingNumber value={data.totals.pnl_pln} text={percent(data.totals.pnl_pln, data.totals.cost_pln)} />
+          </div>
+        </div>
+      </div>
+      {#if data.totals.incomplete}
+        <p class="rounded-xl bg-warning/10 px-3 py-2 text-sm text-warning">Część pozycji nie ma aktualnej wyceny. Kliknij „Odśwież ceny".</p>
+      {/if}
+    </div>
   </div>
 
-  <div class="hidden sm:flex items-center gap-2 border-y border-base-300 py-2">
-    <button class="btn btn-success" onclick={() => (showAdd = true)}>+ Dodaj transakcję</button>
+  <div class="hidden sm:flex items-center gap-2 rounded-xl border border-base-300/60 bg-base-100/70 p-2 shadow-sm">
+    <button class="btn btn-success gap-2" onclick={() => (showAdd = true)}><Plus size={18} /> Dodaj transakcję</button>
     <div class="dropdown dropdown-end">
       <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
         <Settings size={20} />
@@ -157,23 +197,9 @@
   {#if nameError}<p class="text-error text-sm">{nameError}</p>{/if}
   {#if refreshError}<p class="text-error text-sm">⚠ {refreshError}</p>{/if}
 
-  <div class="card bg-base-100 shadow-sm">
-    <div class="card-body py-4">
-      <p class="text-lg flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span class="whitespace-nowrap">Wartość: <strong><RollingNumber value={data.totals.market_value_pln} text={money(data.totals.market_value_pln)} /></strong></span>
-        <span class="whitespace-nowrap {pnlClass(data.totals.pnl_pln)}">P/L <RollingNumber value={data.totals.pnl_pln} text={money(data.totals.pnl_pln)} />
-        (<RollingNumber value={data.totals.pnl_pln} text={percent(data.totals.pnl_pln, data.totals.cost_pln)} />)</span>
-      </p>
-      <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(data.last_updated)}</p>
-      {#if data.totals.incomplete}
-        <p class="text-warning text-sm">⚠ Część pozycji nie ma aktualnej wyceny — suma PLN jest niepełna. Kliknij „Odśwież ceny".</p>
-      {/if}
-    </div>
-  </div>
-
-  <div class="overflow-x-auto card bg-base-100 shadow-sm">
+  <div class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-sm">
     <table class="table text-sm">
-      <thead><tr>
+      <thead class="bg-base-200/60"><tr>
         <th class="text-left">Symbol</th><th class="hidden text-right sm:table-cell">Ilość</th>
         <th class="hidden text-right sm:table-cell">Śr. cena</th><th class="hidden text-right sm:table-cell">Cena</th>
         <th class="hidden text-right sm:table-cell">Wartość (PLN)</th><th class="text-right">P/L (PLN)</th>
@@ -181,40 +207,49 @@
       <tbody>
         {#each data.positions as pos (pos.symbol)}
           {@const link = instrumentLink(pos.symbol)}
-          <tr class="cursor-pointer hover" onclick={() => toggle(pos.symbol)}>
+          <tr class="cursor-pointer border-base-200 transition-colors hover:bg-base-200/45" onclick={() => toggle(pos.symbol)}>
             <td>
-              {expanded[pos.symbol] ? "▾" : "▸"} <span title={pos.name}>{pos.symbol}</span>
+              <span class="inline-flex items-center gap-2">
+                <ChevronRight class={`text-base-content/40 transition-transform ${expanded[pos.symbol] ? "rotate-90" : ""}`} size={16} />
+                <span class="font-semibold text-base-content" title={pos.name}>{pos.symbol}</span>
+              </span>
               <a href={link.href} target={link.target} rel="noopener"
-                 class="link link-primary ml-1 text-xs" title={link.title} onclick={(e) => e.stopPropagation()}>↗</a>
+                 class="ml-1 inline-flex align-middle text-primary/80 hover:text-primary" title={link.title} onclick={(e) => e.stopPropagation()}>
+                <ExternalLink size={13} />
+              </a>
             </td>
             <td class="hidden text-right sm:table-cell">{pos.quantity}</td>
             <td class="hidden text-right sm:table-cell">{money(pos.avg_price, pos.currency)}</td>
             <td class="hidden text-right sm:table-cell">{money(pos.last_price, pos.currency)}</td>
             <td class="hidden text-right sm:table-cell"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
-            <td class="text-right {pnlClass(pos.pnl_pln)}"><RollingNumber value={pos.pnl_pln} text={money(pos.pnl_pln)} /></td>
+            <td class="text-right">
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {Number(pos.pnl_pln) >= 0 ? 'bg-success/12 text-success' : 'bg-error/12 text-error'}">
+                <RollingNumber value={pos.pnl_pln} text={money(pos.pnl_pln)} />
+              </span>
+            </td>
           </tr>
           {#if expanded[pos.symbol]}
             <tr>
               <td colspan="6" class="p-0">
-                <div class="bg-base-200/60 px-4 py-3">
+                <div class="border-y border-base-300/60 bg-base-200/60 px-4 py-3">
                   {#if pos.name}
-                    <div class="text-xs font-light text-base-content/50 mb-2">{pos.name} ({pos.symbol})</div>
+                    <div class="mb-2 text-xs font-medium text-base-content/55">{pos.name} ({pos.symbol})</div>
                   {/if}
                   <div class="mb-4 grid grid-cols-2 gap-2 text-sm sm:hidden">
-                    <div class="rounded-lg bg-base-100 px-3 py-2">
-                      <div class="text-xs text-base-content/50">Ilość</div>
+                    <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
+                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Ilość</div>
                       <div class="font-medium tabular-nums">{pos.quantity}</div>
                     </div>
-                    <div class="rounded-lg bg-base-100 px-3 py-2">
-                      <div class="text-xs text-base-content/50">Wartość</div>
+                    <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
+                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Wartość</div>
                       <div class="font-medium tabular-nums"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></div>
                     </div>
-                    <div class="rounded-lg bg-base-100 px-3 py-2">
-                      <div class="text-xs text-base-content/50">Śr. cena</div>
+                    <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
+                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Śr. cena</div>
                       <div class="font-medium tabular-nums">{money(pos.avg_price, pos.currency)}</div>
                     </div>
-                    <div class="rounded-lg bg-base-100 px-3 py-2">
-                      <div class="text-xs text-base-content/50">Cena</div>
+                    <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
+                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Cena</div>
                       <div class="font-medium tabular-nums">{money(pos.last_price, pos.currency)}</div>
                     </div>
                   </div>
@@ -223,23 +258,25 @@
                   </div>
                   <div class="space-y-1.5">
                     {#each pos.transactions as t (t.id)}
-                      <div class="rounded-lg bg-base-100 px-3 py-2 text-sm">
+                      <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2 text-sm">
                         <div class="relative grid grid-cols-2 gap-2 pr-8 sm:hidden">
-                          <button class="btn btn-ghost btn-xs btn-circle text-error absolute right-0 top-0" onclick={() => deleteTxn(t.id)} aria-label="Usuń">✕</button>
-                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
-                            <div class="text-xs text-base-content/50">Data</div>
+                          <button class="btn btn-ghost btn-xs btn-circle text-error absolute right-0 top-0" onclick={() => deleteTxn(t.id)} aria-label="Usuń">
+                            <Trash2 size={14} />
+                          </button>
+                          <div class="rounded-lg bg-base-200/70 px-3 py-2">
+                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Data</div>
                             <div class="font-medium tabular-nums">{t.executed_at.slice(0, 10)}</div>
                           </div>
-                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
-                            <div class="text-xs text-base-content/50">Ilość</div>
+                          <div class="rounded-lg bg-base-200/70 px-3 py-2">
+                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Ilość</div>
                             <div class="font-medium tabular-nums">{t.quantity}</div>
                           </div>
-                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
-                            <div class="text-xs text-base-content/50">Cena</div>
+                          <div class="rounded-lg bg-base-200/70 px-3 py-2">
+                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Cena</div>
                             <div class="font-medium tabular-nums">{money(t.price, t.currency)}</div>
                           </div>
-                          <div class="rounded-lg bg-base-200/60 px-3 py-2">
-                            <div class="text-xs text-base-content/50">Suma</div>
+                          <div class="rounded-lg bg-base-200/70 px-3 py-2">
+                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Suma</div>
                             <div class="font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</div>
                           </div>
                         </div>
@@ -247,7 +284,9 @@
                           <span class="text-base-content/60 sm:w-24 sm:shrink-0">{t.executed_at.slice(0, 10)}</span>
                           <span class="flex-1 text-right tabular-nums">{t.quantity} × {money(t.price, t.currency)}</span>
                           <span class="w-32 text-right font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</span>
-                          <button class="btn btn-ghost btn-xs btn-circle text-error hidden sm:inline-flex" onclick={() => deleteTxn(t.id)} aria-label="Usuń">✕</button>
+                          <button class="btn btn-ghost btn-xs btn-circle text-error hidden sm:inline-flex" onclick={() => deleteTxn(t.id)} aria-label="Usuń">
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </div>
                     {/each}
@@ -269,20 +308,23 @@
   {/if}
   {#if showImport}
     <Modal title="Importuj raport XTB" onClose={closeImport}>
-      <div class="space-y-3">
-        <p class="text-sm text-base-content/70">Wgraj plik .xlsx z historią operacji (Cash Operations) z XTB. Transakcje już zaimportowane zostaną pominięte.</p>
-        <input type="file" accept=".xlsx" class="file-input file-input-bordered w-full"
-               onchange={(e) => (importFile = e.currentTarget.files[0])} />
-        <button class="btn btn-primary" onclick={doImport} disabled={!importFile || importing}>
+      <div class="space-y-4">
+        <p class="rounded-xl bg-base-200/70 px-3 py-2 text-sm text-base-content/70">Wgraj plik .xlsx z historii operacji XTB. Transakcje już zaimportowane zostaną pominięte.</p>
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45">Plik Cash Operations</span>
+          <input type="file" accept=".xlsx" class="file-input file-input-bordered w-full rounded-xl"
+                 onchange={(e) => (importFile = e.currentTarget.files[0])} />
+        </label>
+        <button class="btn btn-primary w-full sm:w-auto" onclick={doImport} disabled={!importFile || importing}>
           {importing ? "Importowanie…" : "Importuj"}
         </button>
         {#if importResult}
-          <div class="alert alert-success text-sm py-2">
+          <div class="alert alert-success rounded-xl py-2 text-sm">
             <span>✓ Zaimportowano: <strong>{importResult.imported}</strong> · pominięto (już w bazie): <strong>{importResult.skipped}</strong></span>
           </div>
         {/if}
         {#if importError}
-          <div class="alert alert-error text-sm py-2"><span>⚠ {importError}</span></div>
+          <div class="alert alert-error rounded-xl py-2 text-sm"><span>⚠ {importError}</span></div>
         {/if}
       </div>
     </Modal>
@@ -291,27 +333,36 @@
 {:else if loading}
   <div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
     <div class="skeleton h-8 w-28"></div>
-    <div class="skeleton h-8 w-48"></div>
-    <div class="flex items-center gap-2 border-y border-base-300 py-2">
-      <div class="skeleton h-12 w-40"></div>
+    <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-sm sm:p-5">
+      <div class="space-y-4">
+        <div class="flex items-start gap-3">
+          <div class="skeleton h-11 w-11 shrink-0 rounded-xl"></div>
+          <div class="min-w-0 flex-1 space-y-2">
+            <div class="skeleton h-8 w-48"></div>
+            <div class="skeleton h-3 w-44"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {#each Array(3) as _}
+            <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+              <div class="skeleton h-3 w-20"></div>
+              <div class="mt-2 skeleton h-6 w-32"></div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    </div>
+    <div class="hidden items-center gap-2 rounded-xl border border-base-300/60 bg-base-100/70 p-2 shadow-sm sm:flex">
+      <div class="skeleton h-12 w-44"></div>
       <div class="skeleton h-12 w-12"></div>
     </div>
     <div class="flex justify-end gap-3">
       <div class="skeleton h-8 w-28"></div>
       <div class="skeleton h-4 w-44"></div>
     </div>
-    <div class="card bg-base-100 shadow-sm">
-      <div class="card-body gap-2 py-4">
-        <div class="flex flex-wrap items-baseline gap-2">
-          <div class="skeleton h-6 w-44"></div>
-          <div class="skeleton h-6 w-48"></div>
-        </div>
-        <div class="skeleton h-3 w-48"></div>
-      </div>
-    </div>
-    <div class="overflow-x-auto card bg-base-100 shadow-sm">
+    <div class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-sm">
       <table class="table text-sm">
-        <thead>
+        <thead class="bg-base-200/60">
           <tr>
             {#each Array(6) as _}
               <th><div class="skeleton h-4 w-full min-w-16"></div></th>
@@ -333,18 +384,23 @@
       </table>
     </div>
     <div class="space-y-2">
-      <div class="flex justify-end gap-1">
-        <div class="skeleton h-6 w-12"></div>
-        <div class="skeleton h-6 w-12"></div>
-        <div class="skeleton h-6 w-16"></div>
-        <div class="skeleton h-6 w-16"></div>
+      <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+        <div class="skeleton h-3 w-16 sm:mr-auto"></div>
+        <div class="flex justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1">
+          <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+          <div class="skeleton h-9 w-20 rounded-lg sm:h-8"></div>
+          <div class="skeleton h-9 w-20 rounded-lg sm:h-8"></div>
+        </div>
       </div>
-      <div class="flex justify-end gap-1">
-        <div class="skeleton h-6 w-12"></div>
-        <div class="skeleton h-6 w-12"></div>
-        <div class="skeleton h-6 w-12"></div>
+      <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+        <div class="skeleton h-3 w-24 sm:mr-auto"></div>
+        <div class="flex justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1">
+          <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+          <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+          <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+        </div>
       </div>
-      <div class="skeleton h-80 w-full"></div>
+      <div class="skeleton h-80 w-full rounded-2xl"></div>
     </div>
   </div>
 {/if}

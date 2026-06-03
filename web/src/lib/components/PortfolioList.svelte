@@ -16,6 +16,7 @@
   import { sameSnapshots } from "../snapshots.js";
   import Settings from "@lucide/svelte/icons/settings";
   import Wallet from "@lucide/svelte/icons/wallet";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import RefreshCw from "@lucide/svelte/icons/refresh-cw";
   import Camera from "@lucide/svelte/icons/camera";
   import Clock from "@lucide/svelte/icons/clock";
@@ -122,23 +123,28 @@
   </div>
   {#if showCreate}
     <Modal title="Nowy portfel" onClose={() => (showCreate = false)}>
-      <div class="space-y-3">
-        <input class="input input-bordered w-full" placeholder="Nazwa portfela" bind:value={newName} />
-        <button class="btn btn-primary" onclick={create}>Dodaj</button>
+      <div class="space-y-4">
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45">Nazwa</span>
+          <input class="input input-bordered w-full rounded-xl" placeholder="IKE, IKZE, maklerski..." bind:value={newName} />
+        </label>
+        <button class="btn btn-primary w-full sm:w-auto" onclick={create}>Dodaj portfel</button>
       </div>
     </Modal>
   {/if}
   {#if loading}
-    <div class="space-y-2">
+    <div class="space-y-2.5">
       {#each Array(3) as _}
-        <div class="card bg-base-100 shadow-sm">
-          <div class="card-body gap-2 py-4">
-            <div class="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:items-center">
-              <div class="skeleton h-5 w-32"></div>
-              <div class="space-y-1 sm:text-right">
-                <div class="skeleton h-5 w-36"></div>
-                <div class="skeleton h-4 w-44"></div>
-              </div>
+        <div class="rounded-xl border border-base-300/60 bg-base-100/90 px-4 py-3 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="skeleton h-10 w-10 shrink-0 rounded-lg"></div>
+            <div class="min-w-0 flex-1 space-y-1.5">
+              <div class="skeleton h-4 w-32"></div>
+              <div class="skeleton h-3 w-16"></div>
+            </div>
+            <div class="shrink-0 space-y-1.5">
+              <div class="skeleton h-4 w-32"></div>
+              <div class="skeleton h-5 w-28 rounded-full"></div>
             </div>
           </div>
         </div>
@@ -146,46 +152,75 @@
     </div>
     <div class="mt-8 space-y-6">
       <div class="skeleton h-6 w-64"></div>
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body gap-2 py-4">
-          <div class="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:items-center">
-            <div class="skeleton h-5 w-24"></div>
+      <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-sm sm:p-5">
+        <div class="space-y-4">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div class="space-y-2">
+              <div class="skeleton h-3 w-16"></div>
+              <div class="skeleton h-9 w-48"></div>
+            </div>
             <div class="space-y-1 sm:text-right">
-              <div class="skeleton h-5 w-40"></div>
-              <div class="skeleton h-4 w-44"></div>
+              <div class="skeleton h-3 w-28"></div>
+              <div class="skeleton h-3 w-40"></div>
             </div>
           </div>
-          <div class="skeleton h-3 w-48"></div>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {#each Array(3) as _}
+              <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+                <div class="skeleton h-3 w-20"></div>
+                <div class="mt-2 skeleton h-4 w-28"></div>
+              </div>
+            {/each}
+          </div>
         </div>
       </div>
       <div class="space-y-2">
-        <div class="flex justify-end gap-1">
-          <div class="skeleton h-6 w-12"></div>
-          <div class="skeleton h-6 w-12"></div>
-          <div class="skeleton h-6 w-16"></div>
-          <div class="skeleton h-6 w-16"></div>
+        <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+          <div class="skeleton h-3 w-16 sm:mr-auto"></div>
+          <div class="flex justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1">
+            <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+            <div class="skeleton h-9 w-20 rounded-lg sm:h-8"></div>
+            <div class="skeleton h-9 w-20 rounded-lg sm:h-8"></div>
+          </div>
         </div>
-        <div class="flex justify-end gap-1">
-          <div class="skeleton h-6 w-12"></div>
-          <div class="skeleton h-6 w-12"></div>
-          <div class="skeleton h-6 w-12"></div>
+        <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+          <div class="skeleton h-3 w-24 sm:mr-auto"></div>
+          <div class="flex justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1">
+            <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+            <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+            <div class="skeleton h-9 w-16 rounded-lg sm:h-8"></div>
+          </div>
         </div>
-        <div class="skeleton h-80 w-full"></div>
+        <div class="skeleton h-80 w-full rounded-2xl"></div>
       </div>
     </div>
   {:else}
-    <ul class="space-y-2">
+    <ul class="space-y-2.5">
       {#each portfolios as p (p.id)}
         <li>
-          <button type="button" class="card w-full cursor-pointer bg-base-100 shadow-sm hover:shadow-md transition-shadow text-left"
+          <button type="button" class="group w-full cursor-pointer rounded-xl border border-base-300/60 bg-base-100/90 px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
                   onclick={() => onSelect(p.id)}>
-          <div class="card-body items-start gap-1 sm:flex-row sm:justify-between sm:items-center py-4 w-full">
-            <span class="font-medium text-base-content">{p.name}</span>
-            <span class="text-right {pnlClass(p.pnl_pln)}">
-              <span class="whitespace-nowrap"><RollingNumber value={p.market_value_pln} text={money(p.market_value_pln)} /></span>
-              <span class="whitespace-nowrap">(<RollingNumber value={p.pnl_pln} text={money(p.pnl_pln)} /> · <RollingNumber value={p.pnl_pln} text={percent(p.pnl_pln, p.cost_pln)} />){#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen"> *</span>{/if}</span>
-            </span>
-          </div>
+            <div class="flex w-full items-center gap-3">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Wallet size={19} />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-semibold text-base-content">{p.name}</span>
+                <span class="mt-0.5 block text-xs text-base-content/50">Portfel</span>
+              </span>
+              <span class="flex shrink-0 flex-col items-end gap-1">
+                <span class="whitespace-nowrap text-base font-semibold text-base-content">
+                  <RollingNumber value={p.market_value_pln} text={money(p.market_value_pln)} />
+                </span>
+                <span class="inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium {Number(p.pnl_pln) >= 0 ? 'bg-success/12 text-success' : 'bg-error/12 text-error'}">
+                  <RollingNumber value={p.pnl_pln} text={money(p.pnl_pln)} />
+                  <span class="opacity-70">·</span>
+                  <RollingNumber value={p.pnl_pln} text={percent(p.pnl_pln, p.cost_pln)} />
+                  {#if p.incomplete}<span class="text-warning" title="Suma niepełna — brak części wycen">*</span>{/if}
+                </span>
+              </span>
+              <ChevronRight class="hidden shrink-0 text-base-content/30 transition-transform group-hover:translate-x-0.5 sm:block" size={18} />
+            </div>
           </button>
         </li>
       {/each}
@@ -194,24 +229,42 @@
     <div class="mt-8 space-y-6">
       <h2 class="hidden sm:block text-lg font-semibold text-base-content">Łącznie — wszystkie portfele</h2>
       {#if portfolios.length}
-        <div class="card bg-base-100 shadow-sm">
-          <div class="card-body py-4 gap-1">
-            <div class="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:items-center">
-              <span class="font-medium text-base-content">Razem</span>
-              <span class="text-right">
-                <span class="whitespace-nowrap"><RollingNumber value={totals.value} text={money(totals.value)} /></span>
-                <span class="whitespace-nowrap {pnlClass(totals.pnl)}">(<RollingNumber value={totals.pnl} text={money(totals.pnl)} /> · <RollingNumber value={totals.pnl} text={percent(totals.pnl, totals.cost)} />)</span>
-              </span>
+        <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-sm sm:p-5">
+          <div class="space-y-4">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <span class="text-xs font-medium uppercase tracking-wide text-base-content/45">Razem</span>
+                <div class="mt-1 text-3xl font-semibold leading-none text-base-content sm:text-4xl">
+                  <RollingNumber value={totals.value} text={money(totals.value)} />
+                </div>
+              </div>
+              <div class="text-xs text-base-content/55 sm:text-right">
+                <span class="block">Ceny zaktualizowane</span>
+                <span class="block font-medium text-base-content/70">{dateTime(lastUpdated)}</span>
+              </div>
             </div>
-            <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(lastUpdated)}</p>
-            {#if rangeSummary}
-              <p class="text-xs text-base-content/70">
-                Zysk/strata ({rangeSummary.label}):
-                <span class="font-medium {pnlClass(rangeSummary.pnl)}" title={rangeSummary.from ? `${rangeSummary.from} – ${rangeSummary.to}` : undefined}>
-                  <RollingNumber value={rangeSummary.pnl} text={money(rangeSummary.pnl)} />
-                </span>
-              </p>
-            {/if}
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+                <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">P/L</div>
+                <div class="mt-1 text-sm font-semibold {pnlClass(totals.pnl)}">
+                  <RollingNumber value={totals.pnl} text={money(totals.pnl)} />
+                </div>
+              </div>
+              <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+                <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Stopa zwrotu</div>
+                <div class="mt-1 text-sm font-semibold {pnlClass(totals.pnl)}">
+                  <RollingNumber value={totals.pnl} text={percent(totals.pnl, totals.cost)} />
+                </div>
+              </div>
+              {#if rangeSummary}
+                <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
+                  <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Zakres: {rangeSummary.label}</div>
+                  <div class="mt-1 text-sm font-semibold {pnlClass(rangeSummary.pnl)}" title={rangeSummary.from ? `${rangeSummary.from} – ${rangeSummary.to}` : undefined}>
+                    <RollingNumber value={rangeSummary.pnl} text={money(rangeSummary.pnl)} />
+                  </div>
+                </div>
+              {/if}
+            </div>
           </div>
         </div>
       {/if}

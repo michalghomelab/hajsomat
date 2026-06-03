@@ -38,7 +38,7 @@
       {
         name: "Zmiana rynkowa", type: "column",
         data: d.map((x) => ({ x: x.index, y: Number(x.market.toFixed(2)),
-          fillColor: x.market >= 0 ? "#16a34a" : "#dc2626" })),
+          fillColor: x.market >= 0 ? "#22c55e" : "#ef4444" })),
       },
       { name: "Wpłata (dzienna)", type: "column", data: d.map((x) => ({ x: x.index, y: Number(x.deposit.toFixed(2)) })) },
     ];
@@ -85,7 +85,7 @@
       const prev = data[seriesIndex]?.[dataPointIndex - 1];
       if (dataPointIndex > 0 && prev != null && prev !== 0) {
         const pct = ((v - prev) / Math.abs(prev)) * 100;
-        const color = pct >= 0 ? "#16a34a" : "#dc2626";
+        const color = pct >= 0 ? "#22c55e" : "#ef4444";
         return `${money(v)} <span style="color:${color}">(${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(2)}%)</span>`;
       }
     }
@@ -112,16 +112,23 @@
     },
     theme: { mode: dark ? "dark" : "light" },
     series: series(snaps),
-    colors: ["#3b82f6", "#f59e0b", "#16a34a", "#16a34a", "#6366f1"],
+    colors: ["#2563eb", "#d97706", "#16a34a", "#22c55e", "#64748b"],
     stroke: { curve: "smooth", width: [2.5, 2, 2, 0, 0], dashArray: [0, 5, 0, 0, 0] },
     fill: {
       type: ["gradient", "solid", "solid", "solid", "solid"],
       gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 },
       opacity: [1, 0, 0, 1, 1],
     },
-    plotOptions: { bar: { columnWidth: "70%", borderRadius: 2 } },
+    plotOptions: { bar: { columnWidth: "68%", borderRadius: 3 } },
     dataLabels: { enabled: false },
-    legend: { position: "top" },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      fontSize: "12px",
+      markers: { size: 5 },
+      itemMargin: { horizontal: 10, vertical: 4 },
+      labels: { colors: dark ? "#d4d4d8" : "#3f3f46" },
+    },
     xaxis: xaxis(snaps),
     // Two axes, each binding all of its series by name: cumulative figures share
     // the left axis, the daily bars share the right one (~100x smaller scale).
@@ -130,7 +137,11 @@
       { seriesName: ["Zmiana rynkowa", "Wpłata (dzienna)"], opposite: true, labels: { formatter: plnAxis },
         title: { text: "zł / dzień" } },
     ],
-    grid: { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", strokeDashArray: 4 },
+    grid: { borderColor: dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.055)", strokeDashArray: 3 },
+    states: {
+      hover: { filter: { type: "lighten", value: 0.04 } },
+      active: { filter: { type: "none" } },
+    },
     tooltip: tooltip(snaps),
   });
 
@@ -162,7 +173,7 @@
 </script>
 
 {#if snapshots?.length}
-  <div class="card bg-base-100 shadow-sm p-2"><div bind:this={el}></div></div>
+  <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-2 shadow-sm"><div bind:this={el}></div></div>
 {:else}
-  <p class="text-base-content/60 text-sm">Brak danych historycznych — pojawią się po pierwszym dziennym snapshotcie.</p>
+  <p class="rounded-2xl border border-base-300/60 bg-base-100/80 px-4 py-3 text-sm text-base-content/60 shadow-sm">Brak danych historycznych — pojawią się po pierwszym dziennym snapshotcie.</p>
 {/if}
