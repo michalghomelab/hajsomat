@@ -65,11 +65,12 @@ docker compose run --rm api bundle exec rspec spec/services/backfill_service_spe
 docker compose run --rm api bundle exec rubocop
 
 # frontend
+docker compose run --rm web npm run check
 docker compose run --rm web npm test
 docker compose run --rm web npx vitest run src/lib/format.test.js # pojedynczy plik
 ```
 
-CI (GitHub Actions) odpala rspec + vitest przed buildem — obraz powstaje tylko, gdy testy są zielone.
+CI (GitHub Actions) odpala rspec + vitest przed buildem — obraz powstaje tylko, gdy testy są zielone. Frontendowy `npm run check` używa `svelte-check` do diagnostyki Svelte/compiler/a11y.
 
 ## Produkcja (homelab)
 

@@ -23,6 +23,7 @@ docker compose run --rm api bundle exec rspec spec/services/backfill_service_spe
 docker compose run --rm api bundle exec rubocop
 
 # frontend
+docker compose run --rm web npm run check
 docker compose run --rm web npm test
 docker compose run --rm web npx vitest run src/lib/format.test.js  # single file
 ```
