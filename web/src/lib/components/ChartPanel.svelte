@@ -47,6 +47,7 @@
     `${segmentButtonBase} ${effectiveRange === id ? "bg-primary text-primary-content shadow-sm" : "text-base-content/65 hover:bg-base-100 hover:text-base-content"}`;
   const resCls = (id) =>
     `${segmentButtonBase} ${resolution === id ? "bg-primary text-primary-content shadow-sm" : "text-base-content/65 hover:bg-base-100 hover:text-base-content"}`;
+  const resShortLabel = (id) => ({ day: "D", week: "W", month: "M", quarter: "Q", year: "Y" })[id] ?? id;
 </script>
 
 <div class="space-y-3" bind:this={panelEl}>
@@ -75,7 +76,7 @@
       <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Rozdzielczość</span>
       <div class="flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner">
         {#each RESOLUTIONS as r}
-          <button class={resCls(r.id)} onclick={() => selectResolution(r.id)}>{r.label}</button>
+          <button class={`${resCls(r.id)} min-w-9 sm:min-w-8 px-2`} onclick={() => selectResolution(r.id)} title={r.label}>{resShortLabel(r.id)}</button>
         {/each}
       </div>
     </div>
