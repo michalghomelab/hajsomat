@@ -7,7 +7,7 @@
   } from "../chartRange.js";
   import MoveHorizontal from "@lucide/svelte/icons/move-horizontal";
 
-  let { snapshots = [] } = $props();
+  let { snapshots = [], onRangeChange = () => {} } = $props();
   let range = $state(loadRange());
   let resolution = $state(loadResolution());
 
@@ -33,6 +33,7 @@
     keepScrollPosition(() => {
       range = id;
       saveRange(id);
+      onRangeChange(id);
     });
   }
   function selectResolution(id) {

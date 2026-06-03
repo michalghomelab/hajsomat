@@ -3,6 +3,7 @@
   import { api } from "../api.js";
   import { money, pnlClass, percent, dateTime } from "../format.js";
   import ChartPanel from "./ChartPanel.svelte";
+  import { RELATIVE, availableYears, filterSnapshots, loadRange } from "../chartRange.js";
   import Countdown from "./Countdown.svelte";
   import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
   import RollingNumber from "./RollingNumber.svelte";
@@ -26,12 +27,35 @@
   let loading = $state(true);
   let refreshing = $state(false);
   let snapshotting = $state(false);
+  let summaryRange = $state(loadRange());
 
   let totals = $derived.by(() => {
     const sum = (k) => portfolios.reduce((a, p) => a + Number(p[k] || 0), 0);
     return { value: sum("market_value_pln"), cost: sum("cost_pln"), pnl: sum("pnl_pln") };
   });
   let lastUpdated = $derived(portfolios.map((p) => p.last_updated).filter(Boolean).sort().at(-1) ?? null);
+  let snapshotYears = $derived(availableYears(snapshots));
+  let effectiveSummaryRange = $derived(
+    summaryRange.startsWith("year:") && !snapshotYears.includes(summaryRange.slice(5)) ? "all" : summaryRange
+  );
+  let rangeSummary = $derived.by(() => {
+    const points = filterSnapshots(snapshots, effectiveSummaryRange);
+    if (!points.length && effectiveSummaryRange !== "all") return null;
+    if (effectiveSummaryRange === "all") {
+      return { label: rangeLabel(effectiveSummaryRange), pnl: totals.pnl, from: null, to: null };
+    }
+
+    const first = points[0];
+    const last = points.at(-1);
+    const pnl = Number(last.pnl_pln) - Number(first.pnl_pln);
+    return { label: rangeLabel(effectiveSummaryRange), pnl, from: first.date, to: last.date };
+  });
+
+  function rangeLabel(id) {
+    if (id === "all") return "całość";
+    if (id.startsWith("year:")) return id.slice(5);
+    return RELATIVE.find((r) => r.id === id)?.label ?? id;
+  }
 
   async function load(silent = false) {
     if (!silent) loading = true;
@@ -180,10 +204,18 @@
               </span>
             </div>
             <p class="text-xs text-base-content/60">Ceny zaktualizowane: {dateTime(lastUpdated)}</p>
+            {#if rangeSummary}
+              <p class="text-xs text-base-content/70">
+                Zysk/strata ({rangeSummary.label}):
+                <span class="font-medium {pnlClass(rangeSummary.pnl)}" title={rangeSummary.from ? `${rangeSummary.from} – ${rangeSummary.to}` : undefined}>
+                  <RollingNumber value={rangeSummary.pnl} text={money(rangeSummary.pnl)} />
+                </span>
+              </p>
+            {/if}
           </div>
         </div>
       {/if}
-      <ChartPanel {snapshots} />
+      <ChartPanel {snapshots} onRangeChange={(next) => (summaryRange = next)} />
     </div>
   {/if}
 </div>
