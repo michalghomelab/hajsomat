@@ -34,7 +34,7 @@
 </script>
 
 <div class="min-h-screen">
-  <div class="mx-auto flex max-w-4xl justify-end px-6 pt-[max(0.75rem,env(safe-area-inset-top))]">
+  <div class="mx-auto hidden max-w-4xl justify-end px-6 pt-[max(0.75rem,env(safe-area-inset-top))] sm:flex">
     <ThemeSwitch />
   </div>
 
@@ -45,6 +45,10 @@
   {:else}
     <PortfolioList onSelect={open} />
   {/if}
+
+  <div class="mx-auto flex max-w-4xl justify-end px-6 pb-4 sm:hidden">
+    <ThemeSwitch />
+  </div>
 
   <footer class="-mt-24 px-6 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-center text-[10px] leading-none text-base-content/30 sm:-mt-2">
     {buildId}
