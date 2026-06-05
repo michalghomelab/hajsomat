@@ -1,4 +1,5 @@
 <script>
+  import { tick } from "svelte";
   import PortfolioChart from "./PortfolioChart.svelte";
   import {
     RELATIVE, RESOLUTIONS, availableYears,
@@ -18,6 +19,10 @@
   );
   let view = $derived(resample(filterSnapshots(snapshots, effectiveRange), resolution));
   let panelEl = $state(null);
+  let rangeGroupEl = $state(null);
+  let resolutionGroupEl = $state(null);
+  let rangeThumb = $state(null);
+  let resolutionThumb = $state(null);
 
   function keepScrollPosition(fn) {
     const beforeTop = panelEl?.getBoundingClientRect().top;
@@ -42,24 +47,72 @@
       saveResolution(id);
     });
   }
-  const segmentButtonBase = "min-h-9 sm:min-h-8 rounded-lg px-3 sm:px-2.5 text-sm sm:text-xs font-medium transition-all";
+  const segmentButtonBase = "relative z-10 min-h-9 sm:min-h-8 cursor-pointer rounded-lg px-3 sm:px-2.5 text-sm sm:text-xs font-medium transition-colors";
   const rangeCls = (id) =>
-    `${segmentButtonBase} ${effectiveRange === id ? "bg-primary text-primary-content shadow-sm" : "text-base-content/65 hover:bg-base-100 hover:text-base-content"}`;
+    `${segmentButtonBase} ${effectiveRange === id ? "text-primary-content" : "text-base-content/65 hover:text-base-content"}`;
   const resCls = (id) =>
-    `${segmentButtonBase} ${resolution === id ? "bg-primary text-primary-content shadow-sm" : "text-base-content/65 hover:bg-base-100 hover:text-base-content"}`;
+    `${segmentButtonBase} ${resolution === id ? "text-primary-content" : "text-base-content/65 hover:text-base-content"}`;
   const resShortLabel = (id) => ({ day: "D", week: "W", month: "M", quarter: "Q", year: "Y" })[id] ?? id;
+  const rangeSegmentId = $derived(effectiveRange.startsWith("year:") ? "year" : effectiveRange);
+
+  function thumbStyle(thumb) {
+    if (!thumb) return "opacity: 0;";
+    return `opacity: 1; width: ${thumb.width}px; height: ${thumb.height}px; transform: translate3d(${thumb.left}px, ${thumb.top}px, 0);`;
+  }
+
+  async function updateThumb(groupEl, segmentId, setThumb) {
+    await tick();
+    requestAnimationFrame(() => {
+      const active = groupEl?.querySelector(`[data-segment="${segmentId}"]`);
+      if (!groupEl || !active) {
+        setThumb(null);
+        return;
+      }
+      const group = groupEl.getBoundingClientRect();
+      const item = active.getBoundingClientRect();
+      setThumb({
+        left: item.left - group.left,
+        top: item.top - group.top,
+        width: item.width,
+        height: item.height,
+      });
+    });
+  }
+
+  $effect(() => {
+    updateThumb(rangeGroupEl, rangeSegmentId, (next) => (rangeThumb = next));
+  });
+
+  $effect(() => {
+    updateThumb(resolutionGroupEl, resolution, (next) => (resolutionThumb = next));
+  });
+
+  $effect(() => {
+    const onResize = () => {
+      updateThumb(rangeGroupEl, rangeSegmentId, (next) => (rangeThumb = next));
+      updateThumb(resolutionGroupEl, resolution, (next) => (resolutionThumb = next));
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  });
 </script>
 
 <div class="space-y-3" bind:this={panelEl}>
   {#if snapshots.length}
     <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
       <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Zakres</span>
-      <div class="flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner">
+      <div class="relative flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner" bind:this={rangeGroupEl}>
+        <span class="pointer-events-none absolute left-0 top-0 z-0 transition-[transform,width,height,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1.15)]" style={thumbStyle(rangeThumb)}>
+          {#key rangeSegmentId}
+            <span class="block h-full w-full rounded-lg bg-primary shadow-sm animate-[segment-recede_300ms_ease-out]"></span>
+          {/key}
+        </span>
         {#each RELATIVE as r}
-          <button class={rangeCls(r.id)} onclick={() => selectRange(r.id)}>{r.label}</button>
+          <button class={rangeCls(r.id)} data-segment={r.id} onclick={() => selectRange(r.id)}>{r.label}</button>
         {/each}
         {#if years.length}
-          <select class="select select-sm min-h-9 sm:min-h-8 h-9 sm:h-8 w-[5.25rem] rounded-lg border-0 px-2 text-sm sm:text-xs font-medium {effectiveRange.startsWith('year:') ? 'bg-primary! text-primary-content! shadow-sm' : 'bg-transparent text-base-content/65 hover:bg-base-100'}"
+          <select class="select select-sm relative z-10 min-h-9 sm:min-h-8 h-9 sm:h-8 w-[5.25rem] cursor-pointer rounded-lg border-0 bg-transparent px-2 text-sm sm:text-xs font-medium {effectiveRange.startsWith('year:') ? 'text-primary-content!' : 'text-base-content/65 hover:text-base-content'}"
+                  data-segment="year"
                   onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
             <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
             {#each years as y}
@@ -67,16 +120,21 @@
             {/each}
           </select>
         {/if}
-        <button class={`${rangeCls("all")} aspect-square px-2.5`} onclick={() => selectRange("all")} aria-label="Cały zakres" title="Cały zakres">
+        <button class={`${rangeCls("all")} aspect-square px-2.5`} data-segment="all" onclick={() => selectRange("all")} aria-label="Cały zakres" title="Cały zakres">
           <MoveHorizontal size={16} />
         </button>
       </div>
     </div>
     <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
       <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Rozdzielczość</span>
-      <div class="flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner">
+      <div class="relative flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner" bind:this={resolutionGroupEl}>
+        <span class="pointer-events-none absolute left-0 top-0 z-0 transition-[transform,width,height,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1.15)]" style={thumbStyle(resolutionThumb)}>
+          {#key resolution}
+            <span class="block h-full w-full rounded-lg bg-primary shadow-sm animate-[segment-recede_300ms_ease-out]"></span>
+          {/key}
+        </span>
         {#each RESOLUTIONS as r}
-          <button class={`${resCls(r.id)} min-w-9 sm:min-w-8 px-2`} onclick={() => selectResolution(r.id)} title={r.label}>{resShortLabel(r.id)}</button>
+          <button class={`${resCls(r.id)} min-w-9 sm:min-w-8 px-2`} data-segment={r.id} onclick={() => selectResolution(r.id)} title={r.label}>{resShortLabel(r.id)}</button>
         {/each}
       </div>
     </div>
