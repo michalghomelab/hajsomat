@@ -50,7 +50,7 @@
     <ThemeSwitch />
   </div>
 
-  <footer class="-mt-24 px-6 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-center text-[10px] leading-none text-base-content/30 sm:-mt-2">
+  <footer class="px-6 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-center text-[10px] leading-none text-base-content/30 sm:-mt-2">
     {buildId}
   </footer>
 </div>
