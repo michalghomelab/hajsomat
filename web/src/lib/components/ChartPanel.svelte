@@ -47,11 +47,11 @@
       saveResolution(id);
     });
   }
-  const segmentButtonBase = "relative z-10 min-h-9 sm:min-h-8 cursor-pointer rounded-lg px-3 sm:px-2.5 text-sm sm:text-xs font-medium transition-colors";
+  const segmentButtonBase = "relative z-10 min-h-9 cursor-pointer rounded-xl px-3 text-xs font-semibold transition-all";
   const rangeCls = (id) =>
-    `${segmentButtonBase} ${effectiveRange === id ? "text-primary-content" : "text-base-content/65 hover:text-base-content"}`;
+    `${segmentButtonBase} ${effectiveRange === id ? "text-primary-content" : "text-base-content/60 hover:bg-base-content/10 hover:text-base-content"}`;
   const resCls = (id) =>
-    `${segmentButtonBase} ${resolution === id ? "text-primary-content" : "text-base-content/65 hover:text-base-content"}`;
+    `${segmentButtonBase} ${resolution === id ? "text-primary-content" : "text-base-content/60 hover:bg-base-content/10 hover:text-base-content"}`;
   const resShortLabel = (id) => ({ day: "D", week: "W", month: "M", quarter: "Q", year: "Y" })[id] ?? id;
   const rangeSegmentId = $derived(effectiveRange.startsWith("year:") ? "year" : effectiveRange);
 
@@ -101,17 +101,17 @@
   {#if snapshots.length}
     <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
       <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Zakres</span>
-      <div class="relative flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner" bind:this={rangeGroupEl}>
+      <div class="relative flex flex-wrap justify-end gap-1 rounded-2xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner backdrop-blur-xl" bind:this={rangeGroupEl}>
         <span class="pointer-events-none absolute left-0 top-0 z-0 transition-[transform,width,height,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1.15)]" style={thumbStyle(rangeThumb)}>
           {#key rangeSegmentId}
-            <span class="block h-full w-full rounded-lg bg-primary shadow-sm animate-[segment-recede_300ms_ease-out]"></span>
+            <span class="block h-full w-full rounded-xl bg-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_2px_rgba(0,0,0,0.10)] animate-[segment-recede_300ms_ease-out]"></span>
           {/key}
         </span>
         {#each RELATIVE as r}
           <button class={rangeCls(r.id)} data-segment={r.id} onclick={() => selectRange(r.id)}>{r.label}</button>
         {/each}
         {#if years.length}
-          <select class="select select-sm relative z-10 min-h-9 sm:min-h-8 h-9 sm:h-8 w-[5.25rem] cursor-pointer rounded-lg border-0 bg-transparent px-2 text-sm sm:text-xs font-medium {effectiveRange.startsWith('year:') ? 'text-primary-content!' : 'text-base-content/65 hover:text-base-content'}"
+          <select class="select select-sm relative z-10 min-h-9 h-9 w-[5.25rem] cursor-pointer rounded-xl border-0 bg-transparent px-2 text-xs font-semibold transition-all {effectiveRange.startsWith('year:') ? 'text-primary-content!' : 'text-base-content/60 hover:bg-base-content/10 hover:text-base-content'}"
                   data-segment="year"
                   onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
             <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
@@ -127,10 +127,10 @@
     </div>
     <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
       <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Rozdzielczość</span>
-      <div class="relative flex flex-wrap justify-end gap-1 rounded-xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner" bind:this={resolutionGroupEl}>
+      <div class="relative flex flex-wrap justify-end gap-1 rounded-2xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner backdrop-blur-xl" bind:this={resolutionGroupEl}>
         <span class="pointer-events-none absolute left-0 top-0 z-0 transition-[transform,width,height,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1.15)]" style={thumbStyle(resolutionThumb)}>
           {#key resolution}
-            <span class="block h-full w-full rounded-lg bg-primary shadow-sm animate-[segment-recede_300ms_ease-out]"></span>
+            <span class="block h-full w-full rounded-xl bg-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_2px_rgba(0,0,0,0.10)] animate-[segment-recede_300ms_ease-out]"></span>
           {/key}
         </span>
         {#each RESOLUTIONS as r}

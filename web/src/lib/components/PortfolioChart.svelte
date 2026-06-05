@@ -9,7 +9,32 @@
   let el = $state(null);
   let chart = null;
   let detachZoom = null;
-  const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  const SERIES_COLORS = {
+    value: "#1d4ed8",
+    cost: "#ca8a04",
+    profit: "#0e7490",
+    deposit: "#71717a",
+  };
+
+  function themeColor(name, fallback) {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+  }
+
+  function chartPalette() {
+    return {
+      ...SERIES_COLORS,
+      gain: themeColor("--color-success", "#16a34a"),
+      loss: themeColor("--color-error", "#dc2626"),
+    };
+  }
+
+  function isDark() {
+    const theme = document.documentElement.dataset.theme;
+    if (theme === "dark") return true;
+    if (theme === "light") return false;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  }
 
   // Split each day's value change into the deposit part (Δ cost basis = money
   // added that day) and the market part (the rest = price/FX moves).
@@ -27,7 +52,7 @@
   // change bars are ~2 orders of magnitude smaller, so they live on the right
   // axis. The legend toggles any series, so the chart stays readable even with
   // both scales present.
-  const series = (snaps) => {
+  const series = (snaps, colors = chartPalette()) => {
     const d = dayChanges(snaps);
     // All series use the same { x, y } object format — mixing object and tuple
     // formats in one chart makes ApexCharts misparse the y-values of some series.
@@ -38,7 +63,7 @@
       {
         name: "Zmiana rynkowa", type: "column",
         data: d.map((x) => ({ x: x.index, y: Number(x.market.toFixed(2)),
-          fillColor: x.market >= 0 ? "#22c55e" : "#ef4444" })),
+          fillColor: x.market >= 0 ? colors.gain : colors.loss })),
       },
       { name: "Wpłata (dzienna)", type: "column", data: d.map((x) => ({ x: x.index, y: Number(x.deposit.toFixed(2)) })) },
     ];
@@ -85,65 +110,69 @@
       const prev = data[seriesIndex]?.[dataPointIndex - 1];
       if (dataPointIndex > 0 && prev != null && prev !== 0) {
         const pct = ((v - prev) / Math.abs(prev)) * 100;
-        const color = pct >= 0 ? "#22c55e" : "#ef4444";
+        const color = pct >= 0 ? chartPalette().gain : chartPalette().loss;
         return `${money(v)} <span style="color:${color}">(${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(2)}%)</span>`;
       }
     }
     return money(v);
   };
 
-  const options = (snaps) => ({
-    chart: {
-      type: "line", height: 380, stacked: false,
-      fontFamily: "inherit", background: "transparent",
-      toolbar: { show: false }, zoom: { enabled: false }, animations: { easing: "easeinout" },
-      events: {
-        // Restore the persisted on/off state once the chart is on screen, and
-        // persist every legend toggle so it survives reloads.
-        mounted: (ctx) => loadHiddenSeries().forEach((name) => ctx.hideSeries(name)),
-        legendClick: (ctx, i) => {
-          const name = ctx.w.globals.seriesNames[i];
-          if (!name) return;
-          const hidden = new Set(loadHiddenSeries());
-          hidden.has(name) ? hidden.delete(name) : hidden.add(name);
-          saveHiddenSeries([...hidden]);
+  const options = (snaps) => {
+    const colors = chartPalette();
+    const dark = isDark();
+    return {
+      chart: {
+        type: "line", height: 380, stacked: false,
+        fontFamily: "inherit", background: "transparent",
+        toolbar: { show: false }, zoom: { enabled: false }, animations: { easing: "easeinout" },
+        events: {
+          // Restore the persisted on/off state once the chart is on screen, and
+          // persist every legend toggle so it survives reloads.
+          mounted: (ctx) => loadHiddenSeries().forEach((name) => ctx.hideSeries(name)),
+          legendClick: (ctx, i) => {
+            const name = ctx.w.globals.seriesNames[i];
+            if (!name) return;
+            const hidden = new Set(loadHiddenSeries());
+            hidden.has(name) ? hidden.delete(name) : hidden.add(name);
+            saveHiddenSeries([...hidden]);
+          },
         },
       },
-    },
-    theme: { mode: dark ? "dark" : "light" },
-    series: series(snaps),
-    colors: ["#2563eb", "#d97706", "#16a34a", "#22c55e", "#64748b"],
-    stroke: { curve: "smooth", width: [2.5, 2, 2, 0, 0], dashArray: [0, 5, 0, 0, 0] },
-    fill: {
-      type: ["gradient", "solid", "solid", "solid", "solid"],
-      gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 },
-      opacity: [1, 0, 0, 1, 1],
-    },
-    plotOptions: { bar: { columnWidth: "68%", borderRadius: 3 } },
-    dataLabels: { enabled: false },
-    legend: {
-      position: "top",
-      horizontalAlign: "left",
-      fontSize: "12px",
-      markers: { size: 5 },
-      itemMargin: { horizontal: 10, vertical: 4 },
-      labels: { colors: dark ? "#d4d4d8" : "#3f3f46" },
-    },
-    xaxis: xaxis(snaps),
-    // Two axes, each binding all of its series by name: cumulative figures share
-    // the left axis, the daily bars share the right one (~100x smaller scale).
-    yaxis: [
-      { seriesName: ["Wartość", "Wpłaty", "Zysk"], labels: { formatter: plnAxis }, title: { text: "PLN (skumulowane)" } },
-      { seriesName: ["Zmiana rynkowa", "Wpłata (dzienna)"], opposite: true, labels: { formatter: plnAxis },
-        title: { text: "zł / dzień" } },
-    ],
-    grid: { borderColor: dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.055)", strokeDashArray: 3 },
-    states: {
-      hover: { filter: { type: "lighten", value: 0.04 } },
-      active: { filter: { type: "none" } },
-    },
-    tooltip: tooltip(snaps),
-  });
+      theme: { mode: dark ? "dark" : "light" },
+      series: series(snaps, colors),
+      colors: [colors.value, colors.cost, colors.profit, colors.gain, colors.deposit],
+      stroke: { curve: "smooth", width: [2.5, 2, 2, 0, 0], dashArray: [0, 5, 0, 0, 0] },
+      fill: {
+        type: ["gradient", "solid", "solid", "solid", "solid"],
+        gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 },
+        opacity: [1, 0, 0, 1, 1],
+      },
+      plotOptions: { bar: { columnWidth: "68%", borderRadius: 3 } },
+      dataLabels: { enabled: false },
+      legend: {
+        position: "top",
+        horizontalAlign: "left",
+        fontSize: "12px",
+        markers: { size: 5 },
+        itemMargin: { horizontal: 10, vertical: 4 },
+        labels: { colors: dark ? "#d4d4d8" : "#3f3f46" },
+      },
+      xaxis: xaxis(snaps),
+      // Two axes, each binding all of its series by name: cumulative figures share
+      // the left axis, the daily bars share the right one (~100x smaller scale).
+      yaxis: [
+        { seriesName: ["Wartość", "Wpłaty", "Zysk"], labels: { formatter: plnAxis }, title: { text: "PLN (skumulowane)" } },
+        { seriesName: ["Zmiana rynkowa", "Wpłata (dzienna)"], opposite: true, labels: { formatter: plnAxis },
+          title: { text: "zł / dzień" } },
+      ],
+      grid: { borderColor: dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.055)", strokeDashArray: 3 },
+      states: {
+        hover: { filter: { type: "lighten", value: 0.04 } },
+        active: { filter: { type: "none" } },
+      },
+      tooltip: tooltip(snaps),
+    };
+  };
 
   // Build the chart once when the element mounts; reused across data changes.
   $effect(() => {
@@ -166,9 +195,32 @@
   $effect(() => {
     const data = snapshots ?? [];
     if (!chart) return;
-    chart.updateOptions({ series: series(data), xaxis: xaxis(data), tooltip: tooltip(data) }, true, true);
+    const colors = chartPalette();
+    chart.updateOptions({
+      series: series(data, colors),
+      colors: [colors.value, colors.cost, colors.profit, colors.gain, colors.deposit],
+      xaxis: xaxis(data),
+      tooltip: tooltip(data),
+    }, true, true);
     detachZoom?.();
     detachZoom = attachWheelZoom(chart, el);
+  });
+
+  $effect(() => {
+    const refreshTheme = () => {
+      const data = snapshots ?? [];
+      if (!chart) return;
+      chart.updateOptions(options(data), false, true);
+      detachZoom?.();
+      detachZoom = attachWheelZoom(chart, el);
+    };
+    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+    window.addEventListener("hajsomat:themechange", refreshTheme);
+    media?.addEventListener("change", refreshTheme);
+    return () => {
+      window.removeEventListener("hajsomat:themechange", refreshTheme);
+      media?.removeEventListener("change", refreshTheme);
+    };
   });
 </script>
 
