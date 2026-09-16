@@ -6,6 +6,7 @@
     loadRange, saveRange, loadResolution, saveResolution,
     filterSnapshots, resample,
   } from "../chartRange.js";
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import MoveHorizontal from "@lucide/svelte/icons/move-horizontal";
 
   let { snapshots = [], onRangeChange = () => {} } = $props();
@@ -23,6 +24,8 @@
   let resolutionGroupEl = $state(null);
   let rangeThumb = $state(null);
   let resolutionThumb = $state(null);
+  let yearMenuEl = $state(null);
+  let yearMenuOpen = $state(false);
 
   function keepScrollPosition(fn) {
     const beforeTop = panelEl?.getBoundingClientRect().top;
@@ -40,6 +43,10 @@
       saveRange(id);
       onRangeChange(id);
     });
+  }
+  function selectYear(year) {
+    selectRange(`year:${year}`);
+    yearMenuOpen = false;
   }
   function selectResolution(id) {
     keepScrollPosition(() => {
@@ -95,13 +102,22 @@
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   });
+
+  $effect(() => {
+    if (!yearMenuOpen) return;
+    const closeOnOutsideClick = (event) => {
+      if (!yearMenuEl?.contains(event.target)) yearMenuOpen = false;
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  });
 </script>
 
 <div class="space-y-3" bind:this={panelEl}>
   {#if snapshots.length}
     <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
       <span class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45 sm:mr-auto">Zakres</span>
-      <div class="relative flex flex-wrap justify-end gap-1 rounded-2xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner backdrop-blur-xl" bind:this={rangeGroupEl}>
+      <div class="relative z-20 flex flex-wrap justify-end gap-1 rounded-2xl border border-base-300/70 bg-base-200/70 p-1 shadow-inner backdrop-blur-xl" bind:this={rangeGroupEl}>
         <span class="pointer-events-none absolute left-0 top-0 z-0 transition-[transform,width,height,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1.15)]" style={thumbStyle(rangeThumb)}>
           {#key rangeSegmentId}
             <span class="block h-full w-full rounded-xl bg-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_1px_2px_rgba(0,0,0,0.10)] animate-[segment-recede_300ms_ease-out]"></span>
@@ -111,14 +127,35 @@
           <button class={rangeCls(r.id)} data-segment={r.id} onclick={() => selectRange(r.id)}>{r.label}</button>
         {/each}
         {#if years.length}
-          <select class="select select-sm relative z-10 min-h-9 h-9 w-[5.25rem] cursor-pointer rounded-xl border-0 bg-transparent px-2 text-xs font-semibold transition-all {effectiveRange.startsWith('year:') ? 'text-primary-content!' : 'text-base-content/60 hover:bg-base-content/10 hover:text-base-content'}"
-                  data-segment="year"
-                  onchange={(e) => e.currentTarget.value && selectRange(`year:${e.currentTarget.value}`)}>
-            <option value="" selected={!effectiveRange.startsWith('year:')}>Rok</option>
-            {#each years as y}
-              <option value={y} selected={effectiveRange === `year:${y}`}>{y}</option>
-            {/each}
-          </select>
+          <div class="relative z-20 w-[5.25rem]"
+               data-segment="year"
+               bind:this={yearMenuEl}>
+            <button type="button"
+                    class="flex min-h-9 w-full cursor-pointer items-center justify-between rounded-xl bg-transparent px-2 text-xs font-semibold transition-all {effectiveRange.startsWith('year:') ? 'text-primary-content' : 'text-base-content/60 hover:bg-base-content/10 hover:text-base-content'}"
+                    aria-haspopup="listbox"
+                    aria-expanded={yearMenuOpen}
+                    onclick={() => (yearMenuOpen = !yearMenuOpen)}
+                    onkeydown={(event) => event.key === "Escape" && (yearMenuOpen = false)}>
+              <span>{effectiveRange.startsWith("year:") ? effectiveRange.slice(5) : "Rok"}</span>
+              <ChevronDown size={14} class="transition-transform {yearMenuOpen ? 'rotate-180' : ''}" />
+            </button>
+            {#if yearMenuOpen}
+              <ul class="absolute right-0 top-[calc(100%+0.25rem)] z-30 w-full overflow-hidden rounded-xl border border-base-300 bg-base-100 p-1 text-base-content shadow-xl"
+                  role="listbox"
+                  aria-label="Wybierz rok"
+                  onkeydown={(event) => event.key === "Escape" && (yearMenuOpen = false)}>
+                {#each years as y}
+                  <li>
+                    <button type="button"
+                            class="w-full cursor-pointer rounded-lg px-2 py-1.5 text-left text-xs font-semibold hover:bg-base-200 {effectiveRange === `year:${y}` ? 'bg-primary text-primary-content hover:bg-primary' : ''}"
+                            role="option"
+                            aria-selected={effectiveRange === `year:${y}`}
+                            onclick={() => selectYear(y)}>{y}</button>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          </div>
         {/if}
         <button class={`${rangeCls("all")} aspect-square px-2.5`} data-segment="all" onclick={() => selectRange("all")} aria-label="Cały zakres" title="Cały zakres">
           <MoveHorizontal size={16} />
