@@ -203,10 +203,13 @@
         <th class="text-left">Symbol</th><th class="hidden text-right sm:table-cell">Ilość</th>
         <th class="hidden text-right sm:table-cell">Śr. cena</th><th class="hidden text-right sm:table-cell">Cena</th>
         <th class="hidden text-right sm:table-cell">Wartość (PLN)</th><th class="text-right">P/L (PLN)</th>
+        <th class="hidden text-right sm:table-cell">Zwrot</th>
       </tr></thead>
       <tbody>
         {#each data.positions as pos (pos.symbol)}
           {@const link = instrumentLink(pos.symbol)}
+          {@const pnlBadge = `inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${Number(pos.pnl_pln) >= 0 ? "bg-success/12 text-success" : "bg-error/12 text-error"}`}
+          {@const returnPct = percent(pos.pnl_pln, pos.cost_pln)}
           <tr class="cursor-pointer border-base-200 transition-colors hover:bg-base-200/45" onclick={() => toggle(pos.symbol)}>
             <td>
               <span class="inline-flex items-center gap-2">
@@ -223,14 +226,26 @@
             <td class="hidden text-right sm:table-cell">{money(pos.last_price, pos.currency)}</td>
             <td class="hidden text-right sm:table-cell"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
             <td class="text-right">
-              <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {Number(pos.pnl_pln) >= 0 ? 'bg-success/12 text-success' : 'bg-error/12 text-error'}">
+              <span class="{pnlBadge} whitespace-nowrap">
                 <RollingNumber value={pos.pnl_pln} text={money(pos.pnl_pln)} />
               </span>
+              {#if returnPct}
+                <div class="mt-1 pr-2 text-xs font-medium tabular-nums sm:hidden {pnlClass(pos.pnl_pln)}">
+                  <RollingNumber value={pos.pnl_pln} text={returnPct} />
+                </div>
+              {/if}
+            </td>
+            <td class="hidden text-right sm:table-cell">
+              {#if returnPct}
+                <span class={pnlBadge}><RollingNumber value={pos.pnl_pln} text={returnPct} /></span>
+              {:else}
+                <span class="text-base-content/40">—</span>
+              {/if}
             </td>
           </tr>
           {#if expanded[pos.symbol]}
             <tr>
-              <td colspan="6" class="p-0">
+              <td colspan="7" class="p-0">
                 <div class="border-y border-base-300/60 bg-base-200/60 px-4 py-3">
                   {#if pos.name}
                     <div class="mb-2 text-xs font-medium text-base-content/55">{pos.name} ({pos.symbol})</div>
@@ -364,7 +379,7 @@
       <table class="table text-sm">
         <thead class="bg-base-200/60">
           <tr>
-            {#each Array(6) as _}
+            {#each Array(7) as _}
               <th><div class="skeleton h-4 w-full min-w-16"></div></th>
             {/each}
           </tr>
@@ -378,6 +393,7 @@
               <td><div class="skeleton h-4 w-20 ml-auto"></div></td>
               <td><div class="skeleton h-4 w-24 ml-auto"></div></td>
               <td><div class="skeleton h-4 w-24 ml-auto"></div></td>
+              <td><div class="skeleton h-4 w-16 ml-auto"></div></td>
             </tr>
           {/each}
         </tbody>

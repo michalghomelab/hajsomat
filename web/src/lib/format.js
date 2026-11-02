@@ -7,7 +7,7 @@ export function money(value, currency = "PLN") {
 
 export function percent(pnl, cost) {
   const c = Number(cost);
-  if (!c) return "";
+  if (!c || pnl === null || pnl === undefined || pnl === "") return "";
   const p = (Number(pnl) / c) * 100;
   const sign = p > 0 ? "+" : "";
   return `${sign}${p.toFixed(2)}%`;

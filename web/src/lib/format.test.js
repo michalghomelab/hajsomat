@@ -21,6 +21,11 @@ describe("percent", () => {
   it("returns empty string when cost is zero", () => {
     expect(percent("5", "0")).toBe("");
   });
+  it("returns empty string when P/L is unknown (no price yet)", () => {
+    expect(percent(null, "100")).toBe("");
+    expect(percent(undefined, "100")).toBe("");
+    expect(percent("", "100")).toBe("");
+  });
 });
 
 describe("pnlClass", () => {
