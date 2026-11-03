@@ -48,10 +48,10 @@
      bind:this={navEl}
      aria-label="Nawigacja mobilna">
   {#if expanded}
-    <div class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] rounded-3xl border border-white/35 bg-white/25 shadow-[0_18px_60px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
+    <div class="fixed inset-x-0 bottom-0 rounded-t-3xl border-x-0 border-b-0 border-t border-white/35 bg-white/25 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_60px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
          transition:fly={{ y: 18, duration: 180, easing: cubicOut }}>
       {#if openIndex != null && items[openIndex]?.submenu?.length}
-        <div class="absolute right-0 bottom-[calc(100%+0.5rem)] w-60 origin-bottom-right rounded-3xl border border-base-300/80 bg-base-100/95 p-2 shadow-[0_12px_36px_rgba(0,0,0,0.16)] backdrop-blur-md supports-[backdrop-filter]:bg-base-100/90"
+        <div class="absolute right-3 bottom-[calc(100%+0.5rem)] w-60 origin-bottom-right rounded-3xl border border-base-300/80 bg-base-100/95 p-2 shadow-[0_12px_36px_rgba(0,0,0,0.16)] backdrop-blur-md supports-[backdrop-filter]:bg-base-100/90"
              transition:scale={{ start: 0.96, duration: 140, easing: cubicOut }}>
           {#each items[openIndex].submenu as action}
             <button type="button"
@@ -66,7 +66,7 @@
         </div>
       {/if}
 
-      <div class="grid p-2" style={`grid-template-columns: repeat(${items.length}, minmax(0, 1fr));`}>
+      <div class="grid" style={`grid-template-columns: repeat(${items.length}, minmax(0, 1fr));`}>
         {#each items as item, index}
           {@const Icon = item.icon}
           <button type="button"
