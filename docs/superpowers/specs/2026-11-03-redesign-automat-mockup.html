@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Makieta Automat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+
+<style>
+  .phone { width: 360px; border-radius: 28px; overflow: hidden; border: 1px solid rgba(0,0,0,.08);
+           background: var(--bg); color: var(--ink); font-family: var(--font); font-variant-numeric: tabular-nums;
+           text-align: left; margin: 0 auto; }
+  .phone * { box-sizing: border-box; }
+  .ph-top { padding: 18px 20px 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .ph-name { font-weight: 700; font-size: 17px; }
+  .ph-meta { font-size: 12px; color: var(--muted); }
+  .hero { padding: 6px 20px 20px; background: var(--hero-bg); color: var(--hero-ink); }
+  .hero-val { font-size: 40px; font-weight: var(--hero-weight); letter-spacing: -0.02em; line-height: 1.1; }
+  .hero-pnl { margin-top: 6px; font-size: 16px; font-weight: 600; color: var(--hero-gain); display: flex; gap: 10px; }
+  .hero-sub { margin-top: 4px; font-size: 13px; color: var(--hero-muted); }
+  .sect { padding: 16px 20px 4px; font-size: 14px; font-weight: 600; color: var(--ink); display: flex; justify-content: space-between; }
+  .sect span { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .rows { margin: 0 12px; background: var(--card); border-radius: var(--radius); border: 1px solid var(--line); }
+  .row { padding: 12px 12px 10px; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .row-main { display: flex; justify-content: space-between; gap: 12px; }
+  .r-name { font-size: 14px; font-weight: 600; line-height: 1.25; }
+  .r-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .r-right { text-align: right; white-space: nowrap; }
+  .r-pnl { font-size: 14px; font-weight: 600; }
+  .r-pct { font-size: 12px; margin-top: 2px; }
+  .gain { color: var(--gain); } .loss { color: var(--loss); }
+  .bar { margin-top: 8px; height: 4px; border-radius: 4px; background: var(--track); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--bar); border-radius: 4px; }
+  .chartcard { margin: 14px 12px 18px; background: var(--card); border-radius: var(--radius); border: 1px solid var(--line); padding: 12px; }
+  .ch-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .seg { display: flex; gap: 2px; background: var(--track); padding: 3px; border-radius: 10px; }
+  .seg b { font-size: 11px; font-weight: 600; padding: 5px 7px; border-radius: 7px; color: var(--muted); }
+  .seg b.on { background: var(--primary); color: var(--on-primary); }
+  .res { font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+  .legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted); margin: 10px 0 4px; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  svg { display: block; width: 100%; height: auto; }
+
+  .vA { font-variant-numeric: normal !important; --font: "Schibsted Grotesk", sans-serif; --bg: #F4F6F4; --ink: #17201C; --muted: #66706B; --card: #FFFFFF;
+        --line: #E3E8E4; --track: #E9EEEA; --primary: #0F5C4A; --on-primary: #fff; --gain: #17824F; --loss: #C2413A;
+        --bar: #0F5C4A; --radius: 14px; --hero-bg: transparent; --hero-ink: #17201C; --hero-gain: #17824F;
+        --hero-muted: #66706B; --hero-weight: 800; --line1: #0F5C4A; --line2: #C98A1B; }
+  .vB { --font: "Instrument Sans", sans-serif; --bg: #FFFFFF; --ink: #0E1116; --muted: #6B7280; --card: #FFFFFF;
+        --line: #ECEEF1; --track: #F1F3F5; --primary: #2350D8; --on-primary: #fff; --gain: #16834A; --loss: #D23B3B;
+        --bar: #2350D8; --radius: 12px; --hero-bg: transparent; --hero-ink: #0E1116; --hero-gain: #16834A;
+        --hero-muted: #6B7280; --hero-weight: 600; --line1: #2350D8; --line2: #9AA3AF; }
+  .vC { --font: "Bricolage Grotesque", sans-serif; --bg: #F3F4F8; --ink: #141A33; --muted: #646B85; --card: #FFFFFF;
+        --line: #E4E6EF; --track: #ECEEF5; --primary: #141A33; --on-primary: #F2B705; --gain: #148A55; --loss: #CC3D45;
+        --bar: #F2B705; --radius: 18px; --hero-bg: #141A33; --hero-ink: #FFFFFF; --hero-gain: #F2B705;
+        --hero-muted: #A7AEC9; --hero-weight: 800; --line1: #141A33; --line2: #F2B705; }
+  .vC .ph-top { background: #141A33; color: #fff; } .vC .ph-meta { color: #A7AEC9; }
+  .vC .hero { padding-bottom: 26px; border-radius: 0 0 26px 26px; }
+</style>
+<style>body{margin:0;padding:32px 16px;background:#e9eaf0;font-family:system-ui,sans-serif} p.note{max-width:640px;margin:0 auto 20px;color:#444;font-size:14px;line-height:1.5}</style>
+</head><body>
+<p class="note">Makieta referencyjna wariantu C „Automat” (telefon, 390px, dane z portfela IKE z 2026-11-03). Zobacz <code>2026-11-03-redesign-automat-design.md</code>.</p>
+<div class="phone vC">
+    <div class="ph-top"><div class="ph-name">IKE</div><div class="ph-meta">zaktualizowano 09:10</div></div>
+    <div class="hero">
+      <div class="hero-val">65 978,50 zł</div>
+      <div class="hero-pnl"><span>+13 967,42 zł</span><span>+26,85%</span></div>
+      <div class="hero-sub">Wpłacono 52 011,08 zł</div>
+    </div>
+    <div class="sect">Pozycje <span>udział w portfelu</span></div>
+    <div class="rows">
+      <div class="row"><div class="row-main"><div><div class="r-name">iShares Core S&amp;P 500</div><div class="r-sub">SXR8.DE &nbsp; 47,8%</div></div><div class="r-right"><div class="r-pnl gain">+9 024,46 zł</div><div class="r-pct gain">+40,03%</div></div></div><div class="bar"><i style="width:47.8%"></i></div></div>
+      <div class="row"><div class="row-main"><div><div class="r-name">Invesco STOXX Europe 600</div><div class="r-sub">SDJ600.MI &nbsp; 24,8%</div></div><div class="r-right"><div class="r-pnl gain">+1 174,69 zł</div><div class="r-pct gain">+7,72%</div></div></div><div class="bar"><i style="width:24.8%"></i></div></div>
+      <div class="row"><div class="row-main"><div><div class="r-name">iShares MSCI ACWI</div><div class="r-sub">IUSQ.DE &nbsp; 13,1%</div></div><div class="r-right"><div class="r-pnl gain">+1 493,31 zł</div><div class="r-pct gain">+20,83%</div></div></div><div class="bar"><i style="width:13.1%"></i></div></div>
+      <div class="row"><div class="row-main"><div><div class="r-name">Vanguard LifeStrategy 80%</div><div class="r-sub">V80A.DE &nbsp; 12,0%</div></div><div class="r-right"><div class="r-pnl gain">+1 915,65 zł</div><div class="r-pct gain">+31,94%</div></div></div><div class="bar"><i style="width:12%"></i></div></div>
+      <div class="row"><div class="row-main"><div><div class="r-name">iShares Physical Gold</div><div class="r-sub">IGLN.L &nbsp; 2,2%</div></div><div class="r-right"><div class="r-pnl gain">+359,31 zł</div><div class="r-pct gain">+33,07%</div></div></div><div class="bar"><i style="width:2.2%"></i></div></div>
+    </div>
+    <div class="chartcard">
+      <div class="ch-head"><div class="seg"><b>1M</b><b class="on">3M</b><b>6M</b><b>YTD</b><b>Rok</b><b>Całość</b></div><div class="res">Dzień</div></div>
+      <div class="legend"><span><i style="background:var(--line1)"></i>Wartość</span><span><i style="background:var(--line2)"></i>Wpłaty</span><span><i style="background:var(--gain)"></i>Zmiana dzienna</span></div>
+      <svg viewBox="0 0 320 130"><path d="M0,40 L20,38 L40,39 L60,36 L80,37 L100,35 L120,38 L140,34 L160,33 L180,30 L200,31 L220,28 L240,29 L260,27 L280,24 L300,26 L320,22 L320,130 L0,130Z" fill="var(--line1)" opacity=".10"/><path d="M0,40 L20,38 L40,39 L60,36 L80,37 L100,35 L120,38 L140,34 L160,33 L180,30 L200,31 L220,28 L240,29 L260,27 L280,24 L300,26 L320,22" fill="none" stroke="var(--line1)" stroke-width="2.2"/><path d="M0,62 L320,62" stroke="var(--line2)" stroke-width="1.6" stroke-dasharray="5 4"/><g fill="var(--gain)"><rect x="12" y="100" width="4" height="12"/><rect x="44" y="96" width="4" height="16"/><rect x="92" y="104" width="4" height="8"/><rect x="140" y="94" width="4" height="18"/><rect x="188" y="98" width="4" height="14"/><rect x="236" y="101" width="4" height="11"/><rect x="284" y="92" width="4" height="20"/></g><g fill="var(--loss)"><rect x="28" y="112" width="4" height="9"/><rect x="68" y="112" width="4" height="14"/><rect x="116" y="112" width="4" height="6"/><rect x="164" y="112" width="4" height="10"/><rect x="212" y="112" width="4" height="7"/><rect x="260" y="112" width="4" height="12"/><rect x="304" y="112" width="4" height="5"/></g></svg>
+    </div>
+  </div>
+  
+</body></html>
