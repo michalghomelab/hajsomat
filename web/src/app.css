@@ -95,3 +95,11 @@
 .apexcharts-legend .apexcharts-legend-group {
   display: contents;
 }
+
+/* Horizontally scrollable segment rows without a visible scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
