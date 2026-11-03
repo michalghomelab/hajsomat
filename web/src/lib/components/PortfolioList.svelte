@@ -97,9 +97,9 @@
 </script>
 
 <PullToRefresh onRefresh={pullRefresh} disabled={loading || showCreate}>
-<div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
+<div class="px-3 pt-6 pb-28 sm:p-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
   {#if loading}
-    <div class="-mx-6 -mt-6 rounded-b-[1.75rem] bg-neutral px-6 pb-6 pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:mx-0 sm:mt-0 sm:rounded-3xl">
+    <div class="-mx-3 -mt-6 rounded-b-[1.75rem] bg-neutral px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:mx-0 sm:mt-0 sm:rounded-3xl">
       <div class="skeleton h-5 w-32 bg-white/10"></div>
       <div class="mt-4 skeleton h-10 w-56 bg-white/10"></div>
       <div class="mt-3 skeleton h-4 w-40 bg-white/10"></div>

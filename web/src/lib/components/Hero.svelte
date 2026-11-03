@@ -14,7 +14,7 @@
   let returnPct = $derived(percent(pnl, cost));
 </script>
 
-<section class="hero -mx-6 -mt-6 rounded-b-[1.75rem] border-x-0 border-t-0 border-b bg-neutral px-6 pb-6 pt-[calc(env(safe-area-inset-top)+1.25rem)] text-neutral-content sm:mx-0 sm:mt-0 sm:rounded-3xl sm:border sm:px-7 sm:pt-6">
+<section class="hero -mx-3 -mt-6 rounded-b-[1.75rem] border-x-0 border-t-0 border-b bg-neutral px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1.25rem)] text-neutral-content sm:mx-0 sm:mt-0 sm:rounded-3xl sm:border sm:px-7 sm:pt-6">
   <div class="flex items-start justify-between gap-3">
     <div class="min-w-0 flex-1">{@render top?.()}</div>
     <div class="shrink-0 text-right text-xs leading-relaxed text-neutral-content/65">

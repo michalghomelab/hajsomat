@@ -117,7 +117,7 @@
 
 <PullToRefresh onRefresh={pullRefresh} disabled={loading || showAdd || showImport}>
 {#if data}
-<div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
+<div class="px-3 pt-6 pb-28 sm:p-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
   <div>
     <Hero value={data.totals.market_value_pln} pnl={data.totals.pnl_pln} cost={data.totals.cost_pln}
           updatedAt={data.last_updated} incomplete={data.totals.incomplete}>
@@ -302,7 +302,7 @@
   {/if}
 </div>
 {:else if loading}
-  <div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
+  <div class="px-3 pt-6 pb-28 sm:p-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
     <div class="skeleton h-8 w-28"></div>
     <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-sm sm:p-5">
       <div class="space-y-4">
