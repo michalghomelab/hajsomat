@@ -1,18 +1,13 @@
 <script>
   import { tick } from "svelte";
-  import { onMount } from "svelte";
   import Sun from "@lucide/svelte/icons/sun";
   import Moon from "@lucide/svelte/icons/moon";
   import MonitorCog from "@lucide/svelte/icons/monitor-cog";
+  import { THEME_MODES, theme, setTheme } from "../theme.svelte.js";
 
-  const KEY = "hajsomat:theme";
-  const MODES = [
-    { id: "light", label: "Dzień", icon: Sun },
-    { id: "auto", label: "Auto", icon: MonitorCog },
-    { id: "dark", label: "Noc", icon: Moon },
-  ];
-
-  let mode = $state("auto");
+  const ICONS = { light: Sun, auto: MonitorCog, dark: Moon };
+  const MODES = THEME_MODES.map((m) => ({ ...m, icon: ICONS[m.id] }));
+  let mode = $derived(theme.mode);
   let groupEl = $state(null);
   let thumb = $state(null);
 
@@ -39,29 +34,6 @@
       };
     });
   }
-
-  function applyTheme(next) {
-    mode = next;
-    try {
-      localStorage.setItem(KEY, next);
-    } catch {
-      // selection just won't persist
-    }
-
-    if (next === "auto") document.documentElement.removeAttribute("data-theme");
-    else document.documentElement.dataset.theme = next;
-    window.dispatchEvent(new CustomEvent("hajsomat:themechange", { detail: { mode: next } }));
-  }
-
-  onMount(() => {
-    let saved = "auto";
-    try {
-      saved = localStorage.getItem(KEY) || "auto";
-    } catch {
-      // ignore
-    }
-    applyTheme(MODES.some((item) => item.id === saved) ? saved : "auto");
-  });
 
   $effect(() => {
     updateThumb(mode);
@@ -90,7 +62,7 @@
         aria-pressed={mode === item.id}
         aria-label={item.label}
         title={item.label}
-        onclick={() => applyTheme(item.id)}>
+        onclick={() => setTheme(item.id)}>
         {#if Icon}<Icon size={16} strokeWidth={2.3} />{/if}
       </button>
     {/each}

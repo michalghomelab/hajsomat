@@ -2,6 +2,9 @@ import { mount } from 'svelte'
 import '@fontsource-variable/bricolage-grotesque/opsz.css'
 import './app.css'
 import App from './App.svelte'
+import { initTheme } from './lib/theme.svelte.js'
+
+initTheme()
 
 const app = mount(App, {
   target: document.getElementById('app'),
