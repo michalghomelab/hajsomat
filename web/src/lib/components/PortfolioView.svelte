@@ -3,6 +3,7 @@
   import { api } from "../api.js";
   import { money, signedMoney, pnlClass, percent, quantity, sharePercent } from "../format.js";
   import { shares, byValueDesc, displayName } from "../allocation.js";
+  import { themeMenuItems } from "../theme.svelte.js";
   import Hero from "./Hero.svelte";
   import ShareBar from "./ShareBar.svelte";
   import SettingsMenu from "./SettingsMenu.svelte";
@@ -223,7 +224,7 @@
                       <div class="font-medium tabular-nums">{money(pos.last_price, pos.currency)}</div>
                     </div>
                   </div>
-                  <div class="text-xs font-semibold uppercase tracking-wide text-base-content/60 mb-2">
+                  <div class="mb-2 text-sm font-semibold text-base-content">
                     Zakupy ({pos.transactions.length})
                   </div>
                   <div class="space-y-1.5">
@@ -281,7 +282,7 @@
       <div class="space-y-4">
         <p class="rounded-xl bg-base-200/70 px-3 py-2 text-sm text-base-content/70">Wgraj plik .xlsx z historii operacji XTB. Transakcje już zaimportowane zostaną pominięte.</p>
         <label class="block">
-          <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45">Plik Cash Operations</span>
+          <span class="mb-1.5 block text-sm text-muted">Plik Cash Operations</span>
           <input type="file" accept=".xlsx" class="file-input file-input-bordered w-full rounded-xl"
                  onchange={(e) => (importFile = e.currentTarget.files[0])} />
         </label>
@@ -404,7 +405,8 @@
     disabled: !data,
     submenu: [
       { label: backfilling ? "Uzupełnianie..." : "Uzupełnij historię", onclick: backfill, disabled: backfilling },
-      { label: "Importuj raport XTB", onclick: () => (showImport = true) }
+      { label: "Importuj raport XTB", onclick: () => (showImport = true) },
+      ...themeMenuItems()
     ]
   }
 ]} />

@@ -3,6 +3,7 @@
   import { api } from "../api.js";
   import { money, signedMoney, pnlClass, percent, sharePercent } from "../format.js";
   import { shares, byValueDesc } from "../allocation.js";
+  import { themeMenuItems } from "../theme.svelte.js";
   import Hero from "./Hero.svelte";
   import ShareBar from "./ShareBar.svelte";
   import SettingsMenu from "./SettingsMenu.svelte";
@@ -20,7 +21,7 @@
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import Plus from "@lucide/svelte/icons/plus";
   import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-  import Camera from "@lucide/svelte/icons/camera";
+  import MoreHorizontal from "@lucide/svelte/icons/more-horizontal";
   import Clock from "@lucide/svelte/icons/clock";
   let { onSelect } = $props();
   let portfolios = $state([]);
@@ -208,5 +209,12 @@
       onclick: () => refreshEvery.set(interval.minutes)
     }))
   },
-  { label: snapshotting ? "Trwa..." : "Snapshot", icon: Camera, onclick: generateSnapshot, disabled: snapshotting }
+  {
+    label: "Więcej",
+    icon: MoreHorizontal,
+    submenu: [
+      { label: snapshotting ? "Generowanie..." : "Wygeneruj snapshot", onclick: generateSnapshot, disabled: snapshotting },
+      ...themeMenuItems()
+    ]
+  }
 ]} />

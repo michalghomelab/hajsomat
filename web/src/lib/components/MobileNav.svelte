@@ -1,6 +1,7 @@
 <script>
   import { fly, scale } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
+  import Menu from "@lucide/svelte/icons/menu";
 
   let { items = [] } = $props();
   let expanded = $state(false);
@@ -48,10 +49,10 @@
      bind:this={navEl}
      aria-label="Nawigacja mobilna">
   {#if expanded}
-    <div class="fixed inset-x-0 bottom-0 rounded-t-3xl border-x-0 border-b-0 border-t border-white/35 bg-white/25 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_60px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
+    <div class="fixed inset-x-0 bottom-0 rounded-t-3xl border-x-0 border-b-0 border-t border-base-300 bg-base-100/90 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_60px_rgba(20,26,51,0.16)] backdrop-blur-2xl"
          transition:fly={{ y: 18, duration: 180, easing: cubicOut }}>
       {#if openIndex != null && items[openIndex]?.submenu?.length}
-        <div class="absolute right-3 bottom-[calc(100%+0.5rem)] w-60 origin-bottom-right rounded-3xl border border-base-300/80 bg-base-100/95 p-2 shadow-[0_12px_36px_rgba(0,0,0,0.16)] backdrop-blur-md supports-[backdrop-filter]:bg-base-100/90"
+        <div class="absolute right-3 bottom-[calc(100%+0.5rem)] w-60 origin-bottom-right rounded-3xl border border-base-300 bg-base-100 p-2 shadow-[0_12px_36px_rgba(20,26,51,0.18)]"
              transition:scale={{ start: 0.96, duration: 140, easing: cubicOut }}>
           {#each items[openIndex].submenu as action}
             <button type="button"
@@ -70,7 +71,7 @@
         {#each items as item, index}
           {@const Icon = item.icon}
           <button type="button"
-                  class={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-xs text-base-content/70 transition-colors hover:bg-base-content/10 disabled:opacity-40 ${item.primary ? "bg-primary/15" : ""}`}
+                  class={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-xs text-muted transition-colors hover:bg-base-content/10 disabled:opacity-40 ${item.primary || openIndex === index ? "bg-primary/10" : ""}`}
                   class:text-primary={item.primary || openIndex === index}
                   onclick={() => activate(item, index)}
                   disabled={item.disabled}
@@ -84,12 +85,12 @@
     </div>
   {:else}
     <button type="button"
-            class="flex h-16 w-16 items-center justify-center rounded-full border border-white/35 bg-white/25 shadow-[0_18px_50px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-3xl supports-[backdrop-filter]:bg-base-100/35"
+            class="flex h-16 w-16 items-center justify-center rounded-full border border-base-300 bg-neutral text-accent shadow-[0_18px_50px_rgba(20,26,51,0.28)]"
             transition:scale={{ start: 0.9, duration: 150, easing: cubicOut }}
             onclick={toggleExpanded}
             aria-label="Pokaż menu"
             title="Menu">
-      <img src="/favicon.svg" alt="" class="h-10 w-10 opacity-80 grayscale saturate-0 contrast-125 dark:invert" />
+      <Menu size={26} strokeWidth={2.2} />
     </button>
   {/if}
 </nav>

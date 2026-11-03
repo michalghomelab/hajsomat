@@ -30,6 +30,18 @@ export function setTheme(next) {
   window.dispatchEvent(new CustomEvent("hajsomat:themechange", { detail: { mode: next } }));
 }
 
+// Entries for the mobile nav's "Więcej" submenu; it stays open on pick so the
+// change is visible right away.
+export function themeMenuItems() {
+  return THEME_MODES.map((m) => ({
+    label: `Motyw: ${m.label}`,
+    active: mode === m.id,
+    meta: mode === m.id ? "wybrane" : "",
+    keepOpen: true,
+    onclick: () => setTheme(m.id),
+  }));
+}
+
 export function initTheme() {
   let saved = "auto";
   try {

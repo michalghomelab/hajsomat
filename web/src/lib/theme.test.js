@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { THEME_MODES, theme, setTheme, initTheme } from "./theme.svelte.js";
+import { THEME_MODES, theme, setTheme, initTheme, themeMenuItems } from "./theme.svelte.js";
 
 const root = document.documentElement;
 
@@ -34,6 +34,18 @@ describe("initTheme", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
     expect(() => initTheme()).not.toThrow();
     expect(theme.mode).toBe("auto");
+  });
+});
+
+describe("themeMenuItems", () => {
+  it("offers the three modes as sticky menu items with the current one marked", () => {
+    setTheme("dark");
+    const items = themeMenuItems();
+    expect(items.map((i) => i.label)).toEqual(["Motyw: Dzień", "Motyw: Auto", "Motyw: Noc"]);
+    expect(items.map((i) => i.active)).toEqual([false, false, true]);
+    expect(items.every((i) => i.keepOpen)).toBe(true);
+    items[0].onclick();
+    expect(theme.mode).toBe("light");
   });
 });
 

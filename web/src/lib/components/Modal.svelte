@@ -3,8 +3,8 @@
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-  <button type="button" class="absolute inset-0 bg-black/45 backdrop-blur-sm" onclick={onClose} aria-label="Zamknij"></button>
-  <div class="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-auto rounded-2xl border border-base-300/70 bg-base-100/95 p-5 text-base-content shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-6"
+  <button type="button" class="absolute inset-0 bg-neutral/55 backdrop-blur-sm" onclick={onClose} aria-label="Zamknij"></button>
+  <div class="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-auto rounded-2xl border border-base-300 bg-base-100 p-5 text-base-content shadow-[0_24px_80px_rgba(20,26,51,0.30)] sm:p-6"
        role="dialog" aria-modal="true" aria-label={title}>
     <div class="mb-5 flex items-start justify-between gap-4">
       <div>

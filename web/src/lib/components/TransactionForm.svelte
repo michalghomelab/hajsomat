@@ -25,7 +25,7 @@
 
 <div class="space-y-4">
   <div class="relative">
-    <label class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45" for="ticker-search">Instrument</label>
+    <label class="mb-1.5 block text-sm text-muted" for="ticker-search">Instrument</label>
     <input id="ticker-search" class="input input-bordered w-full rounded-xl" placeholder="Szukaj tickera (np. AAPL)" bind:value={query} oninput={search} />
     {#if results.length}
       <ul class="absolute z-10 mt-2 max-h-56 w-full overflow-auto rounded-xl border border-base-300/70 bg-base-100 p-1 shadow-xl">
@@ -42,18 +42,18 @@
   </div>
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
     <label class="block">
-      <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45">Ilość</span>
+      <span class="mb-1.5 block text-sm text-muted">Ilość</span>
       <input class="input input-bordered w-full rounded-xl" placeholder="0" inputmode="decimal" bind:value={quantity} />
     </label>
     <label class="block">
-      <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45">Cena</span>
+      <span class="mb-1.5 block text-sm text-muted">Cena</span>
       <input class="input input-bordered w-full rounded-xl" placeholder="0,00" inputmode="decimal" bind:value={price} />
     </label>
     <label class="block">
-      <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-base-content/45">Data</span>
+      <span class="mb-1.5 block text-sm text-muted">Data</span>
       <input class="input input-bordered w-full rounded-xl" type="date" bind:value={executedAt} />
     </label>
   </div>
   {#if error}<p class="rounded-xl bg-error/10 px-3 py-2 text-sm text-error">{error}</p>{/if}
-  <button class="btn btn-success w-full sm:w-auto" onclick={submit}>Zapisz transakcję</button>
+  <button class="btn btn-primary w-full sm:w-auto" onclick={submit}>Zapisz transakcję</button>
 </div>
