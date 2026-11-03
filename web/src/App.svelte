@@ -1,7 +1,6 @@
 <script>
   import PortfolioList from "./lib/components/PortfolioList.svelte";
   import PortfolioView from "./lib/components/PortfolioView.svelte";
-  import ThemeSwitch from "./lib/components/ThemeSwitch.svelte";
   import { unlockAudio } from "./lib/audioFeedback.js";
 
   const buildId = __BUILD_ID__;
@@ -34,9 +33,7 @@
 </script>
 
 <div class="min-h-screen">
-  <div class="mx-auto hidden max-w-4xl justify-end px-6 pt-[max(0.75rem,env(safe-area-inset-top))] sm:flex">
-    <ThemeSwitch />
-  </div>
+  <div class="hidden h-[max(1.5rem,env(safe-area-inset-top))] sm:block"></div>
 
   {#if selectedId}
     {#key selectedId}
@@ -45,10 +42,6 @@
   {:else}
     <PortfolioList onSelect={open} />
   {/if}
-
-  <div class="mx-auto flex max-w-4xl justify-end px-6 pb-4 sm:hidden">
-    <ThemeSwitch />
-  </div>
 
   <footer class="px-6 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-center text-[10px] leading-none text-base-content/30 sm:-mt-2">
     {buildId}

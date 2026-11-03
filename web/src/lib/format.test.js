@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { money, pnlClass, percent, quantity, sharePercent, nextIn, updatedLabel } from "./format.js";
+import { money, signedMoney, pnlClass, percent, quantity, sharePercent, nextIn, updatedLabel } from "./format.js";
 
 // Intl pl-PL uses (narrow) no-break spaces as group separators; compare on plain spaces.
 const plain = (s) => s.replace(/\s/g, " ");
@@ -13,6 +13,17 @@ describe("money", () => {
   });
   it("renders an em dash for null", () => {
     expect(money(null, "PLN")).toBe("—");
+  });
+});
+
+describe("signedMoney", () => {
+  it("prefixes gains with a plus and keeps the minus on losses", () => {
+    expect(plain(signedMoney("9024.46"))).toBe("+9024,46 zł");
+    expect(plain(signedMoney("-206.99"))).toBe("-206,99 zł");
+    expect(plain(signedMoney("0"))).toBe("0,00 zł");
+  });
+  it("renders an em dash when unknown", () => {
+    expect(signedMoney(null)).toBe("—");
   });
 });
 

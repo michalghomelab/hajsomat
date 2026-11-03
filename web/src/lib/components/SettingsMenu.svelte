@@ -8,7 +8,7 @@
   let { actions = [] } = $props();
 </script>
 
-<div class="dropdown dropdown-end hidden sm:inline-block">
+<div class="dropdown hidden sm:inline-block">
   <div tabindex="0" role="button" class="btn btn-square border-base-300 bg-base-100 text-base-content hover:bg-base-200" aria-label="Ustawienia i akcje" title="Ustawienia i akcje">
     <Settings size={19} />
   </div>

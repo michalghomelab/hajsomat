@@ -6,6 +6,12 @@ export function money(value, currency = "PLN") {
 }
 
 const blank = (v) => v === null || v === undefined || v === "";
+
+// Money with an explicit "+" on gains, e.g. "+9024,46 zł" / "-206,99 zł".
+export function signedMoney(value, currency = "PLN") {
+  if (blank(value) || Number.isNaN(Number(value))) return "—";
+  return `${Number(value) > 0 ? "+" : ""}${money(value, currency)}`;
+}
 const pct2 = new Intl.NumberFormat("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct1 = new Intl.NumberFormat("pl-PL", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const qty = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 6 });

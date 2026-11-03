@@ -42,7 +42,13 @@
   $effect(() => {
     const onResize = () => updateThumb(mode);
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    // Inside a closed menu the group has no size; re-measure once it's shown.
+    const observer = groupEl && typeof ResizeObserver !== "undefined" ? new ResizeObserver(onResize) : null;
+    observer?.observe(groupEl);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      observer?.disconnect();
+    };
   });
 </script>
 

@@ -1,11 +1,13 @@
 <script>
   import { onMount } from "svelte";
   import { api } from "../api.js";
-  import { money, pnlClass, percent, dateTime } from "../format.js";
+  import { money, signedMoney, pnlClass, percent, quantity, sharePercent } from "../format.js";
+  import { shares, byValueDesc, displayName } from "../allocation.js";
+  import Hero from "./Hero.svelte";
+  import ShareBar from "./ShareBar.svelte";
+  import SettingsMenu from "./SettingsMenu.svelte";
   import TransactionForm from "./TransactionForm.svelte";
   import ChartPanel from "./ChartPanel.svelte";
-  import RefreshIntervalSelect from "./RefreshIntervalSelect.svelte";
-  import Countdown from "./Countdown.svelte";
   import RollingNumber from "./RollingNumber.svelte";
   import Modal from "./Modal.svelte";
   import MobileNav from "./MobileNav.svelte";
@@ -14,7 +16,6 @@
   import { market } from "../marketStatus.svelte.js";
   import { onPriceRefresh } from "../priceStream.js";
   import { sameSnapshots } from "../snapshots.js";
-  import Settings from "@lucide/svelte/icons/settings";
   import Pencil from "@lucide/svelte/icons/pencil";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -91,6 +92,9 @@
     else await load(true);
   }
   let expanded = $state({});
+  // Largest holdings first; each row shows its slice of the portfolio value.
+  let sortedPositions = $derived(byValueDesc(data?.positions ?? [], (p) => p.market_value_pln));
+  let positionShares = $derived(shares(data?.positions ?? [], (p) => p.market_value_pln));
   function toggle(sym) { expanded[sym] = !expanded[sym]; }
   async function deleteTxn(txnId) {
     if (!confirm("Usunąć tę transakcję?")) return;
@@ -113,158 +117,109 @@
 <PullToRefresh onRefresh={pullRefresh} disabled={loading || showAdd || showImport}>
 {#if data}
 <div class="p-6 pb-28 sm:pb-6 max-w-4xl mx-auto space-y-6">
-  <button class="btn btn-outline btn-sm gap-1 pl-2 hidden sm:inline-flex" onclick={onBack} aria-label="Wróć do listy portfeli">
-    <ChevronLeft size={18} /> Portfele
-  </button>
-
-  <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-4 shadow-sm sm:p-5">
-    <div class="space-y-4">
-      <div class="flex items-start gap-3">
-        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Wallet size={21} />
-        </span>
+  <div>
+    <Hero value={data.totals.market_value_pln} pnl={data.totals.pnl_pln} cost={data.totals.cost_pln}
+          updatedAt={data.last_updated} incomplete={data.totals.incomplete}>
+      {#snippet top()}
+        <button type="button" class="mb-2 hidden items-center gap-1 text-sm text-neutral-content/70 hover:text-neutral-content sm:inline-flex"
+                onclick={onBack} aria-label="Wróć do listy portfeli">
+          <ChevronLeft size={16} /> Portfele
+        </button>
         {#if editingName}
-          <div class="flex flex-1 flex-col gap-2 sm:flex-row">
-            <input class="input input-bordered flex-1 text-xl font-bold" bind:value={nameInput} />
-            <button class="btn btn-primary btn-sm" onclick={saveName}>Zapisz</button>
-            <button class="btn btn-ghost btn-sm" onclick={() => (editingName = false)}>Anuluj</button>
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <input class="input flex-1 text-lg font-bold text-base-content" bind:value={nameInput} aria-label="Nazwa portfela" />
+            <div class="flex gap-2">
+              <button class="btn btn-accent btn-sm" onclick={saveName}>Zapisz</button>
+              <button class="btn btn-ghost btn-sm text-neutral-content" onclick={() => (editingName = false)}>Anuluj</button>
+            </div>
           </div>
         {:else}
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <h1 class="truncate text-2xl font-semibold leading-tight text-base-content sm:text-3xl">{data.name}</h1>
-              <button class="btn btn-ghost btn-xs btn-square text-primary" onclick={startRename} aria-label="Zmień nazwę" title="Zmień nazwę">
-                <Pencil size={16} />
-              </button>
-            </div>
-            <p class="mt-1 text-xs text-base-content/55">Ceny zaktualizowane: {dateTime(data.last_updated)}</p>
+          <div class="flex items-center gap-1.5">
+            <h1 class="truncate text-xl font-bold leading-tight sm:text-2xl">{data.name}</h1>
+            <button class="btn btn-ghost btn-xs btn-square text-accent hover:bg-white/10" onclick={startRename} aria-label="Zmień nazwę" title="Zmień nazwę">
+              <Pencil size={15} />
+            </button>
           </div>
         {/if}
-      </div>
-
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
-          <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Wartość</div>
-          <div class="mt-1 text-xl font-semibold text-base-content">
-            <RollingNumber value={data.totals.market_value_pln} text={money(data.totals.market_value_pln)} />
-          </div>
-        </div>
-        <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
-          <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">P/L</div>
-          <div class="mt-1 text-xl font-semibold {pnlClass(data.totals.pnl_pln)}">
-            <RollingNumber value={data.totals.pnl_pln} text={money(data.totals.pnl_pln)} />
-          </div>
-        </div>
-        <div class="rounded-xl bg-base-200/70 px-3 py-2.5">
-          <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Stopa zwrotu</div>
-          <div class="mt-1 text-xl font-semibold {pnlClass(data.totals.pnl_pln)}">
-            <RollingNumber value={data.totals.pnl_pln} text={percent(data.totals.pnl_pln, data.totals.cost_pln)} />
-          </div>
-        </div>
-      </div>
-      {#if data.totals.incomplete}
-        <p class="rounded-xl bg-warning/10 px-3 py-2 text-sm text-warning">Część pozycji nie ma aktualnej wyceny. Kliknij „Odśwież ceny".</p>
-      {/if}
-    </div>
+      {/snippet}
+    </Hero>
   </div>
 
-  <div class="hidden sm:flex items-center gap-2 rounded-xl border border-base-300/60 bg-base-100/70 p-2 shadow-sm">
-    <button class="btn btn-success gap-2" onclick={() => (showAdd = true)}><Plus size={18} /> Dodaj transakcję</button>
-    <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-outline btn-square" aria-label="Akcje" title="Akcje">
-        <Settings size={20} />
-      </div>
-      <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-10 w-56 p-2 mt-1">
-        <li>
-          <button class="disabled:opacity-50" onclick={refresh} disabled={refreshing || !market.open}
-                  title={market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają"}>
-            {refreshing ? "Odświeżanie…" : "Odśwież ceny"}
-          </button>
-        </li>
-        <li>
-          <button onclick={backfill} disabled={backfilling}>
-            {backfilling ? "Uzupełnianie…" : "Uzupełnij historię"}
-          </button>
-        </li>
-        <li><button onclick={() => (showImport = true)}>Importuj raport XTB</button></li>
-      </ul>
-    </div>
-  </div>
-  <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
-    <span class="hidden sm:inline-flex"><RefreshIntervalSelect /></span>
-    <Countdown field="next_refresh_at" label="odświeżenie cen" title="Następne automatyczne odświeżenie cen" />
+  <div class="hidden items-center gap-2 sm:flex">
+    <button class="btn btn-primary gap-2" onclick={() => (showAdd = true)}><Plus size={18} /> Dodaj transakcję</button>
+    <SettingsMenu actions={[
+      { label: refreshing ? "Odświeżanie…" : "Odśwież ceny", onclick: refresh, disabled: refreshing || !market.open,
+        title: market.open ? "" : "Poza sesją (pn–pt 9:00–22:00) — ceny się nie zmieniają" },
+      { label: backfilling ? "Uzupełnianie…" : "Uzupełnij historię", onclick: backfill, disabled: backfilling },
+      { label: "Importuj raport XTB", onclick: () => (showImport = true) },
+    ]} />
   </div>
   {#if nameError}<p class="text-error text-sm">{nameError}</p>{/if}
   {#if refreshError}<p class="text-error text-sm">⚠ {refreshError}</p>{/if}
 
-  <div class="overflow-hidden rounded-2xl border border-base-300/60 bg-base-100/90 shadow-sm">
+  <div class="overflow-hidden rounded-2xl border border-base-300 bg-base-100">
     <table class="table text-sm">
-      <thead class="bg-base-200/60"><tr>
-        <th class="text-left">Symbol</th><th class="hidden text-right sm:table-cell">Ilość</th>
-        <th class="hidden text-right sm:table-cell">Śr. cena</th><th class="hidden text-right sm:table-cell">Cena</th>
-        <th class="hidden text-right sm:table-cell">Wartość (PLN)</th><th class="text-right">P/L (PLN)</th>
-        <th class="hidden text-right sm:table-cell">Zwrot</th>
+      <thead><tr class="border-base-300 text-muted">
+        <th class="text-left font-medium">Pozycja</th>
+        <th class="hidden text-right font-medium sm:table-cell">Ilość</th>
+        <th class="hidden text-right font-medium sm:table-cell">Śr. cena</th>
+        <th class="hidden text-right font-medium sm:table-cell">Cena</th>
+        <th class="hidden text-right font-medium sm:table-cell">Wartość</th>
+        <th class="text-right font-medium">Zysk</th>
       </tr></thead>
       <tbody>
-        {#each data.positions as pos (pos.symbol)}
+        {#each sortedPositions as pos (pos.symbol)}
           {@const link = instrumentLink(pos.symbol)}
-          {@const pnlBadge = `inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${Number(pos.pnl_pln) >= 0 ? "bg-success/12 text-success" : "bg-error/12 text-error"}`}
+          {@const share = positionShares.get(pos) ?? null}
           {@const returnPct = percent(pos.pnl_pln, pos.cost_pln)}
-          <tr class="cursor-pointer border-base-200 transition-colors hover:bg-base-200/45" onclick={() => toggle(pos.symbol)}>
-            <td>
-              <span class="inline-flex items-center gap-2">
-                <ChevronRight class={`text-base-content/40 transition-transform ${expanded[pos.symbol] ? "rotate-90" : ""}`} size={16} />
-                <span class="font-semibold text-base-content" title={pos.name}>{pos.symbol}</span>
-              </span>
-              <a href={link.href} target={link.target} rel="noopener"
-                 class="ml-1 inline-flex align-middle text-primary/80 hover:text-primary" title={link.title} onclick={(e) => e.stopPropagation()}>
-                <ExternalLink size={13} />
-              </a>
-            </td>
-            <td class="hidden text-right sm:table-cell">{pos.quantity}</td>
-            <td class="hidden text-right sm:table-cell">{money(pos.avg_price, pos.currency)}</td>
-            <td class="hidden text-right sm:table-cell">{money(pos.last_price, pos.currency)}</td>
-            <td class="hidden text-right sm:table-cell"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
-            <td class="text-right">
-              <span class="{pnlBadge} whitespace-nowrap">
-                <RollingNumber value={pos.pnl_pln} text={money(pos.pnl_pln)} />
-              </span>
-              {#if returnPct}
-                <div class="mt-1 pr-2 text-xs font-medium tabular-nums sm:hidden {pnlClass(pos.pnl_pln)}">
-                  <RollingNumber value={pos.pnl_pln} text={returnPct} />
+          <tr class="cursor-pointer border-base-300 align-top transition-colors hover:bg-base-200/60" onclick={() => toggle(pos.symbol)}>
+            <td class="w-full min-w-0">
+              <div class="flex items-start gap-2">
+                <ChevronRight class={`mt-0.5 shrink-0 text-muted transition-transform ${expanded[pos.symbol] ? "rotate-90" : ""}`} size={16} />
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold leading-snug text-base-content">{displayName(pos)}</div>
+                  <div class="mt-0.5 flex items-center gap-2 text-xs text-muted">
+                    <span>{pos.symbol}</span>
+                    <a href={link.href} target={link.target} rel="noopener"
+                       class="inline-flex text-muted hover:text-base-content" title={link.title} onclick={(e) => e.stopPropagation()}>
+                      <ExternalLink size={12} />
+                    </a>
+                    <span>{sharePercent(share)}</span>
+                  </div>
+                  <ShareBar {share} />
                 </div>
-              {/if}
+              </div>
             </td>
-            <td class="hidden text-right sm:table-cell">
-              {#if returnPct}
-                <span class={pnlBadge}><RollingNumber value={pos.pnl_pln} text={returnPct} /></span>
-              {:else}
-                <span class="text-base-content/40">—</span>
-              {/if}
+            <td class="hidden whitespace-nowrap text-right sm:table-cell">{quantity(pos.quantity)}</td>
+            <td class="hidden whitespace-nowrap text-right sm:table-cell">{money(pos.avg_price, pos.currency)}</td>
+            <td class="hidden whitespace-nowrap text-right sm:table-cell">{money(pos.last_price, pos.currency)}</td>
+            <td class="hidden whitespace-nowrap text-right sm:table-cell"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></td>
+            <td class="whitespace-nowrap text-right">
+              <div class="font-semibold {pnlClass(pos.pnl_pln)}"><RollingNumber value={pos.pnl_pln} text={signedMoney(pos.pnl_pln)} /></div>
+              <div class="mt-0.5 text-xs font-medium {pnlClass(pos.pnl_pln)}">
+                {#if returnPct}<RollingNumber value={pos.pnl_pln} text={returnPct} />{:else}—{/if}
+              </div>
             </td>
           </tr>
           {#if expanded[pos.symbol]}
             <tr>
-              <td colspan="7" class="p-0">
+              <td colspan="6" class="p-0">
                 <div class="border-y border-base-300/60 bg-base-200/60 px-4 py-3">
-                  {#if pos.name}
-                    <div class="mb-2 text-xs font-medium text-base-content/55">{pos.name} ({pos.symbol})</div>
-                  {/if}
                   <div class="mb-4 grid grid-cols-2 gap-2 text-sm sm:hidden">
                     <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
-                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Ilość</div>
-                      <div class="font-medium tabular-nums">{pos.quantity}</div>
+                      <div class="text-xs text-muted">Ilość</div>
+                      <div class="font-medium tabular-nums">{quantity(pos.quantity)}</div>
                     </div>
                     <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
-                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Wartość</div>
+                      <div class="text-xs text-muted">Wartość</div>
                       <div class="font-medium tabular-nums"><RollingNumber value={pos.market_value_pln} text={money(pos.market_value_pln)} /></div>
                     </div>
                     <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
-                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Śr. cena</div>
+                      <div class="text-xs text-muted">Śr. cena</div>
                       <div class="font-medium tabular-nums">{money(pos.avg_price, pos.currency)}</div>
                     </div>
                     <div class="rounded-xl border border-base-300/50 bg-base-100 px-3 py-2">
-                      <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Cena</div>
+                      <div class="text-xs text-muted">Cena</div>
                       <div class="font-medium tabular-nums">{money(pos.last_price, pos.currency)}</div>
                     </div>
                   </div>
@@ -279,25 +234,25 @@
                             <Trash2 size={14} />
                           </button>
                           <div class="rounded-lg bg-base-200/70 px-3 py-2">
-                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Data</div>
+                            <div class="text-xs text-muted">Data</div>
                             <div class="font-medium tabular-nums">{t.executed_at.slice(0, 10)}</div>
                           </div>
                           <div class="rounded-lg bg-base-200/70 px-3 py-2">
-                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Ilość</div>
-                            <div class="font-medium tabular-nums">{t.quantity}</div>
+                            <div class="text-xs text-muted">Ilość</div>
+                            <div class="font-medium tabular-nums">{quantity(t.quantity)}</div>
                           </div>
                           <div class="rounded-lg bg-base-200/70 px-3 py-2">
-                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Cena</div>
+                            <div class="text-xs text-muted">Cena</div>
                             <div class="font-medium tabular-nums">{money(t.price, t.currency)}</div>
                           </div>
                           <div class="rounded-lg bg-base-200/70 px-3 py-2">
-                            <div class="text-[0.7rem] font-medium uppercase tracking-wide text-base-content/45">Suma</div>
+                            <div class="text-xs text-muted">Suma</div>
                             <div class="font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</div>
                           </div>
                         </div>
                         <div class="hidden items-center gap-3 sm:flex">
                           <span class="text-base-content/60 sm:w-24 sm:shrink-0">{t.executed_at.slice(0, 10)}</span>
-                          <span class="flex-1 text-right tabular-nums">{t.quantity} × {money(t.price, t.currency)}</span>
+                          <span class="flex-1 text-right tabular-nums">{quantity(t.quantity)} × {money(t.price, t.currency)}</span>
                           <span class="w-32 text-right font-medium tabular-nums">{money(Number(t.quantity) * Number(t.price), t.currency)}</span>
                           <button class="btn btn-ghost btn-xs btn-circle text-error hidden sm:inline-flex" onclick={() => deleteTxn(t.id)} aria-label="Usuń">
                             <Trash2 size={14} />
@@ -379,7 +334,7 @@
       <table class="table text-sm">
         <thead class="bg-base-200/60">
           <tr>
-            {#each Array(7) as _}
+            {#each Array(6) as _}
               <th><div class="skeleton h-4 w-full min-w-16"></div></th>
             {/each}
           </tr>
@@ -393,7 +348,6 @@
               <td><div class="skeleton h-4 w-20 ml-auto"></div></td>
               <td><div class="skeleton h-4 w-24 ml-auto"></div></td>
               <td><div class="skeleton h-4 w-24 ml-auto"></div></td>
-              <td><div class="skeleton h-4 w-16 ml-auto"></div></td>
             </tr>
           {/each}
         </tbody>

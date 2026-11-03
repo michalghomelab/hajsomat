@@ -1,7 +1,7 @@
 <script>
   import RollingNumber from "./RollingNumber.svelte";
   import Countdown from "./Countdown.svelte";
-  import { money, percent, updatedLabel } from "../format.js";
+  import { money, signedMoney, percent, updatedLabel } from "../format.js";
 
   // The navy "Automat" header: one big number, the P/L line in gold (or the
   // loss colour), what was paid in. `top` renders on the first row (title,
@@ -10,7 +10,7 @@
 
   const blank = (v) => v === null || v === undefined || v === "";
   let gain = $derived(!blank(pnl) && Number(pnl) >= 0);
-  let signedPnl = $derived(blank(pnl) ? "—" : `${Number(pnl) > 0 ? "+" : ""}${money(pnl)}`);
+  let signedPnl = $derived(signedMoney(pnl));
   let returnPct = $derived(percent(pnl, cost));
 </script>
 
