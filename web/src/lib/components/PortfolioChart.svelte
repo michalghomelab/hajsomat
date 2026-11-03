@@ -4,30 +4,16 @@
   import "apexcharts/features/legend";
   import { untrack } from "svelte";
   import { attachWheelZoom } from "../chartZoom.js";
-  import { loadHiddenSeries, saveHiddenSeries } from "../chartRange.js";
+  import { buildChartOptions, buildSeries, buildXaxis, buildTooltip, seriesColors, chartPalette } from "../chartOptions.js";
+
   let { snapshots } = $props();
   let el = $state(null);
+  let width = $state(0);
   let chart = null;
   let detachZoom = null;
-  const SERIES_COLORS = {
-    value: "#1d4ed8",
-    cost: "#ca8a04",
-    profit: "#0e7490",
-    deposit: "#71717a",
-  };
 
-  function themeColor(name, fallback) {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return value || fallback;
-  }
-
-  function chartPalette() {
-    return {
-      ...SERIES_COLORS,
-      gain: themeColor("--color-success", "#16a34a"),
-      loss: themeColor("--color-error", "#dc2626"),
-    };
-  }
+  // Narrow containers (phones) get a compact layout: no axis titles, short dates.
+  let compact = $derived(width > 0 && width < 640);
 
   function isDark() {
     const theme = document.documentElement.dataset.theme;
@@ -36,148 +22,18 @@
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   }
 
-  // Split each day's value change into the deposit part (Δ cost basis = money
-  // added that day) and the market part (the rest = price/FX moves).
-  function dayChanges(snaps) {
-    const out = [];
-    for (let i = 1; i < snaps.length; i++) {
-      const dValue = Number(snaps[i].total_value_pln) - Number(snaps[i - 1].total_value_pln);
-      const dCost = Number(snaps[i].total_cost_pln) - Number(snaps[i - 1].total_cost_pln);
-      out.push({ index: i, date: snaps[i].date, deposit: dCost, market: dValue - dCost });
-    }
-    return out;
+  const fullOptions = (snaps, isCompact) =>
+    buildChartOptions(snaps, { palette: chartPalette(), dark: isDark(), compact: isCompact });
+
+  function rewireZoom() {
+    detachZoom?.();
+    detachZoom = attachWheelZoom(chart, el);
   }
-
-  // Cumulative figures (Wartość/Wpłaty/Zysk) share the left axis; the daily
-  // change bars are ~2 orders of magnitude smaller, so they live on the right
-  // axis. The legend toggles any series, so the chart stays readable even with
-  // both scales present.
-  const series = (snaps, colors = chartPalette()) => {
-    const d = dayChanges(snaps);
-    // All series use the same { x, y } object format — mixing object and tuple
-    // formats in one chart makes ApexCharts misparse the y-values of some series.
-    return [
-      { name: "Wartość", type: "area", data: snaps.map((s, i) => ({ x: i, y: Number(s.total_value_pln) })) },
-      { name: "Wpłaty", type: "area", data: snaps.map((s, i) => ({ x: i, y: Number(s.total_cost_pln) })) },
-      { name: "Zysk", type: "area", data: snaps.map((s, i) => ({ x: i, y: Number(s.pnl_pln) })) },
-      {
-        name: "Zmiana rynkowa", type: "column",
-        data: d.map((x) => ({ x: x.index, y: Number(x.market.toFixed(2)),
-          fillColor: x.market >= 0 ? colors.gain : colors.loss })),
-      },
-      { name: "Wpłata (dzienna)", type: "column", data: d.map((x) => ({ x: x.index, y: Number(x.deposit.toFixed(2)) })) },
-    ];
-  };
-
-  const money = (v) => v.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
-  const plnAxis = (v) => Math.round(v).toLocaleString("pl-PL");
-  const formatDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString("pl-PL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-  const dateAt = (snaps, value) => {
-    const index = Math.round(Number(value));
-    return Number.isInteger(index) && snaps[index]?.date ? snaps[index].date : null;
-  };
-  const xaxis = (snaps) => ({
-    type: "numeric",
-    min: 0,
-    max: Math.max(0, snaps.length - 1),
-    tickAmount: Math.min(6, Math.max(1, snaps.length - 1)),
-    labels: {
-      formatter: (value) => {
-        const date = dateAt(snaps, value);
-        return date ? formatDate(date) : "";
-      },
-    },
-  });
-  const tooltip = (snaps) => ({
-    shared: true,
-    intersect: false,
-    x: { formatter: (value) => {
-      const date = dateAt(snaps, value);
-      return date ? formatDate(date) : "";
-    } },
-    y: { formatter: tooltipY },
-  });
-
-  // Wartość (0) and Zysk (2) append the % change vs the previous visible point,
-  // coloured green/red; the other series just show the money value.
-  const tooltipY = (v, { seriesIndex, dataPointIndex, series: data }) => {
-    if (v == null) return "—";
-    if (seriesIndex === 0 || seriesIndex === 2) {
-      const prev = data[seriesIndex]?.[dataPointIndex - 1];
-      if (dataPointIndex > 0 && prev != null && prev !== 0) {
-        const pct = ((v - prev) / Math.abs(prev)) * 100;
-        const color = pct >= 0 ? chartPalette().gain : chartPalette().loss;
-        return `${money(v)} <span style="color:${color}">(${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(2)}%)</span>`;
-      }
-    }
-    return money(v);
-  };
-
-  const options = (snaps) => {
-    const colors = chartPalette();
-    const dark = isDark();
-    return {
-      chart: {
-        type: "line", height: 380, stacked: false,
-        fontFamily: "inherit", background: "transparent",
-        toolbar: { show: false }, zoom: { enabled: false }, animations: { easing: "easeinout" },
-        events: {
-          // Restore the persisted on/off state once the chart is on screen, and
-          // persist every legend toggle so it survives reloads.
-          mounted: (ctx) => loadHiddenSeries().forEach((name) => ctx.hideSeries(name)),
-          legendClick: (ctx, i) => {
-            const name = ctx.w.globals.seriesNames[i];
-            if (!name) return;
-            const hidden = new Set(loadHiddenSeries());
-            hidden.has(name) ? hidden.delete(name) : hidden.add(name);
-            saveHiddenSeries([...hidden]);
-          },
-        },
-      },
-      theme: { mode: dark ? "dark" : "light" },
-      series: series(snaps, colors),
-      colors: [colors.value, colors.cost, colors.profit, colors.gain, colors.deposit],
-      stroke: { curve: "smooth", width: [2.5, 2, 2, 0, 0], dashArray: [0, 5, 0, 0, 0] },
-      fill: {
-        type: ["gradient", "solid", "solid", "solid", "solid"],
-        gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 },
-        opacity: [1, 0, 0, 1, 1],
-      },
-      plotOptions: { bar: { columnWidth: "68%", borderRadius: 3 } },
-      dataLabels: { enabled: false },
-      legend: {
-        position: "top",
-        horizontalAlign: "left",
-        fontSize: "12px",
-        markers: { size: 5 },
-        itemMargin: { horizontal: 10, vertical: 4 },
-        labels: { colors: dark ? "#d4d4d8" : "#3f3f46" },
-      },
-      xaxis: xaxis(snaps),
-      // Two axes, each binding all of its series by name: cumulative figures share
-      // the left axis, the daily bars share the right one (~100x smaller scale).
-      yaxis: [
-        { seriesName: ["Wartość", "Wpłaty", "Zysk"], labels: { formatter: plnAxis }, title: { text: "PLN (skumulowane)" } },
-        { seriesName: ["Zmiana rynkowa", "Wpłata (dzienna)"], opposite: true, labels: { formatter: plnAxis },
-          title: { text: "zł / dzień" } },
-      ],
-      grid: { borderColor: dark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.055)", strokeDashArray: 3 },
-      states: {
-        hover: { filter: { type: "lighten", value: 0.04 } },
-        active: { filter: { type: "none" } },
-      },
-      tooltip: tooltip(snaps),
-    };
-  };
 
   // Build the chart once when the element mounts; reused across data changes.
   $effect(() => {
     if (!el) return;
-    const instance = new ApexCharts(el, untrack(() => options(snapshots ?? [])));
+    const instance = new ApexCharts(el, untrack(() => fullOptions(snapshots ?? [], compact)));
     instance.render();
     chart = instance;
     detachZoom = attachWheelZoom(instance, el);
@@ -194,25 +50,31 @@
   // bars render shifted/with stale hit areas until a page reload.
   $effect(() => {
     const data = snapshots ?? [];
+    const isCompact = compact;
     if (!chart) return;
-    const colors = chartPalette();
+    const palette = chartPalette();
     chart.updateOptions({
-      series: series(data, colors),
-      colors: [colors.value, colors.cost, colors.profit, colors.gain, colors.deposit],
-      xaxis: xaxis(data),
-      tooltip: tooltip(data),
+      series: buildSeries(data, palette),
+      colors: seriesColors(palette, isDark()),
+      xaxis: buildXaxis(data, { compact: isCompact }),
+      tooltip: buildTooltip(data, palette),
     }, true, true);
-    detachZoom?.();
-    detachZoom = attachWheelZoom(chart, el);
+    rewireZoom();
+  });
+
+  // Layout (compact) and theme changes need the full option set.
+  $effect(() => {
+    const isCompact = compact;
+    if (!chart) return;
+    untrack(() => chart.updateOptions(fullOptions(snapshots ?? [], isCompact), false, true));
+    rewireZoom();
   });
 
   $effect(() => {
     const refreshTheme = () => {
-      const data = snapshots ?? [];
       if (!chart) return;
-      chart.updateOptions(options(data), false, true);
-      detachZoom?.();
-      detachZoom = attachWheelZoom(chart, el);
+      chart.updateOptions(fullOptions(snapshots ?? [], compact), false, true);
+      rewireZoom();
     };
     const media = window.matchMedia?.("(prefers-color-scheme: dark)");
     window.addEventListener("hajsomat:themechange", refreshTheme);
@@ -225,7 +87,7 @@
 </script>
 
 {#if snapshots?.length}
-  <div class="rounded-2xl border border-base-300/60 bg-base-100/90 p-2 shadow-sm"><div bind:this={el}></div></div>
+  <div bind:clientWidth={width}><div bind:this={el}></div></div>
 {:else}
-  <p class="rounded-2xl border border-base-300/60 bg-base-100/80 px-4 py-3 text-sm text-base-content/60 shadow-sm">Brak danych historycznych — pojawią się po pierwszym dziennym snapshotcie.</p>
+  <p class="px-1 py-2 text-sm text-muted">Brak danych historycznych — pojawią się po pierwszym dziennym snapshotcie.</p>
 {/if}

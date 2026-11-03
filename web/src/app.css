@@ -89,3 +89,9 @@
   45% { transform: scale(0.9); }
   100% { transform: scale(1); }
 }
+
+/* ApexCharts groups legend items per y-axis and stacks each group in a column,
+   which turns 5 short labels into 3 rows. Flatten them into one wrapping row. */
+.apexcharts-legend .apexcharts-legend-group {
+  display: contents;
+}
