@@ -2,9 +2,11 @@
   import { onMount, onDestroy } from "svelte";
   import { api } from "../api.js";
   import { refreshEvery } from "../refreshInterval.svelte.js";
+  import { nextIn } from "../format.js";
 
   // `field` selects which time from /api/schedule to count down to.
-  let { field, label, title } = $props();
+  // `compact` renders a quiet "następne za 42 min" line (used in the hero).
+  let { field, label, title, compact = false } = $props();
   let nextAt = $state(null);
   let now = $state(Date.now());
   let loaded = $state(false);
@@ -53,7 +55,9 @@
   onDestroy(() => clearInterval(timer));
 </script>
 
-{#if !loaded}
+{#if compact}
+  {#if loaded && remaining != null}<span>następne {nextIn(remaining)}</span>{/if}
+{:else if !loaded}
   <span class="skeleton inline-block h-4 w-44 rounded align-middle"></span>
 {:else if text}
   <span class="text-xs text-base-content/60 tabular-nums" {title}>⏱ {label} za {text}</span>

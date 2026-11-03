@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { money, pnlClass, percent, quantity, sharePercent, nextIn } from "./format.js";
+import { money, pnlClass, percent, quantity, sharePercent, nextIn, updatedLabel } from "./format.js";
 
 // Intl pl-PL uses (narrow) no-break spaces as group separators; compare on plain spaces.
 const plain = (s) => s.replace(/\s/g, " ");
@@ -65,6 +65,19 @@ describe("nextIn", () => {
   });
   it("is empty when there is no next refresh", () => {
     expect(nextIn(null)).toBe("");
+  });
+});
+
+describe("updatedLabel", () => {
+  const now = new Date(2026, 10, 3, 12, 0);
+  it("shows only the time for today's prices", () => {
+    expect(updatedLabel(new Date(2026, 10, 3, 9, 10).toISOString(), now)).toBe("zaktualizowano 09:10");
+  });
+  it("adds the date for older prices", () => {
+    expect(updatedLabel(new Date(2026, 5, 6, 6, 51).toISOString(), now)).toBe("zaktualizowano 6.06, 06:51");
+  });
+  it("is empty without a timestamp", () => {
+    expect(updatedLabel(null, now)).toBe("");
   });
 });
 

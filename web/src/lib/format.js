@@ -45,6 +45,17 @@ export function nextIn(ms) {
   return rest ? `za ${hours} h ${rest} min` : `za ${hours} h`;
 }
 
+// "zaktualizowano 09:10" for today, "zaktualizowano 6.06, 06:51" otherwise.
+export function updatedLabel(value, now = new Date()) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const today = d.toDateString() === now.toDateString();
+  return today ? `zaktualizowano ${time}` : `zaktualizowano ${d.getDate()}.${pad(d.getMonth() + 1)}, ${time}`;
+}
+
 export function dateTime(value) {
   if (!value) return "—";
   const d = new Date(value);

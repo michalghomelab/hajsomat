@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelteTesting } from "@testing-library/svelte/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { execSync } from "node:child_process";
 
@@ -15,6 +16,7 @@ export default defineConfig({
   define: { __BUILD_ID__: JSON.stringify(buildId) },
   plugins: [
     svelte(),
+    svelteTesting(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon-180x180.png"],

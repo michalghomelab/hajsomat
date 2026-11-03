@@ -55,14 +55,23 @@
 
 :root {
   --hero-loss: #FF8A8F;
+  --hero-border: transparent;
 }
 :root[data-theme="dark"] {
   --color-muted: #A7AEC9;
+  --hero-border: #2A3256;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --color-muted: #A7AEC9;
+    --hero-border: #2A3256;
   }
+}
+
+/* Hero blends into the navy in light mode; in dark mode it's a card one tone
+   above the page, so it gets a hairline edge. */
+.hero {
+  border-color: var(--hero-border);
 }
 
 @layer base {

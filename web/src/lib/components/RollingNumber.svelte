@@ -28,7 +28,7 @@
   }
 </script>
 
-<span class="rolling tabular-nums">{#each chars as ch, i (i)}{#if ch >= "0" && ch <= "9"}<span class="slot"><span class="ghost">0</span><span class="window">{#key ch}<span class="digit" in:roll={{ y: dir > 0 ? -100 : 100 }} out:roll={{ y: dir > 0 ? 100 : -100 }}>{ch}</span>{/key}</span></span>{:else}{ch}{/if}{/each}</span>
+<span class="sr-only">{text}</span><span class="rolling tabular-nums" aria-hidden="true">{#each chars as ch, i (i)}{#if ch >= "0" && ch <= "9"}<span class="slot"><span class="ghost">0</span><span class="window">{#key ch}<span class="digit" in:roll={{ y: dir > 0 ? -100 : 100 }} out:roll={{ y: dir > 0 ? 100 : -100 }}>{ch}</span>{/key}</span></span>{:else}{ch}{/if}{/each}</span>
 
 <style>
   .rolling {
