@@ -33,6 +33,10 @@
 </script>
 
 <div class="min-h-screen">
+  <!-- iOS PWA (black-translucent status bar): keep a navy backdrop under the
+       clock/battery so the white status icons stay readable while scrolling.
+       Zero height wherever there's no top safe area. -->
+  <div class="pointer-events-none fixed inset-x-0 top-0 z-50 h-[env(safe-area-inset-top)] bg-neutral" aria-hidden="true"></div>
   <div class="hidden h-[max(1.5rem,env(safe-area-inset-top))] sm:block"></div>
 
   {#if selectedId}
