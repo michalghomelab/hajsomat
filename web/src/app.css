@@ -6,6 +6,65 @@
     radius;
 }
 
+/* "Automat" identity: navy + gold. Overrides daisyUI's built-in light/dark so
+   the existing data-theme switching keeps working unchanged. */
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #FFFFFF;
+  --color-base-200: #F3F4F8;
+  --color-base-300: #E4E6EF;
+  --color-base-content: #141A33;
+  --color-neutral: #141A33;
+  --color-neutral-content: #FFFFFF;
+  --color-primary: #141A33;
+  --color-primary-content: #F2B705;
+  --color-accent: #F2B705;
+  --color-accent-content: #141A33;
+  --color-success: #148A55;
+  --color-success-content: #FFFFFF;
+  --color-error: #CC3D45;
+  --color-error-content: #FFFFFF;
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: #1B2242;
+  --color-base-200: #0F1428;
+  --color-base-300: #2A3256;
+  --color-base-content: #E8EAF4;
+  --color-neutral: #1B2242;
+  --color-neutral-content: #FFFFFF;
+  --color-primary: #F2B705;
+  --color-primary-content: #141A33;
+  --color-accent: #F2B705;
+  --color-accent-content: #141A33;
+  --color-success: #2FBF7A;
+  --color-success-content: #0F1428;
+  --color-error: #F0646C;
+  --color-error-content: #0F1428;
+}
+
+@theme {
+  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-muted: #646B85;
+}
+
+:root {
+  --hero-loss: #FF8A8F;
+}
+:root[data-theme="dark"] {
+  --color-muted: #A7AEC9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-muted: #A7AEC9;
+  }
+}
+
 @layer base {
   body {
     @apply bg-base-200 text-base-content min-h-screen;
