@@ -5,12 +5,44 @@ export function money(value, currency = "PLN") {
   return new Intl.NumberFormat("pl-PL", { style: "currency", currency }).format(n);
 }
 
+const blank = (v) => v === null || v === undefined || v === "";
+const pct2 = new Intl.NumberFormat("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pct1 = new Intl.NumberFormat("pl-PL", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const qty = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 6 });
+
 export function percent(pnl, cost) {
   const c = Number(cost);
-  if (!c || pnl === null || pnl === undefined || pnl === "") return "";
+  if (!c || blank(pnl)) return "";
   const p = (Number(pnl) / c) * 100;
-  const sign = p > 0 ? "+" : "";
-  return `${sign}${p.toFixed(2)}%`;
+  const sign = p > 0 ? "+" : p < 0 ? "-" : "";
+  return `${sign}${pct2.format(Math.abs(p))}%`;
+}
+
+// Share count, e.g. "9,7636" — up to 6 decimals, no trailing zeros.
+export function quantity(value) {
+  if (blank(value) || Number.isNaN(Number(value))) return "—";
+  return qty.format(Number(value));
+}
+
+// A 0..1 share of a whole as "47,8%".
+export function sharePercent(share) {
+  if (share === null || share === undefined || Number.isNaN(share)) return "—";
+  return `${pct1.format(share * 100)}%`;
+}
+
+// Time until the next refresh, e.g. "za 42 min", "za 1 h 5 min", "za 2 dni".
+export function nextIn(ms) {
+  if (ms === null || ms === undefined) return "";
+  if (ms < 60_000) return "za chwilę";
+  const minutes = Math.floor(ms / 60_000);
+  const hours = Math.floor(minutes / 60);
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24);
+    return days === 1 ? "za 1 dzień" : `za ${days} dni`;
+  }
+  const rest = minutes % 60;
+  if (!hours) return `za ${minutes} min`;
+  return rest ? `za ${hours} h ${rest} min` : `za ${hours} h`;
 }
 
 export function dateTime(value) {
