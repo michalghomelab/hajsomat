@@ -40,6 +40,9 @@ export default defineConfig({
         // Precache the app shell; serve live data from the network but fall back
         // to the last response when offline (the UI's "Ceny zaktualizowane" stamp
         // makes staleness visible). POSTs (refresh/snapshot) always hit the network.
+        // Include the self-hosted Bricolage font so the installed app keeps its
+        // typeface offline (default globs cover only js/css/html).
+        globPatterns: ["**/*.{js,css,html,woff2,svg,png}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/cable/],
         runtimeCaching: [
